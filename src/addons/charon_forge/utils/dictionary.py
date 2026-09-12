@@ -6,6 +6,7 @@ than through a dedicated module, so this stays Charon's own code.
 """
 
 import csv
+import json
 import os
 import re
 
@@ -20,6 +21,8 @@ nice_name_dictionary = {}
 
 PART_DEFINITION = os.path.join(RESOURCES_DIR, "DT_PartDefinition.csv")
 part_definition_dictionary = {}
+
+PRIORITY_LIST_JSON = os.path.join(RESOURCES_DIR, "priority_list.json")
 
 
 def to_title_case(text):
@@ -60,6 +63,26 @@ def get_parts_definition():
                 part_definition_dictionary[m_obj_id] = row
 
     return part_definition_dictionary
+
+
+def get_priority_list():
+    """[{object id: nice name}, ...], read fresh from priority_list.json.
+
+    Not cached like the dictionaries above: the optimiser panel's UIList
+    edits this file (reordering/deleting groups) and needs every read to
+    see its own latest write.
+    """
+    if not os.path.exists(PRIORITY_LIST_JSON):
+        return []
+
+    with open(PRIORITY_LIST_JSON, "r", encoding="utf-8") as priority_file:
+        return json.load(priority_file)
+
+
+def save_priority_list(priority_list):
+    """Write priority_list.json back out, same array-of-groups shape."""
+    with open(PRIORITY_LIST_JSON, "w", encoding="utf-8") as priority_file:
+        json.dump(priority_list, priority_file, indent=4, ensure_ascii=False)
 
 
 def get_category_vise_objects():

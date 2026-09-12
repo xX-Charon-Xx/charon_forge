@@ -18,9 +18,12 @@ def apply_default_proxy_quality(_dummy):
     load_post the same as opening a saved file - so a scene never sits at the
     "wrong" proxy quality (and the base builder addon at the "wrong" active
     builder) for what the user configured in Charon Forge's preferences.
+
+    Does nothing while the "Auto Switch on Open" toggle is off, leaving an
+    opened file at whatever quality it was saved at.
     """
     prefs = addon_preferences.get_addon_preferences()
-    if prefs is None:
+    if prefs is None or not prefs.auto_switch_on_open:
         return
 
     context = bpy.context

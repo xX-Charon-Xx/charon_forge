@@ -6,9 +6,11 @@ from bpy.props import PointerProperty
 from . import addon_preferences, hooks
 from .addon import (asset_browser, asset_browser_operators,
                     asset_browser_presentation, header, header_operators,
-                    header_presentation)
+                    header_presentation, optimiser, optimiser_operators,
+                    optimiser_presentation)
 from .addon.asset_browser import AssetBrowser
 from .addon.header import Header
+from .addon.optimiser import Optimiser
 from .addon_preferences import CharonAddonPreferences
 from .menu import base_builder_menu, base_builder_menu_operators
 from .objects import preset
@@ -26,6 +28,12 @@ classes = (
 )
 
 classes = classes + header.classes + header_operators.classes + header_presentation.classes
+classes = (
+    classes
+    + optimiser.classes
+    + optimiser_operators.classes
+    + optimiser_presentation.classes
+)
 classes = (
     classes
     + asset_browser.classes
@@ -57,6 +65,7 @@ def register():
         themes_util.apply_named_theme(prefs.theme)
 
     bpy.types.Scene.charon_header = PointerProperty(type=Header)
+    bpy.types.Scene.charon_optimiser = PointerProperty(type=Optimiser)
     bpy.types.Scene.nms_asset_browser = PointerProperty(type=AssetBrowser)
 
     # the "Builder" and "I/O" dropdowns in the 3D viewport's header
@@ -73,6 +82,7 @@ def unregister():
     base_builder_menu.unregister_menu()
 
     del bpy.types.Scene.nms_asset_browser
+    del bpy.types.Scene.charon_optimiser
     del bpy.types.Scene.charon_header
     del bpy.types.Scene.nms_batch_tool
 

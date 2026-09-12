@@ -4,6 +4,7 @@ import importlib
 
 import bpy
 
+from .. import addon_preferences
 from ..addon import asset_browser_presentation
 from ..utils import icon_utils
 
@@ -121,6 +122,13 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
             "object.nms_switch_proxies_to_high", text="High-res Proxies",
             icon="MESH_MONKEY", depress=quality == "high",
         )
+
+        # Drawn straight off the preferences rather than mirrored onto the
+        # scene: whether opening a file re-switches it is a per-user choice
+        # that has to outlive the file it was toggled in.
+        prefs = addon_preferences.get_addon_preferences()
+        if prefs is not None:
+            proxy_box.prop(prefs, "auto_switch_on_open")
     
         
         layout.separator()
@@ -130,42 +138,52 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
             "object.nms_launch_asset_browser_window", text="Launch Asset Browser", icon="ASSET_MANAGER"
         )
         
-        layout.separator()
-        quick_access_column = layout.column(align = True)
-        quick_access_column.label(text = "Quick Access")
-        quick_access_column.row(align = True).prop(context.scene,"enum_assets_quick_access_view_mode", expand = True)
-        quick_access_column.separator()
-        
-        
-        def draw_assets(asset_data):
-            if asset_data:
-                row = quick_access_column.row(align = True)
-                for subcategories, object_ids in asset_data.items():
-                    asset_browser_presentation.draw_sub_category(
-                        pcoll = pcoll, 
-                        container = row, 
-                        label = subcategories,
-                        elements_list = object_ids, 
-                        number_of_columns = 4,
-                        icon_size = 2,
-                        grid_type = "Other",
-                        show_title = False
-                    )
-                
-        
         recent_data = asset_browser.get_recent_objects_data()
-        if enum_assets_quick_access_view_mode == "recent":
-            if recent_data:
-                recent_first_four = dict(list(recent_data.items())[:4])
-                recent_dict = {"Recent Objects": recent_first_four}
-    
-                draw_assets(recent_dict)
-        else:
-            fav_data = asset_browser.get_favourite_objects_data()
-            if fav_data:
-                fav_first_four = dict(list(fav_data.items())[:4])
-                fav_dict = {"Favourite Objects": fav_first_four}
-                draw_assets(fav_dict)
+        fav_data = asset_browser.get_favourite_objects_data()
+
+        # Neither tab has anything to show yet - skip the whole section
+        # (including the Favourites/Recent switcher) rather than offer a
+        # toggle between two empty lists.
+        if recent_data or fav_data:
+            layout.separator()
+            quick_access_column = layout.column(align = True)
+            quick_access_column.label(text = "Quick Access")
+            quick_access_column.row(align = True).prop(context.scene,"enum_assets_quick_access_view_mode", expand = True)
+            quick_access_column.separator()
+
+
+            def draw_assets(asset_data):
+                if asset_data:
+                    row = quick_access_column.row(align = True)
+                    for subcategories, object_ids in asset_data.items():
+                        asset_browser_presentation.draw_sub_category(
+                            pcoll = pcoll,
+                            container = row,
+                            label = subcategories,
+                            elements_list = object_ids,
+                            number_of_columns = 4,
+                            icon_size = 2,
+                            grid_type = "Other",
+                            show_title = False
+                        )
+                else:
+                    quick_access_column.label(text="No Items")
+
+
+            if enum_assets_quick_access_view_mode == "recent":
+                if recent_data:
+                    recent_first_four = dict(list(recent_data.items())[:4])
+                    recent_dict = {"Recent Objects": recent_first_four}
+                    draw_assets(recent_dict)
+                else:
+                    draw_assets(None)
+            else:
+                if fav_data:
+                    fav_first_four = dict(list(fav_data.items())[:4])
+                    fav_dict = {"Favourite Objects": fav_first_four}
+                    draw_assets(fav_dict)
+                else:
+                    draw_assets(None)
         
         layout.separator()
         search_colun = layout.column(align = True)

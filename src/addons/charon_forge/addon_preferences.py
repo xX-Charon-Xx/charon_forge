@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import EnumProperty, IntProperty
+from bpy.props import BoolProperty, EnumProperty, IntProperty
 
 from .utils import themes_util
 
@@ -57,6 +57,18 @@ class CharonAddonPreferences(bpy.types.AddonPreferences):
         default="high",
     )
 
+    # Whether that handler runs at all. Off leaves an opened file at whatever
+    # quality it was saved at, for working on a base built at one quality
+    # without it being switched out from under you on every open.
+    auto_switch_on_open: BoolProperty(
+        name="Auto Switch on Open",
+        description=(
+            "Switch every part and group to the default proxy quality "
+            "whenever a blend file is opened"
+        ),
+        default=True,
+    )
+
     # Icon size / column count per asset browser view mode. Read through
     # nms/utils/asset_browser_utils.get_grid_size_properties(), ported from
     # the reference addon's addon_preferences.py.
@@ -89,6 +101,7 @@ class CharonAddonPreferences(bpy.types.AddonPreferences):
         layout = self.layout
         layout.row().prop(self, "theme", text="Theme")
         layout.row().prop(self, "default_proxy_quality", expand=True)
+        layout.row().prop(self, "auto_switch_on_open")
 
 
 def get_addon_preferences():
