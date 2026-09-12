@@ -1,0 +1,83 @@
+name: Build Blender Extension
+
+on:
+  push:
+    tags:
+      - "v*"
+
+  workflow_dispatch:
+
+jobs:
+  build-extension:
+    runs-on: ubuntu-latest
+
+    env:
+      ADDON_DIR: "src/addons/charon_forge"
+      BLENDER_URL: "5.1"
+      BLENDER_VERSION: "5.1.0"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            wget \
+            xz-utils
+
+      - name: Download Blender
+        run: |
+          wget https://download.blender.org/release/Blender${BLENDER_URL}/blender-${BLENDER_VERSION}-linux-x64.tar.xz
+
+      - name: Extract Blender
+        run: |
+          tar -xf blender-${BLENDER_VERSION}-linux-x64.tar.xz
+
+      - name: Add Blender To PATH
+        run: |
+          echo "$PWD/blender-${BLENDER_VERSION}-linux-x64" >> $GITHUB_PATH
+
+      - name: Verify Blender Install
+        run: |
+          blender --version
+
+      - name: Validate Extension
+        run: |
+          blender --command extension validate "${ADDON_DIR}"
+
+      - name: Build Extension
+        run: |
+          blender --command extension build --source-dir "${ADDON_DIR}"
+
+      - name: List Generated ZIP Files
+        run: |
+          find . -name "*.zip"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: charon_forge
+          path: ./*.zip
+
+      - name: Extract Release Notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          awk "
+            /^release ${VERSION}$/ {flag=1}
+            /^release [0-9]/ && flag && !/^release ${VERSION}$/ {exit}
+            flag
+          " release_notes.md > CURRENT_RELEASE_NOTES.md
+
+      - name: Show Extracted Notes
+        run: |
+          cat CURRENT_RELEASE_NOTES.md
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./*.zip
+          body_path: CURRENT_RELEASE_NOTES.md

@@ -1,0 +1,12 @@
+{
+  "base_path": "images",
+  "icons": {
+    "plugin_icon": "plugin_icon.png",
+    "online": "T_Icon_Online.png",
+    "discord": "T_Icon_Discord.png",
+    "app_icon": "app_icon.png",
+    "app_title": "app_title.png",
+    "app_cover": "app_cover.png",
+    "app_cover_2": "app_cover_2.png"
+  }
+}

@@ -1,0 +1,20 @@
+charon_forge.zip
+charon_forge-*.zip
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# Editor / IDE
+.vscode/
+.idea/
+
+#distribution directory
+dist/

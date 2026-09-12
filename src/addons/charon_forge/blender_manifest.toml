@@ -1,0 +1,49 @@
+schema_version = "1.0.0"
+
+# Example of manifest file for a Blender extension
+# Change the values according to your extension
+id = "charon_forge"
+version = "0.1.0"
+name = "Charon Forge"
+tagline = "Charon Forge, NMS Builder"
+maintainer = "kume_the_wizard"
+# Supported types: "add-on", "theme"
+type = "add-on"
+
+# # Optional: link to documentation, support, source files, etc
+# website = "https://example.com/charon-forge"
+
+# # Optional: tag list defined by Blender and server, see:
+# # https://docs.blender.org/manual/en/dev/advanced/extensions/tags.html
+tags = ["3D View"]
+
+blender_version_min = "4.5.0"
+# # Optional: Blender version that the extension does not support, earlier versions are supported.
+# # This can be omitted and defined later on the extensions platform if an issue is found.
+# blender_version_max = "6.0.0"
+
+# License conforming to https://spdx.org/licenses/ (use "SPDX: prefix)
+# https://docs.blender.org/manual/en/dev/advanced/extensions/licenses.html
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+
+# # Optional: list of supported platforms. If omitted, the extension will be available in all operating systems.
+# platforms = ["windows-x64", "macos-arm64", "linux-x64"]
+
+# # Optional: add-ons can list which resources they will require:
+# [permissions]
+# files = "Import/export files from/to disk"
+# network = "Download assets"
+
+
+# # Optional: advanced build settings.
+# # https://docs.blender.org/manual/en/dev/advanced/extensions/command_line_arguments.html#command-line-args-extension-build
+# [build]
+# # These are the default build excluded patterns.
+# # You only need to edit them if you want different options.
+# paths_exclude_pattern = [
+#    "__pycache__/",
+#    "/.git/",
+#    "/*.zip",
+#  ]
