@@ -7,6 +7,11 @@ import bpy.utils.previews
 ADDON_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 ICONS_JSON = os.path.join(ADDON_PATH, "resources", "icon_definitions.json")
 
+# One PNG per object id, named <object_id>.png - the asset browser's per-part
+# thumbnails, scanned rather than listed in icon_definitions.json since there
+# are thousands of them.
+ASSET_ICONS_PATH = os.path.join(ADDON_PATH, "asset_browser", "icons")
+
 preview_collections = {}
 
 
@@ -45,8 +50,33 @@ def get_icon_id(name):
     return get_icons_pcoll()[name].icon_id
 
 
+def load_asset_icons():
+    """Scan ASSET_ICONS_PATH for PNGs and load them into a preview collection.
+
+    One icon per object id, named <object_id>.png - what the asset browser's
+    grid looks each part up by.
+    """
+    pcoll = bpy.utils.previews.new()
+
+    if not os.path.exists(ASSET_ICONS_PATH):
+        print(f"Directory not found: {ASSET_ICONS_PATH}")
+        return pcoll
+
+    for filename in os.listdir(ASSET_ICONS_PATH):
+        if filename.lower().endswith(".png"):
+            icon_name = os.path.splitext(filename)[0]
+            pcoll.load(icon_name, os.path.join(ASSET_ICONS_PATH, filename), "IMAGE")
+
+    return pcoll
+
+
+def get_asset_icons_pcoll():
+    return preview_collections["asset_icons"]
+
+
 def register_icons():
     preview_collections["ui_icons"] = extract_pcoll()
+    preview_collections["asset_icons"] = load_asset_icons()
 
 
 def unregister_icons():

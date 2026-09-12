@@ -19,7 +19,7 @@ colour. Never copy a mesh or a material just to recolour something here.
 
 import bpy
 
-from ..nms.utils import userdata
+from ..utils.base_builder_utils import userdata
 from . import finishes, palettes
 from .finish_nodes import ensure_finish_nodes
 from .properties import (COLOURISE_GROUP, MESH_TAG, PROP_FINISH_METALLIC,

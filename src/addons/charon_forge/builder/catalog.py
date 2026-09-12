@@ -2,8 +2,8 @@
 
 import os
 
-from ..nms import preset
-from ..nms.utils import dictionary
+from ..objects import preset
+from ..utils import dictionary
 from . import paths
 
 # {object id: fbx path} for the base builder addon's model folder, built on
@@ -59,7 +59,17 @@ class Catalog(object):
     MODS_PATH = paths.MODS_PATH
     PRESET_PATH = paths.PRESET_PATH
 
-    nice_name_dictionary = dictionary.get_nice_names_diictionary()
+    # Read on first use rather than here: dictionary.py's loader now resolves
+    # against the base builder addon at call time, which is not guaranteed to
+    # be loaded yet while blender is still importing addons.
+    _nice_name_dictionary = None
+
+    @property
+    def nice_name_dictionary(self):
+        cls = type(self)
+        if cls._nice_name_dictionary is None:
+            cls._nice_name_dictionary = dictionary.get_nice_names_diictionary()
+        return cls._nice_name_dictionary
 
     def __init__(self):
         # Create default part pack.

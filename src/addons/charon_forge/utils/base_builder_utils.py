@@ -64,6 +64,72 @@ def is_available():
     return get_hooks_module() is not None
 
 
+# --- other submodules --------------------------------------------------------
+#
+# Charon Forge has no fbx/scene-plumbing utilities or part-override classes of
+# its own any more - it uses the base builder addon's, in place, rather than
+# keeping a second copy to maintain. blend_utils/overrides below are used
+# exactly like an ordinary imported module (blend_utils.add_to_scene(...)),
+# but every attribute access resolves against the real module at call time
+# instead of once at import time - so Charon Forge still loads even if the
+# base builder addon happens to register after it, and a disable/enable or
+# reload of that addon is picked up on the next call rather than needing
+# these re-imported.
+
+
+def get_module(relative_path):
+    """A submodule of the host addon, e.g. "utils.blend_utils", if it is loaded.
+
+    Nothing here imports the addon - see the module docstring - so this only
+    succeeds once something inside that addon has already imported the
+    submodule itself, which every submodule of it has by the time the addon
+    finishes registering.
+    """
+    addon_module = get_addon_module_name()
+    if addon_module is None:
+        return None
+    return sys.modules.get(f"{addon_module}.{relative_path}")
+
+
+class _HostModuleProxy:
+    """Stands in for a host addon submodule, resolved on every attribute access.
+
+    `blend_utils = _HostModuleProxy("utils.blend_utils")` then
+    `blend_utils.add_to_scene(...)` behaves like the module was imported
+    directly, except the lookup happens now rather than at import time.
+    """
+
+    def __init__(self, relative_path):
+        self._relative_path = relative_path
+
+    def __getattr__(self, name):
+        module = get_module(self._relative_path)
+        if module is None:
+            raise AttributeError(
+                f"{self._relative_path} has no attribute {name!r} "
+                "(base builder addon not loaded)"
+            )
+        return getattr(module, name)
+
+
+# The host addon's utils.blend_utils - add_to_scene, select, and so on.
+blend_utils = _HostModuleProxy("utils.blend_utils")
+
+# The host addon's builder.overrides - which Part subclass builds which id.
+# Exposes get_part_class(object_id)/get_override_class(object_id) to look one
+# up, and register_override(class_ref, object_ids)/unregister_override(ids) to
+# add or remove entries - the extension point another addon's own part
+# classes are meant to go through, ahead of the built in table.
+overrides = _HostModuleProxy("builder.overrides")
+
+# The host addon's utils.userdata - packing/unpacking a UserData bitfield.
+userdata = _HostModuleProxy("utils.userdata")
+
+# The host addon's utils.python - load_dictionary, get_adjacent_dict_key,
+# prefer_int. Plain python helpers, nothing addon specific about them.
+python_utils = _HostModuleProxy("utils.python")
+
+
 # --- base classes, to subclass ---------------------------------------------
 
 def get_builder_class():

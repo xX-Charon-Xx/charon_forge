@@ -5,7 +5,7 @@ import importlib
 import bpy
 
 from ..addon import asset_browser_presentation
-from ..nms import icons
+from ..utils import icon_utils
 
 # The clipboard import/export and the save editor are features of the addon
 # this menu was ported from that Charon Forge doesn't have yet. The I/O
@@ -102,7 +102,7 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
         
         asset_browser = context.scene.nms_asset_browser
         enum_assets_quick_access_view_mode = context.scene.enum_assets_quick_access_view_mode
-        pcoll = icons.get_asset_icons_pcoll()
+        pcoll = icon_utils.get_asset_icons_pcoll()
         
         
         # Drawn as two operators rather than as the enum itself: the switch

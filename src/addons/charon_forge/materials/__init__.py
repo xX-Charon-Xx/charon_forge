@@ -26,7 +26,7 @@ from .dedupe import dedupe_appended_data, dedupe_images, dedupe_node_groups
 from .deferral import defer_shared_data, note_appended_data
 from .finish_nodes import ensure_finish_nodes
 from .finishes import FINISH_NEUTRAL, get_finish, get_finish_table
-from .flat import GHOSTED_ITEMS, MaterialProvider, optimise_materials
+from .flat import MaterialProvider, optimise_materials
 from .mixin import HighResMaterialsMixin
 from .palettes import (BAKED_COLOURS, BAKED_INDEX_COLOURS, BAKED_PALETTES,
                        BAKED_PALETTES_UI, darken_color, decode_user_data,

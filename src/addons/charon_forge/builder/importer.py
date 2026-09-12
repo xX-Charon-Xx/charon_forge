@@ -20,9 +20,9 @@ import time
 import bpy
 import mathutils
 
-from ..nms.part import Part
+from ..objects.part import Part
 from .. import materials
-from ..nms.utils import collection_utils
+from ..utils import collection_utils
 from . import asset_library, placement
 
 # name of collection to import objects to

@@ -22,7 +22,7 @@ import csv
 import json
 import re
 
-from ..nms.utils import userdata
+from ..utils.base_builder_utils import userdata
 from . import paths
 
 

@@ -1,10 +1,11 @@
 import bpy
 import json
 import os
-from ..nms.utils import blend_utils, dictionary
+from ..utils import dictionary
+from ..utils.base_builder_utils import blend_utils
 from .. import builder as charon_builder
-from ..nms.utils import asset_browser_utils
-from ..nms.utils.asset_browser_utils import get_preferences
+from ..utils import asset_browser_utils
+from ..utils.asset_browser_utils import get_preferences
 import ctypes
 
 try:

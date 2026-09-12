@@ -18,9 +18,10 @@ import os
 
 import bpy
 
-from ..nms.part import Part
+from ..objects.part import Part
+from ..utils import variant_map
 from .. import materials
-from ..nms.utils import blend_utils, variant_map
+from ..utils.base_builder_utils import blend_utils
 from . import asset_library
 
 PROXY_MESH_PREFIX = "NMS_LR_"

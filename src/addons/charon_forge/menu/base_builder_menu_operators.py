@@ -14,8 +14,8 @@ import bpy
 
 from .. import builder as charon_builder
 from .. import materials
-from ..nms.group import Group
-from ..nms.part import Part
+from ..objects.group import Group
+from ..objects.part import Part
 from ..utils import base_builder_utils
 
 

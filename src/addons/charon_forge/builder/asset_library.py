@@ -7,10 +7,12 @@ datablocks. See placement.py for turning those into parts.
 
 import os
 
+import bmesh
 import bpy
 
 from .. import materials
-from ..nms.utils import blend_utils, variant_map
+from ..utils import variant_map
+from ..utils.base_builder_utils import blend_utils
 from . import paths
 
 # An earlier build of the library shipped some ids as several style variants,
@@ -39,15 +41,117 @@ MESH_TAG = materials.MESH_TAG
 REBUILD_VARIANTS = True
 
 # Strip the doubled geometry a lot of the library ships with as each asset is
-# appended - see blend_utils.remove_duplicate_faces for what it is and why it
-# only shows up in Cycles. Done here rather than in the asset files because the
+# appended - see _remove_duplicate_faces below for what it is and why it only
+# shows up in Cycles. Done here rather than in the asset files because the
 # library is generated: fixing the blends by hand would last until the next
 # extraction run, and this also covers whatever is generated next. Runs once
 # per part per session, on the shared mesh every placement then points at.
 CLEAN_DUPLICATE_FACES = True
 
+# Two faces count as facing the same way when their normals agree at least
+# this closely. Well above anything a rounding difference produces, and well
+# below the angle a genuine back face sits at.
+FACING_TOLERANCE = 0.9
+
 # Set once per session by get_asset_index().
 _asset_index = None
+
+
+def _remove_duplicate_faces(mesh, precision=5):
+    """Drop faces that sit exactly on top of another face pointing the same way.
+
+    A lot of the models-high-res library was built by joining two source meshes
+    without merging where they overlapped - T_WALL_Q_H1 ships 76 such pairs,
+    B_WNG_B nearly 20,000. Two faces at the same depth are a coin flip for a ray
+    tracer, and because the duplicates carry their own custom split normals the
+    losing pick shades black: the part renders with black patches in Cycles
+    while the viewport and EEVEE, whose rasteriser breaks the tie consistently,
+    look perfectly fine.
+
+    Only exact duplicates go: the same set of vertex positions AND facing the
+    same way. Faces that coincide but point in opposite directions are how
+    decals, holograms, foliage and glass are modelled all through the library -
+    BLD_PLANET_HOLO is 16,848 of them against 96 real duplicates - and those
+    have to survive untouched.
+
+    Positions rather than vertex indices, because the joined halves bring their
+    own vertices: the duplicated faces in T_WALL_Q_H1 sit on 820 coincident but
+    separate vertices, so nothing about the indices gives the overlap away.
+
+    This is specific to how models-high-res was generated, so unlike
+    add_to_scene/select/and so on it has no equivalent in the base builder
+    addon and stays implemented here rather than resolved through it.
+
+    Args:
+        mesh (bpy.types.Mesh): The mesh to clean, edited in place.
+        precision (int): Decimal places a position is compared at.
+
+    Returns:
+        int: How many faces were removed.
+    """
+    polygon_count = len(mesh.polygons)
+    if polygon_count < 2:
+        return 0
+
+    # foreach_get rather than walking the collections: this runs over meshes of
+    # a few hundred thousand faces, where per element attribute access is the
+    # whole cost of the pass.
+    coords = [0.0] * (len(mesh.vertices) * 3)
+    mesh.vertices.foreach_get("co", coords)
+    normals = [0.0] * (polygon_count * 3)
+    mesh.polygons.foreach_get("normal", normals)
+    loop_starts = [0] * polygon_count
+    mesh.polygons.foreach_get("loop_start", loop_starts)
+    loop_totals = [0] * polygon_count
+    mesh.polygons.foreach_get("loop_total", loop_totals)
+    loop_vertices = [0] * len(mesh.loops)
+    mesh.loops.foreach_get("vertex_index", loop_vertices)
+
+    scale = 10 ** precision
+    seen = {}
+    doomed = []
+
+    for polygon in range(polygon_count):
+        start = loop_starts[polygon]
+        key = tuple(sorted(
+            (int(coords[vertex * 3] * scale),
+             int(coords[vertex * 3 + 1] * scale),
+             int(coords[vertex * 3 + 2] * scale))
+            for vertex in loop_vertices[start:start + loop_totals[polygon]]
+        ))
+
+        kept = seen.get(key)
+        if kept is None:
+            seen[key] = [polygon]
+            continue
+
+        offset = polygon * 3
+        normal = (normals[offset], normals[offset + 1], normals[offset + 2])
+        for other in kept:
+            other_offset = other * 3
+            facing = (normal[0] * normals[other_offset]
+                      + normal[1] * normals[other_offset + 1]
+                      + normal[2] * normals[other_offset + 2])
+            if facing > FACING_TOLERANCE:
+                doomed.append(polygon)
+                break
+        else:
+            # coincident but pointing elsewhere - a real back face, kept
+            kept.append(polygon)
+
+    if not doomed:
+        return 0
+
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bm.faces.ensure_lookup_table()
+    # 'FACES' takes the vertices and edges left behind with them, so the
+    # duplicated halves stop costing memory as well as rendering wrong
+    bmesh.ops.delete(bm, geom=[bm.faces[i] for i in doomed], context='FACES')
+    bm.to_mesh(mesh)
+    bm.free()
+
+    return len(doomed)
 
 
 def get_asset_index(rebuild=False):
@@ -141,7 +245,7 @@ def load_high_res_mesh(object_id, asset_index=None):
     mesh.name = mesh_name
     mesh[MESH_TAG] = object_id
     if CLEAN_DUPLICATE_FACES:
-        blend_utils.remove_duplicate_faces(mesh)
+        _remove_duplicate_faces(mesh)
     # The append brought this asset's own copies of its textures and of the
     # colourise node group with it. A caller inside a deferred block is not
     # going to call the collapse itself, so tell it there is now something to

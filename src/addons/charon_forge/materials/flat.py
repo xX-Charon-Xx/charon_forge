@@ -10,12 +10,29 @@ validate_material() alone changes every material this makes. Keep
 
 import bpy
 
-from ..nms.utils import python as python_utils
-from ..nms.utils import userdata
+from ..utils.base_builder_utils import overrides, python_utils, userdata
 from . import colouring, palettes, paths
 from .properties import PROP_READONLY_COLOUR, PROP_READONLY_MATERIAL, PROP_USER_DATA
 
-GHOSTED_ITEMS = python_utils.load_dictionary(paths.GHOSTED_JSON)["GHOSTED"]
+# Lazy rather than loaded at import time: python_utils now resolves against
+# the base builder addon at call time (see base_builder_utils.py), which is
+# not guaranteed to be loaded yet while blender is still importing addons.
+_ghosted_items = None
+
+
+def _get_ghosted_items():
+    global _ghosted_items
+    if _ghosted_items is None:
+        _ghosted_items = python_utils.load_dictionary(paths.GHOSTED_JSON)["GHOSTED"]
+    return _ghosted_items
+
+
+def __getattr__(name):
+    # Keeps `from .flat import GHOSTED_ITEMS` (materials/__init__.py) working
+    # without loading it at import time - see _get_ghosted_items above.
+    if name == "GHOSTED_ITEMS":
+        return _get_ghosted_items()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class MaterialProvider(object):
@@ -74,7 +91,7 @@ class MaterialProvider(object):
     def assign_preset_material(self, item):
         """Assign gold material to object."""
         material_name = "preset_material"
-        if item.get("ObjectID", "") in GHOSTED_ITEMS:
+        if item.get("ObjectID", "") in _get_ghosted_items():
             material_name += "_transparent"
 
         material = self.validate_material(material_name, [0.8, 0.300186, 0.178301, 1.0])
@@ -120,7 +137,7 @@ class MaterialProvider(object):
         item[PROP_USER_DATA] = str(new_userdata_value)
 
         colour_name = "{0}_material".format(new_userdata_value)
-        if item.get("ObjectID", "") in GHOSTED_ITEMS:
+        if item.get("ObjectID", "") in _get_ghosted_items():
             colour_name += "_transparent"
 
         primary = self.get_colour_from_palette_data(colour_index, material_index)
@@ -149,17 +166,17 @@ def optimise_materials():
     Parts with an override class and curve followers are left alone, they
     manage their own meshes.
     """
-    from ..nms.part_overrides import parts_override
-
-    classes_dict = parts_override.get_override_classes()
-
     unique_materials = {}
     for obj in bpy.context.scene.objects:
         if "ObjectID" not in obj or obj.get("curve_parent") is not None:
             continue
 
         obj_id = obj.get("ObjectID")
-        if obj_id in classes_dict:
+        try:
+            has_override = overrides.get_override_class(obj_id) is not None
+        except AttributeError:
+            has_override = False
+        if has_override:
             continue
 
         # high res parts already share one mesh per ObjectID across every

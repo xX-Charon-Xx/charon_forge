@@ -11,9 +11,9 @@ import time
 
 import bpy
 
-from ..nms.part import Part
+from ..objects.part import Part
 from .. import materials
-from ..nms.utils import blend_utils
+from ..utils.base_builder_utils import blend_utils
 from . import asset_library, proxy_library
 
 # Every builder's get_part_class() falls back to its plain Part class for an id

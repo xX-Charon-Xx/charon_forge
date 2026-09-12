@@ -3,7 +3,7 @@
 import os
 
 ADDON_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-RESOURCES_PATH = os.path.join(ADDON_PATH, "nms", "resources")
+RESOURCES_PATH = os.path.join(ADDON_PATH, "resources")
 
 # The game's palette table, one row per (colour, finish) pair.
 COLOURS_CSV = os.path.join(RESOURCES_PATH, "DT_Palettes.csv")

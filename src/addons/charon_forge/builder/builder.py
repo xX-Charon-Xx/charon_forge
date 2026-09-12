@@ -13,9 +13,8 @@ from collections import defaultdict
 import bpy
 from mathutils import Matrix
 
-from ..nms import group, part, preset
-from ..nms.part_overrides import parts_override
-from ..nms.utils import blend_utils
+from ..objects import group, part, preset
+from ..utils.base_builder_utils import blend_utils, overrides
 from . import paths
 from .catalog import Catalog
 
@@ -25,8 +24,6 @@ class Builder(Catalog):
     # Tool Level Paths ---
     USER_PATH = paths.USER_PATH
     FILE_PATH = paths.ADDON_PATH
-
-    override_classes = parts_override.override_classes
 
     def __init__(self):
         """Builder __init__."""
@@ -73,10 +70,14 @@ class Builder(Catalog):
     # Lookups ---
     @classmethod
     def get_part_class(cls, object_id):
-        for class_ref, part_list in cls.override_classes.items():
-            if object_id in part_list:
-                return class_ref
-        return part.Part
+        """Which Part subclass builds this id - the base builder addon's
+        table (bone, turret, locked, message, and so on), falling back to
+        our own plain Part for anything it does not special case."""
+        try:
+            override_class = overrides.get_override_class(object_id)
+        except AttributeError:
+            override_class = None
+        return override_class or part.Part
 
     def get_builder_object_from_bpy_object(self, bpy_object):
         # Handle Presets.

@@ -1,8 +1,8 @@
 import bpy
 import json
-from ..nms import icons
-from ..nms.utils import asset_browser_utils
-from ..nms.utils.asset_browser_utils import (get_grid_settings, get_preferences,
+from ..utils import icon_utils
+from ..utils import asset_browser_utils
+from ..utils.asset_browser_utils import (get_grid_settings, get_preferences,
                                          resolve_sub_categories)
 ADDON_ID = asset_browser_utils.ADDON_ID
 
@@ -161,7 +161,7 @@ def draw_asset_browser(context, asset_browser_box, scene):
     
     show_serch_results = asset_browser.check_display_search_results
     
-    pcoll = icons.get_asset_icons_pcoll()
+    pcoll = icon_utils.get_asset_icons_pcoll()
     categories_data = asset_browser.get_categories_data()
     
     search_row = asset_browser_box.row(align=True)
@@ -467,7 +467,7 @@ def draw_asset_browser_right_options(context,asset_browser_box, scene, grid_type
     
     display_what = asset_browser.enum_asset_browser_what_to_display
     
-    pcoll = icons.get_asset_icons_pcoll()
+    pcoll = icon_utils.get_asset_icons_pcoll()
     categories_data = asset_browser.get_categories_data()
     
     

@@ -1,0 +1,24 @@
+{
+  "local_y_180_rotation_parts": [
+    "S_SAIL0",
+    "S_SAIL1",
+    "S_SAIL2",
+    "S_SAIL3",
+    "BASE_CAVE3",
+    "S_CANISTER1",
+    "S_SPARKPLUG",
+    "S_ARCH_H",
+    "S_SIGN_BAR1"
+  ],
+
+  "local_y_90_rotation_parts": [
+    "S_ROOF_IC",
+    "T_CHEV_WALL_H_C"
+  ],
+  "mirror_z_180_identifiers": [
+    "TRIFLOOR"
+  ],
+  "position_offsets": {
+    "STORAGEPANEL": [0.05444555, 0.0, 0.0]
+  }
+}

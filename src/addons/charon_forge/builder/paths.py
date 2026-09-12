@@ -14,9 +14,10 @@ ADDON_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 HIGH_RES_PATH = os.path.join(ADDON_PATH, "asset_browser", "assets")
 
 # The old fbx proxy library, one folder per category. Charon Forge doesn't ship
-# one - nms/models/ is an empty placeholder so the catalog still has somewhere
-# to look, and every part is served from HIGH_RES_PATH instead.
-MODEL_PATH = os.path.join(ADDON_PATH, "nms", "models")
+# one - models/ is an empty placeholder so the catalog still has somewhere to
+# look, and every part is served from HIGH_RES_PATH instead (or, for the
+# "Simple Proxies" switch, from get_host_model_path() below).
+MODEL_PATH = os.path.join(ADDON_PATH, "models")
 
 USER_PATH = os.path.join(os.path.expanduser("~"), "CharonForge")
 MODS_PATH = os.path.join(USER_PATH, "mods")
