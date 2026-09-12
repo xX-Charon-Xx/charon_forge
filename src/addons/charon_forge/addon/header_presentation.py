@@ -1,6 +1,7 @@
 import bpy
 from bpy.types import Panel
 
+from .. import addon_preferences
 from ..utils import icon_utils
 from .header_operators import (Forge, SwitchWorkspace, VisitDiscord,
                                VisitGuides, VisitSupport)
@@ -20,7 +21,6 @@ class CHARON_PT_hero_panel(Panel):
         return True
 
     def draw(self, context):
-        header = context.scene.charon_header
         layout = self.layout
         main_box = layout.column(align = True)
         app_cover_row = main_box.column(align = True)
@@ -46,9 +46,11 @@ class CHARON_PT_hero_panel(Panel):
             icon_value=icon_utils.get_icon_id("discord"),
         )
         
-        themes_row = main_col.box().row(align = True)
-        themes_row.label(text = "Choose Aura :")
-        themes_row.prop(header,"theme", text = "")
+        prefs = addon_preferences.get_addon_preferences()
+        if prefs is not None:
+            themes_row = main_col.box().row(align = True)
+            themes_row.label(text = "Choose Aura :")
+            themes_row.prop(prefs, "theme", text = "")
         
 
 

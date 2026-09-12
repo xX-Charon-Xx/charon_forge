@@ -11,7 +11,7 @@ from .addon.asset_browser import AssetBrowser
 from .addon.header import Header
 from .addon_preferences import CharonAddonPreferences
 from .menu import base_builder_menu, base_builder_menu_operators
-from .utils import icon_utils
+from .utils import icon_utils, themes_util
 
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -39,6 +39,16 @@ def register():
     # Register Plugin
     for _class in classes:
         bpy.utils.register_class(_class)
+
+    # blender's interface theme is an application setting, not saved with a
+    # .blend, so unlike the rest of what's registered above it needs actively
+    # putting back: the preferences page remembers which one was chosen, but
+    # only re-applying it here makes the colours agree with that on a plain
+    # restart where the theme itself did not carry over.
+    prefs = addon_preferences.get_addon_preferences()
+    if prefs is not None:
+        themes_util.apply_named_theme(prefs.theme)
+
     bpy.types.Scene.charon_header = PointerProperty(type=Header)
     bpy.types.Scene.nms_asset_browser = PointerProperty(type=AssetBrowser)
 
