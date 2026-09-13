@@ -645,7 +645,7 @@ def build_presets_data():
     """
     # imported here rather than at the top: preset pulls in part and the material
     # utils, and this module is imported from inside utils itself
-    from ..preset import Preset
+    from ..objects.preset import Preset
 
     return {
         preset_name: {

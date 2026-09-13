@@ -1,79 +1,103 @@
 [
     {
-        "^B_WNG_O_0": "Rockhopper Wing Module",
-        "^B_WNG_O_0_R": "Rockhopper Wing Module (R)",
-        "^B_WNG_O_1": "Rockhopper Propeller Module",
-        "^B_WNG_O_1_R": "Rockhopper Propeller Module (R)"
+        "name": "Rockhopper Modules",
+        "parts": {
+            "^B_WNG_O_0": "Rockhopper Wing Module",
+            "^B_WNG_O_0_R": "Rockhopper Wing Module (R)",
+            "^B_WNG_O_1": "Rockhopper Propeller Module",
+            "^B_WNG_O_1_R": "Rockhopper Propeller Module (R)"
+        }
     },
     {
-        "^B_GEN_1": "Medusa-Class Reactor",
-        "^B_GEN_0": "Zenith-Class Reactor",
-        "^B_GEN_2": "Azimuth-Class Reactor"
+        "name": "Reactors",
+        "parts": {
+            "^B_GEN_1": "Medusa-Class Reactor",
+            "^B_GEN_0": "Zenith-Class Reactor",
+            "^B_GEN_2": "Azimuth-Class Reactor"
+        }
     },
     {
-        "^B_TRU_C": "Kineostream Thruster",
-        "^B_WNG_A": "Titan Heavy Booster",
-        "^B_WNG_A_R": "Titan Heavy Booster (R)",
-        "^B_WNG_C": "Ambassador Heavy Booster",
-        "^B_WNG_C_R": "Ambassador Heavy Booster (R)",
-        "^B_WNG_D": "Thunderbird Heavy Booster",
-        "^B_WNG_D_R": "Thunderbird Heavy Booster (R)",
-        "^B_WNG_N": "Arcadia Heavy Booster (N)",
-        "^B_WNG_N_R": "Arcadia Heavy Booster (R)",
-        "^B_WNG_P": "Aeron Drive",
-        "^B_WNG_P_B": "Aeron Drive",
-        "^B_WNG_P_R": "Aeron Drive (R)",
-        "^B_WNG_P_T": "Aeron Drive",
-        "^B_TRU_A": "Twin Echo Jets",
-        "^B_TRU_B": "Twin Dynamo Jets",
-        "^B_TRU_D": "Pyrodrive Booster",
-        "^B_TRU_E": "Widebody Thruster",
-        "^B_TRU_F": "Twin Sublight Jets",
-        "^B_TRU_G": "Firebox Thruster",
-        "^B_TRU_H": "Longshore Thruster",
-        "^B_WNG_F": "Ambassador Sublight Thruster",
-        "^B_WNG_F_R": "Ambassador Sublight Thruster (R)",
-        "^B_WNG_H": "Titan Sublight Thruster",
-        "^B_WNG_H_R": "Titan Sublight Thruster (R)",
-        "^B_WNG_L": "Arcadia Sublight Thruster",
-        "^B_WNG_L_R": "Arcadia Sublight Thruster (R)"
+        "name": "Thrusters & Boosters",
+        "parts": {
+            "^B_TRU_C": "Kineostream Thruster",
+            "^B_WNG_A": "Titan Heavy Booster",
+            "^B_WNG_A_R": "Titan Heavy Booster (R)",
+            "^B_WNG_C": "Ambassador Heavy Booster",
+            "^B_WNG_C_R": "Ambassador Heavy Booster (R)",
+            "^B_WNG_D": "Thunderbird Heavy Booster",
+            "^B_WNG_D_R": "Thunderbird Heavy Booster (R)",
+            "^B_WNG_N": "Arcadia Heavy Booster (N)",
+            "^B_WNG_N_R": "Arcadia Heavy Booster (R)",
+            "^B_WNG_P": "Aeron Drive",
+            "^B_WNG_P_B": "Aeron Drive",
+            "^B_WNG_P_R": "Aeron Drive (R)",
+            "^B_WNG_P_T": "Aeron Drive",
+            "^B_TRU_A": "Twin Echo Jets",
+            "^B_TRU_B": "Twin Dynamo Jets",
+            "^B_TRU_D": "Pyrodrive Booster",
+            "^B_TRU_E": "Widebody Thruster",
+            "^B_TRU_F": "Twin Sublight Jets",
+            "^B_TRU_G": "Firebox Thruster",
+            "^B_TRU_H": "Longshore Thruster",
+            "^B_WNG_F": "Ambassador Sublight Thruster",
+            "^B_WNG_F_R": "Ambassador Sublight Thruster (R)",
+            "^B_WNG_H": "Titan Sublight Thruster",
+            "^B_WNG_H_R": "Titan Sublight Thruster (R)",
+            "^B_WNG_L": "Arcadia Sublight Thruster",
+            "^B_WNG_L_R": "Arcadia Sublight Thruster (R)"
+        }
     },
     {
-        "^B_TUR_A": "Photon Cannon Array",
-        "^B_TUR_B": "Deadeye Cannon",
-        "^B_TUR_C": "Phase Beam Array",
-        "^B_TUR_D": "Cyclotron Defence Cannon",
-        "^B_TUR_E": "Infra-Knife Platform",
-        "^B_DECO_I": "Torpedo Launcher"
+        "name": "Weapons",
+        "parts": {
+            "^B_TUR_A": "Photon Cannon Array",
+            "^B_TUR_B": "Deadeye Cannon",
+            "^B_TUR_C": "Phase Beam Array",
+            "^B_TUR_D": "Cyclotron Defence Cannon",
+            "^B_TUR_E": "Infra-Knife Platform",
+            "^B_DECO_I": "Torpedo Launcher"
+        }
     },
     {
-        "^B_SHL_D": "Defence Field",
-        "^B_GEN_3": "Ceto-Class Reactor",
-        "^B_SHL_A": "Deflector Shield",
-        "^B_SHL_B": "Ion Barrier",
-        "^B_SHL_C": "High-Energy Shield",
-        "^B_SHL_E": "Aeron Powershield"
+        "name": "Shields",
+        "parts": {
+            "^B_SHL_D": "Defence Field",
+            "^B_GEN_3": "Ceto-Class Reactor",
+            "^B_SHL_A": "Deflector Shield",
+            "^B_SHL_B": "Ion Barrier",
+            "^B_SHL_C": "High-Energy Shield",
+            "^B_SHL_E": "Aeron Powershield"
+        }
     },
     {
-        "^B_LND_A": "Landing Gear",
-        "^B_LND_B": "Mag-Field Landing Thrusters",
-        "^B_LND_C": "Hydraulic Legs",
-        "^B_WNG_B": "Thunderbird Landing Thrusters",
-        "^B_WNG_B_R": "Thunderbird Landing Thrusters (R)"
+        "name": "Landing Gear",
+        "parts": {
+            "^B_LND_A": "Landing Gear",
+            "^B_LND_B": "Mag-Field Landing Thrusters",
+            "^B_LND_C": "Hydraulic Legs",
+            "^B_WNG_B": "Thunderbird Landing Thrusters",
+            "^B_WNG_B_R": "Thunderbird Landing Thrusters (R)"
+        }
     },
     {
-        "^B_ALK_A": "Titan-Class Landing Bay",
-        "^B_ALK_B": "Ambassador-Class Landing Bay",
-        "^B_ALK_C": "Thunderbird-Class Landing Bay",
-        "^B_ALK_D": "Internal Landing Bay",
-        "^B_ALK_Z_A": "Titan-Class Landing Bay (Z)",
-        "^B_ALK_Z_B": "Ambassador-Class Landing Bay (Z)",
-        "^B_ALK_Z_C": "Thunderbird-Class Landing Bay (Z)",
-        "^B_ALK_Z_D": "Internal Landing Bay (Z)"
+        "name": "Landing Bays",
+        "parts": {
+            "^B_ALK_A": "Titan-Class Landing Bay",
+            "^B_ALK_B": "Ambassador-Class Landing Bay",
+            "^B_ALK_C": "Thunderbird-Class Landing Bay",
+            "^B_ALK_D": "Internal Landing Bay",
+            "^B_ALK_Z_A": "Titan-Class Landing Bay (Z)",
+            "^B_ALK_Z_B": "Ambassador-Class Landing Bay (Z)",
+            "^B_ALK_Z_C": "Thunderbird-Class Landing Bay (Z)",
+            "^B_ALK_Z_D": "Internal Landing Bay (Z)"
+        }
     },
     {
-        "^B_COK_A": "Titan-Class Cockpit",
-        "^B_COK_B": "Ambassador-Class Cockpit",
-        "^B_COK_D": "Thunderbird-Class Cockpit"
+        "name": "Cockpits",
+        "parts": {
+            "^B_COK_A": "Titan-Class Cockpit",
+            "^B_COK_B": "Ambassador-Class Cockpit",
+            "^B_COK_D": "Thunderbird-Class Cockpit"
+        }
     }
 ]

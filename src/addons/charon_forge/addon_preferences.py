@@ -97,11 +97,30 @@ class CharonAddonPreferences(bpy.types.AddonPreferences):
         default=10, min=4, max=15, options={'TEXTEDIT_UPDATE'},
     )
 
+    # Whether the priority list panel shows each group's icon strip. A
+    # display preference rather than something about the file being worked
+    # on, so it lives here (per user, across restarts) rather than on
+    # scene.charon_optimiser - see optimiser_presentation.py.
+    show_preview: BoolProperty(
+        name="Show Preview",
+        description="Show a preview of the first few parts in each priority group",
+        default=True,
+    )
+
+    # Dummy for now - nothing acts on it yet.
+    auto_optimise: BoolProperty(
+        name="Auto Optimise",
+        description="Optimise automatically as parts are placed",
+        default=False,
+    )
+
     def draw(self, context):
         layout = self.layout
         layout.row().prop(self, "theme", text="Theme")
         layout.row().prop(self, "default_proxy_quality", expand=True)
         layout.row().prop(self, "auto_switch_on_open")
+        layout.row().prop(self, "show_preview")
+        layout.row().prop(self, "auto_optimise")
 
 
 def get_addon_preferences():
