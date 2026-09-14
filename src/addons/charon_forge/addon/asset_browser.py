@@ -1,5 +1,6 @@
 
 import bpy
+from . import asset_browser_operators, asset_browser_presentation
 from ..utils import asset_browser_utils
 from ..utils.mirror_utils import ShowMessageBox
 
@@ -320,4 +321,16 @@ class AssetBrowser(bpy.types.PropertyGroup):
 classes = (
     NMSCategoryOrderItem,
     AssetBrowser,
-)
+) + asset_browser_operators.classes + asset_browser_presentation.classes
+
+
+def register():
+    for _class in classes:
+        bpy.utils.register_class(_class)
+    bpy.types.Scene.nms_asset_browser = bpy.props.PointerProperty(type=AssetBrowser)
+
+
+def unregister():
+    del bpy.types.Scene.nms_asset_browser
+    for _class in reversed(classes):
+        bpy.utils.unregister_class(_class)

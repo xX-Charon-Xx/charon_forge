@@ -7,6 +7,8 @@
     "app_icon": "app_icon.png",
     "app_title": "app_title.png",
     "app_cover": "app_cover.png",
-    "app_cover_2": "app_cover_2.png"
+    "app_cover_2": "app_cover_2.png",
+    "optimisation":"optimisation_logo.png",
+    "helmsman":"helmsman.png"
   }
 }

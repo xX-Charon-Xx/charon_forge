@@ -1,6 +1,7 @@
 import bpy
-from bpy.props import CollectionProperty, IntProperty, StringProperty
+from bpy.props import CollectionProperty, IntProperty, PointerProperty, StringProperty
 
+from . import optimiser_operators, optimiser_presentation
 from ..utils import optimiser_utils
 
 
@@ -228,4 +229,16 @@ class Optimiser(bpy.types.PropertyGroup):
 classes = (
     PriorityPartItem,
     Optimiser,
-)
+) + optimiser_operators.classes + optimiser_presentation.classes
+
+
+def register():
+    for _class in classes:
+        bpy.utils.register_class(_class)
+    bpy.types.Scene.charon_optimiser = PointerProperty(type=Optimiser)
+
+
+def unregister():
+    del bpy.types.Scene.charon_optimiser
+    for _class in reversed(classes):
+        bpy.utils.unregister_class(_class)

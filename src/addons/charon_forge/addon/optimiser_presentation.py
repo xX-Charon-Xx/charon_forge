@@ -144,13 +144,14 @@ class CHARON_PT_optimiser_panel(Panel):
         description_row = layout.row(align = True)
         description_row.scale_y = 0.6
         description_icon_row = description_row.row(align = True)
-        description_icon_row.alignment = "CENTER"
+        description_icon_row.scale_x = 1.1
+        #description_icon_row.alignment = "CENTER"
         description_icon_row.template_icon(
-            icon_value=icon_utils.get_icon_id("app_icon"),
-            scale=2,
+            icon_value=icon_utils.get_icon_id("optimisation"),
+            scale=3,
         )
         description_column = description_row.column(align=True)
-        description_column.alignment = "CENTER"
+        description_column.separator()
         description_column.label(text="If checked, automatically order")
         description_column.label(text="objects in optimal way")
         
@@ -175,7 +176,10 @@ class CHARON_PT_optimiser_panel(Panel):
             description_column.separator()
             action_row = description_column.row(align=True)
             action_row.scale_y = 1.6
-            action_row.operator(OptimiseNow.bl_idname, icon="MOD_DECIM")
+            action_row.operator(
+                OptimiseNow.bl_idname,
+                #icon="MOD_DECIM"
+            )
 
 
 class CHARON_PT_priority_list_panel(Panel):

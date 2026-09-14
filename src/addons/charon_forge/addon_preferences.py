@@ -1,7 +1,7 @@
 import bpy
-from bpy.props import BoolProperty, EnumProperty, IntProperty
+from bpy.props import BoolProperty, EnumProperty, IntProperty, StringProperty
 
-from .utils import themes_util
+from .utils import base_builder_utils, themes_util
 
 ADDON_ID = __package__
 
@@ -114,6 +114,19 @@ class CharonAddonPreferences(bpy.types.AddonPreferences):
         default=False,
     )
 
+    # Left blank by default rather than filled in with the host's folder at
+    # class definition time - base_builder_utils looks the host addon up
+    # among already loaded modules (see its module docstring), which is not
+    # guaranteed to be the case yet while blender is still importing addons.
+    # get_save_folder_path() below falls back to the host's own folder for
+    # as long as this stays blank.
+    save_folder_path: StringProperty(
+        name="Save Directory",
+        description="Folder where NMS save files are stored",
+        subtype='DIR_PATH',
+        default="",
+    )
+
     def draw(self, context):
         layout = self.layout
         layout.row().prop(self, "theme", text="Theme")
@@ -121,8 +134,22 @@ class CharonAddonPreferences(bpy.types.AddonPreferences):
         layout.row().prop(self, "auto_switch_on_open")
         layout.row().prop(self, "show_preview")
         layout.row().prop(self, "auto_optimise")
+        layout.row().prop(self, "save_folder_path")
 
 
 def get_addon_preferences():
     addon = bpy.context.preferences.addons.get(ADDON_ID)
     return addon.preferences if addon else None
+
+
+def get_save_folder_path():
+    """The NMS save folder to use, or None.
+
+    The user's own choice if they have set one, else whatever the host
+    addon's save manager is pointed at (its own default is OS specific -
+    see save_editor_utils.get_default_save_folder there).
+    """
+    prefs = get_addon_preferences()
+    if prefs is not None and prefs.save_folder_path:
+        return prefs.save_folder_path
+    return base_builder_utils.get_host_save_folder_path()

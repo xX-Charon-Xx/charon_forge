@@ -2,6 +2,7 @@ import bpy
 import json
 import os
 from ..utils import dictionary
+from ..utils import base_builder_utils
 from ..utils.base_builder_utils import blend_utils
 from .. import builder as charon_builder
 from ..utils import asset_browser_utils
@@ -657,8 +658,11 @@ class AssetBrowserBatchReplace(bpy.types.Operator):
     object_id: bpy.props.StringProperty()
     
     def execute(self, context):
-        scene = context.scene
-        batch_tool = scene.nms_batch_tool
+        batch_tool = base_builder_utils.get_batch_tool()
+        if batch_tool is None:
+            self.report({'ERROR'}, "Base builder addon not found, cannot batch replace")
+            return {'CANCELLED'}
+
         selected_objects = list(context.selected_objects)
 
         if not selected_objects:

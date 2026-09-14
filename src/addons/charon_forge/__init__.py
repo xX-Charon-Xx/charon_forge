@@ -1,44 +1,32 @@
 import os
 
 import bpy
-from bpy.props import PointerProperty
 
 from . import addon_preferences, hooks
-from .addon import (asset_browser, asset_browser_operators,
-                    asset_browser_presentation, header, header_operators,
-                    header_presentation, optimiser, optimiser_operators,
-                    optimiser_presentation)
-from .addon.asset_browser import AssetBrowser
-from .addon.header import Header
-from .addon.optimiser import Optimiser
+from .addon import asset_browser
+from .addon import header
+from .addon import helmsman
+from .addon import optimiser
 from .addon_preferences import CharonAddonPreferences
 from .menu import base_builder_menu, base_builder_menu_operators
 from .objects import preset
-from .tools.batch_tool import BatchTool
 from .utils import icon_utils, themes_util
 
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 # Plugin Registration ---
+#
+# BatchTool is not one of ours any more - the base builder addon registers
+# scene.nms_batch_tool itself, and we call into that through
+# base_builder_utils.get_batch_tool() instead of shipping a second copy.
 
 classes = (
     CharonAddonPreferences,
-    BatchTool,
 )
 
-classes = classes + header.classes + header_operators.classes + header_presentation.classes
 classes = (
     classes
-    + optimiser.classes
-    + optimiser_operators.classes
-    + optimiser_presentation.classes
-)
-classes = (
-    classes
-    + asset_browser.classes
-    + asset_browser_operators.classes
-    + asset_browser_presentation.classes
     + base_builder_menu.classes
     + base_builder_menu_operators.classes
 )
@@ -53,7 +41,6 @@ def register():
     # Register Plugin
     for _class in classes:
         bpy.utils.register_class(_class)
-    bpy.types.Scene.nms_batch_tool = PointerProperty(type=BatchTool)
 
     # blender's interface theme is an application setting, not saved with a
     # .blend, so unlike the rest of what's registered above it needs actively
@@ -64,9 +51,10 @@ def register():
     if prefs is not None:
         themes_util.apply_named_theme(prefs.theme)
 
-    bpy.types.Scene.charon_header = PointerProperty(type=Header)
-    bpy.types.Scene.charon_optimiser = PointerProperty(type=Optimiser)
-    bpy.types.Scene.nms_asset_browser = PointerProperty(type=AssetBrowser)
+    header.register()
+    optimiser.register()
+    helmsman.register()
+    asset_browser.register()
 
     # the "Builder" and "I/O" dropdowns in the 3D viewport's header
     base_builder_menu.register_menu()
@@ -81,10 +69,10 @@ def unregister():
 
     base_builder_menu.unregister_menu()
 
-    del bpy.types.Scene.nms_asset_browser
-    del bpy.types.Scene.charon_optimiser
-    del bpy.types.Scene.charon_header
-    del bpy.types.Scene.nms_batch_tool
+    asset_browser.unregister()
+    helmsman.unregister()
+    optimiser.unregister()
+    header.unregister()
 
     for _class in reversed(classes):
         bpy.utils.unregister_class(_class)

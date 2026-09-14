@@ -1,5 +1,7 @@
 import bpy
-from bpy.props import BoolProperty, IntProperty
+from bpy.props import BoolProperty, IntProperty, PointerProperty
+
+from . import header_operators, header_presentation
 
 # State for the hero panel, stored on the scene as scene.charon_header.
 #
@@ -33,4 +35,16 @@ class Header(bpy.types.PropertyGroup):
 
 classes = (
     Header,
-)
+) + header_operators.classes + header_presentation.classes
+
+
+def register():
+    for _class in classes:
+        bpy.utils.register_class(_class)
+    bpy.types.Scene.charon_header = PointerProperty(type=Header)
+
+
+def unregister():
+    del bpy.types.Scene.charon_header
+    for _class in reversed(classes):
+        bpy.utils.unregister_class(_class)

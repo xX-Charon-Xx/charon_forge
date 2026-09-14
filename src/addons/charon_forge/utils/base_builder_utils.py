@@ -129,6 +129,106 @@ userdata = _HostModuleProxy("utils.userdata")
 # prefer_int. Plain python helpers, nothing addon specific about them.
 python_utils = _HostModuleProxy("utils.python")
 
+# The host addon's tools.batch_tool - BatchTool, the class behind
+# scene.nms_batch_tool. The host addon registers that scene pointer itself,
+# so Charon Forge has no BatchTool of its own any more - see get_batch_tool().
+batch_tool_module = _HostModuleProxy("tools.batch_tool")
+
+# The host addon's save_editor.save_editor_utils - reading and writing the
+# player's NMS save files. save_base_to_save_file below is what actually
+# writes, backups and atomic replace included.
+save_editor_utils = _HostModuleProxy("save_editor.save_editor_utils")
+
+
+def get_batch_tool():
+    """The host addon's scene.nms_batch_tool, or None if it is not loaded."""
+    scene = bpy.context.scene
+    return getattr(scene, "nms_batch_tool", None)
+
+
+def get_save_data():
+    """The host addon's scene.nms_save_data (a SaveManager), or None.
+
+    Holds nms_account_selected/nms_save_slot - the Save Manager panel's
+    Account/Save Slot dropdowns, reused here rather than duplicated so
+    picking one there and here cannot disagree.
+    """
+    scene = bpy.context.scene
+    return getattr(scene, "nms_save_data", None)
+
+
+def get_save_corvettes():
+    """The corvettes in the selected save slot, or [].
+
+    BaseData objects - base_index, base_name, user_data, parts_count - as
+    extracted by the host addon's save_editor_utils.extract_bases_list_from_save
+    and already sorted by user_data, which is the corvette's position in the
+    player's ship slots. Populated over there when a save slot is picked, so
+    this only has anything once that has happened.
+    """
+    save_data = get_save_data()
+    if save_data is None:
+        return []
+
+    extracted = getattr(type(save_data), "extracted_base_data", None)
+    if not extracted:
+        return []
+    return extracted.get("corvettes") or []
+
+
+def get_current_save_links():
+    """The save file paths for the selected save slot, or None.
+
+    What save_base_to_save_file calls save_slot - a slot holds more than one
+    file and it works out which is newest itself.
+    """
+    save_data = get_save_data()
+    if save_data is None:
+        return None
+
+    slot_data = save_data.get_current_slot_data()
+    return slot_data["saves"] if slot_data else None
+
+
+def write_objects_to_corvette(objects_data, corvette, save_links):
+    """Replace one corvette's parts in the save file.
+
+    Straight through to the host addon's save_base_to_save_file, which is
+    what the Save Manager's own Export to Save uses: it backs both save
+    files up, writes atomically, and rolls back if a later write fails.
+
+    base_name is deliberately left off - passing one sends that function
+    down a branch that subscripts the identifier (base_identifier
+    ["user_data"]), which a BaseData does not support.
+
+    Args:
+        objects_data (list): parts, English keyed, as they come out of
+            helmsman_utils.get_batch_ships.
+        corvette: the BaseData to overwrite - see get_save_corvettes.
+        save_links: the slot's save paths - see get_current_save_links.
+
+    Returns:
+        (bool, str): whether it was written, and a message for the user.
+    """
+    return save_editor_utils.save_base_to_save_file(
+        objects_data, corvette, save_links
+    )
+
+
+def get_host_save_folder_path():
+    """The NMS save folder the host addon's save manager is pointed at.
+
+    Read straight off its addon_preferences module rather than
+    scene/AddonPreferences state of our own, so this always agrees with
+    whatever the user picked (or the host's own OS specific default) over
+    there - see save_editor/save_editor_utils.get_default_save_folder in
+    that addon. None if it is not loaded.
+    """
+    host_addon_preferences = get_module("addon_preferences")
+    if host_addon_preferences is None:
+        return None
+    return host_addon_preferences.get_save_folder_path()
+
 
 # --- base classes, to subclass ---------------------------------------------
 
