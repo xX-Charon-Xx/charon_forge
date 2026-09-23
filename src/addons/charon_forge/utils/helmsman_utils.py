@@ -18,11 +18,11 @@ BATCH_SHIP_JSON = os.path.join(RESOURCES_DIR, "batch_ship_test.json")
 # helmsman_presentation.py can read it too without importing helmsman.py,
 # which imports it back.
 NO_SLOT_ID = "NONE"
-NO_SLOT_LABEL = "No Slot Available"
+NO_SLOT_LABEL = "None"
 
 
 def get_batch_ships():
-    """[{"name": str, "part_count": int, "objects": list}, ...].
+    """[{"id": str, "name": str, "part_count": int, "objects": list}, ...].
 
     "objects" is the ship's parts exactly as they sit in the file, English
     keyed (ObjectID/Position/Up/At/Timestamp/UserData) - the shape the host
@@ -47,10 +47,11 @@ def get_batch_ships():
     for ship in data:
         if not isinstance(ship, dict):
             continue
-        objects = ship.get("Objects")
+        objects = ship.get("objects")
         objects = objects if isinstance(objects, list) else []
         ships.append({
-            "name": ship.get("Name") or "Unnamed Ship",
+            "id": ship.get("id") or "",
+            "name": ship.get("name") or "Unnamed Ship",
             "part_count": len(objects),
             "objects": objects,
         })

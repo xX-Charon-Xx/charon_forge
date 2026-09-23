@@ -63,25 +63,27 @@ class ExportToSave(bpy.types.Operator):
     bl_label = "Export to Save"
 
     def _get_writable_rows(self, helmsman):
-        """Rows that have a ship slot to be written to.
+        """Approved rows that have a ship slot to be written to.
 
-        review_status is not consulted: approve/pending/reject is the user's
-        note about a ship for the results export, not a say in whether it
-        goes into the save. Only a row with nowhere to go is left out - see
-        Helmsman.assign_slots.
+        A row has to be explicitly marked APPROVE to be written - pending or
+        rejected rows are left alone even if they have a slot, so a page can
+        be exported without pulling in ships the user hasn't reviewed yet.
+        An unchecked row is skipped outright, whatever its review_status.
         """
         from ..utils import helmsman_utils
 
         return [
             (index, ship)
             for index, ship in enumerate(helmsman.batch_ship_reviews)
-            if ship.slot != helmsman_utils.NO_SLOT_ID
+            if ship.included
+            and ship.slot != helmsman_utils.NO_SLOT_ID
+            and ship.review_status == "APPROVE"
         ]
 
     def invoke(self, context, event):
         helmsman = context.scene.charon_helmsman
         if not self._get_writable_rows(helmsman):
-            self.report({"WARNING"}, "No ships with a ship slot to write to")
+            self.report({"WARNING"}, "No approved ships with a ship slot to write to")
             return {"CANCELLED"}
 
         # this overwrites ship slots in the player's actual save file, so it
@@ -141,6 +143,39 @@ class ExportToSave(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class ToggleReviewStatus(bpy.types.Operator):
+    """Set a row's review status, or clear it back to Pending on a re-click"""
+
+    bl_idname = "object.charon_toggle_review_status"
+    bl_label = "Toggle Review Status"
+
+    row_index: bpy.props.IntProperty()
+    status: bpy.props.StringProperty()
+
+    def execute(self, context):
+        helmsman = context.scene.charon_helmsman
+        if self.row_index >= len(helmsman.batch_ship_reviews):
+            return {"CANCELLED"}
+
+        ship = helmsman.batch_ship_reviews[self.row_index]
+        ship.review_status = "PENDING" if ship.review_status == self.status else self.status
+        return {"FINISHED"}
+
+
+class SetBatchPage(bpy.types.Operator):
+    """Switch the batch ship list to a page, refilling its slots"""
+
+    bl_idname = "object.charon_set_batch_page"
+    bl_label = "Set Page"
+
+    page: bpy.props.IntProperty(default=0)
+
+    def execute(self, context):
+        helmsman = context.scene.charon_helmsman
+        helmsman.set_page(self.page)
+        return {"FINISHED"}
+
+
 class ResetReviews(bpy.types.Operator):
     """Clear the review list and start over"""
 
@@ -160,5 +195,7 @@ classes = (
     ExportReviews,
     ExportResultFiles,
     ExportToSave,
+    ToggleReviewStatus,
+    SetBatchPage,
     ResetReviews,
 )
