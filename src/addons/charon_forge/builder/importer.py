@@ -110,10 +110,11 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
             bpy_object[Part.PROP_ORDER] = order
 
         # colour every high res part in one pass, then dedupe so the shared
-        # materials are the ones that get the finish nodes
+        # materials are the ones that get prepared (glow wired, old finish
+        # nodes out)
         materials.apply_many(to_colour)
         materials.dedupe_appended_data()
-        materials.ensure_finish_nodes()
+        materials.prepare_materials()
         materials.use_object_colour_in_viewport()
 
     finally:

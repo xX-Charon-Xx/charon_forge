@@ -59,9 +59,11 @@ class HighResMaterialsMixin(object):
 
     def assign_default_material(self, item, index=0):
         # High res parts keep their real textures - painting the default grey
-        # over them would throw the model away. Their equivalent is palette
-        # `index`.
+        # over them would throw the model away. Their default is the game's
+        # own for that part (palette and finish), whatever `index` the host's
+        # folder guess passed.
         if colouring.is_high_res(item):
-            colouring.recolour_from_user_data([item], index)
+            colouring.recolour_from_user_data(
+                [item], colouring.default_user_data(colouring.object_id_of(item)))
             return None
         return super(HighResMaterialsMixin, self).assign_default_material(item, index=index)

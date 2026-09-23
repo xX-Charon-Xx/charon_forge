@@ -1,11 +1,15 @@
-"""Charon Forge's part colouring.
+"""Charon Forge's part colouring, finishes and glow.
 
     paths.py         where the colour data is on disk
     properties.py    names shared with the asset files, shaders and objects
-    palettes.py      the game's colour tables, and reading UserData against them
-    finishes.py      what each finish does to a high res part's surface
+    game_data.py     the game's palettes, finishes and per part groups
+                     (resources/colours.json, written by the extraction
+                     pipeline from the game files)
     colouring.py     colouring high res parts through object properties
-    finish_nodes.py  the shader nodes that let a finish change a surface
+    colourise.py     a primary tint for colourable materials with no mask
+    emission.py      making what glows in game glow in Blender
+    finish_nodes.py  tearing the old hand-tuned finish preview out of old files
+    palettes.py      DT_Palettes.csv, for the flat proxy materials only
     dedupe.py        collapsing the textures and node groups appends duplicate
     deferral.py      running those whole-library passes once per bulk build
     flat.py          MaterialProvider - flat materials for proxies and lines
@@ -14,26 +18,51 @@
     host.py          the same, onto the base builder addon's MaterialProvider,
                      for its set_material_provider() hook
 
-Charon Forge's own code calls the functions below. The flat material ones go
-through the active provider, a CharonMaterials unless set_provider() swapped it.
+docs/MATERIALS.md at the top of the repository explains the whole system.
 """
 
-from . import host
-from .colouring import (apply, apply_many, apply_palette, clear, is_colourable,
-                        is_high_res, recolour, recolour_from_user_data,
-                        use_object_colour_in_viewport)
+import bpy
+
+from . import colourise, emission, game_data, host
+from .colouring import (apply, apply_many, apply_palette, clear, decode,
+                        default_user_data, encode, is_colourable, is_high_res,
+                        object_id_of, recolour, recolour_from_user_data,
+                        resolve, use_object_colour_in_viewport)
 from .dedupe import dedupe_appended_data, dedupe_images, dedupe_node_groups
-from .deferral import defer_shared_data, note_appended_data
-from .finish_nodes import ensure_finish_nodes
-from .finishes import FINISH_NEUTRAL, get_finish, get_finish_table
+from .deferral import defer_shared_data, note_appended_data, should_defer
+from .finish_nodes import strip_legacy_finish_nodes
 from .flat import MaterialProvider, optimise_materials
 from .mixin import HighResMaterialsMixin
 from .palettes import (BAKED_COLOURS, BAKED_INDEX_COLOURS, BAKED_PALETTES,
-                       BAKED_PALETTES_UI, darken_color, decode_user_data,
-                       get_colours_from_palette, get_nice_name_from_indicies,
-                       get_nice_names, get_palette)
-from .properties import (COLOURISE_GROUP, MESH_TAG, PROP_READONLY_COLOUR,
-                         PROP_READONLY_MATERIAL, SLOT_PROPS)
+                       BAKED_PALETTES_UI, darken_color, get_colours_from_palette,
+                       get_nice_name_from_indicies)
+from .properties import (COLOURISE_GROUP, MESH_TAG, PROP_FINISH,
+                         PROP_READONLY_COLOUR, PROP_READONLY_MATERIAL,
+                         PROP_USER_DATA, SLOT_PROPS)
+
+
+def prepare_materials(materials=None):
+    """The per-material pass after assets are appended: take the old finish
+    splice out of anything that still has it, tint colourable materials that
+    have no colourise mask, and wire emission where the game draws a glow.
+    Idempotent - each material is tagged once done.
+
+    With no argument it walks every material in the file, so inside
+    defer_shared_data() it waits for the end of the block.
+
+    Returns:
+        int: Materials changed.
+    """
+    if materials is None and should_defer():
+        return 0
+    # the tint goes in before emission, so a glow copies the tinted colour
+    return (strip_legacy_finish_nodes(materials)
+            + colourise.ensure_colourise(materials)
+            + emission.ensure_emission(materials))
+
+
+# the name the callers used before; the finish is textures now, not nodes
+ensure_finish_nodes = prepare_materials
 
 
 class CharonMaterials(HighResMaterialsMixin, MaterialProvider):
@@ -110,3 +139,27 @@ def assign_material(item, colour_index=0, material_index=0):
 
 create_host_material_provider = host.create_host_material_provider
 create_host_material_provider_class = host.create_host_material_provider_class
+
+
+# File handlers ---
+@bpy.app.handlers.persistent
+def _on_load(_filepath=None):
+    """A scene opened from disk: bring its materials up to date - old finish
+    nodes out, maskless colourable materials tinted, glow in."""
+    try:
+        prepare_materials()
+        for mesh in bpy.data.meshes:
+            if MESH_TAG in mesh and emission.GLOW_LAMP_PROP not in mesh:
+                emission.stamp_glow(mesh, mesh[MESH_TAG])
+    except Exception as exc:                              # noqa: BLE001
+        print("Charon Forge: could not update materials on load: %r" % exc)
+
+
+def register():
+    if _on_load not in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.append(_on_load)
+
+
+def unregister():
+    if _on_load in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.remove(_on_load)

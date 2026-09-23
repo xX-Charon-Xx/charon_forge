@@ -15,10 +15,39 @@ load_stored_list = asset_browser_utils.load_stored_list
 
 
 class NMSCategoryOrderItem(bpy.types.PropertyGroup):
-    """One row of the category reorder list."""
+    """One row of the category reorder list, and of the main category list.
+
+    row_kind is only meaningful on the main category list (category_list) -
+    the reorder popup's own list (category_order_list) holds nothing but
+    real categories, so it never sets it and every row there keeps the
+    default. See AssetBrowser.refresh_category_list.
+    """
 
     category_name: bpy.props.StringProperty()
     is_fav: bpy.props.BoolProperty()
+    row_kind: bpy.props.StringProperty(default="category")
+
+
+# Non-category rows at the top of the main category list - see
+# refresh_category_list and NMS_UL_asset_browser_category.draw_item.
+SPECIAL_LIST_ROWS = (
+    ("fav", "Favourite Items", "FUND"),
+    ("recent", "Recent Items", "RECOVER_LAST"),
+    ("preset", "Presets", "ASSET_MANAGER"),
+)
+
+
+def _refresh_category_list():
+    """Timer callback - build the category rows after a redraw.
+
+    Registered by AssetBrowser.request_category_list_refresh, which cannot
+    do the write itself. Returns None so the timer does not repeat.
+    """
+    scene = getattr(bpy.context, "scene", None)
+    asset_browser = getattr(scene, "nms_asset_browser", None) if scene else None
+    if asset_browser is not None:
+        asset_browser.refresh_category_list()
+    return None
 
 
 class AssetBrowser(bpy.types.PropertyGroup):
@@ -87,9 +116,14 @@ class AssetBrowser(bpy.types.PropertyGroup):
 
     category_order_list: bpy.props.CollectionProperty(type=NMSCategoryOrderItem)
     category_order_list_index: bpy.props.IntProperty()
-    
+
+    # Rows for the main panel's category template_list, kept in step with
+    # the categories enum by refresh_categories. Picking a row is what
+    # selects a category - see on_category_list_index_changed.
     category_list: bpy.props.CollectionProperty(type=NMSCategoryOrderItem)
-    category_list_index: bpy.props.IntProperty()
+    category_list_index: bpy.props.IntProperty(
+        update=lambda self, context: self.on_category_list_index_changed(),
+    )
 
     favourite_categories = []
     favourite_objects_data = {}
@@ -138,6 +172,133 @@ class AssetBrowser(bpy.types.PropertyGroup):
         AssetBrowser.enum_categories[:] = asset_browser_utils.build_enum_entries(
             ordered_categories
         )
+
+        # NOT called directly: refresh_categories can itself run from the
+        # categories enum's own items callback - get_categories, below,
+        # called while blender is drawing - and a scene collection cannot be
+        # written to from there. Every caller of refresh_categories has to
+        # go through request_category_list_refresh instead, timer and all,
+        # even the ones that are themselves already safe (an operator's
+        # execute), so there is exactly one path in and no risk of a second
+        # caller reintroducing the crash this used to hit on file load.
+        self.request_category_list_refresh()
+
+    def refresh_category_list(self):
+        """Rebuild the main panel's category rows from the categories enum.
+
+        Kept as a scene collection rather than read straight out of
+        enum_categories in the panel, because that is what a template_list
+        needs. Only ever called from the timer callback below - never
+        directly, see refresh_categories.
+
+        Favourite Items/Recent Items/Presets sit at the top as their own
+        row_kind, a blank spacer row separating them from the real
+        categories below - see NMS_UL_asset_browser_category.draw_item for
+        how each row_kind is drawn, and on_category_list_index_changed for
+        how a click on one is told apart from a category pick.
+        """
+        favourite_categories = self.get_favourite_categories()
+
+        self.category_list.clear()
+
+        for row_kind, label, icon in SPECIAL_LIST_ROWS:
+            item = self.category_list.add()
+            item.row_kind = row_kind
+            item.category_name = label
+
+        spacer = self.category_list.add()
+        spacer.row_kind = "spacer"
+
+        for category_element in AssetBrowser.enum_categories:
+            category = category_element[0]
+            item = self.category_list.add()
+            item.category_name = category
+            item.is_fav = category in favourite_categories
+
+        # keep the highlighted row on whatever category is actually selected,
+        # since a favourite toggle or a reorder moves the rows around
+        self.sync_category_list_index()
+
+    def request_category_list_refresh(self):
+        """Queue refresh_category_list to run once it is safe to.
+
+        A scene collection cannot be written to from a panel's draw(), and
+        refresh_categories - the only place that decides the rows are out of
+        date - can itself run from there (see the comment in it), so the
+        write always goes through a timer, never a direct call, regardless
+        of who is asking.
+        """
+        if bpy.app.timers.is_registered(_refresh_category_list):
+            return
+        bpy.app.timers.register(_refresh_category_list, first_interval=0.0)
+
+    def sync_category_list_index(self):
+        """Point the highlighted row at whatever the panel is showing.
+
+        Which row that is depends on the view: Favourite Items, Recent
+        Items and Presets each have a row of their own, and anything else
+        means a category is being shown, so the row for the selected
+        category is the one to highlight. Keying this off the category
+        alone used to drag the highlight back onto the last category
+        whenever the list was rebuilt while one of the other three views
+        was up - see refresh_category_list, which calls this every time.
+        """
+        display_what = self.enum_asset_browser_what_to_display
+
+        for index, item in enumerate(self.category_list):
+            if item.row_kind == "spacer":
+                continue
+
+            if item.row_kind == "category":
+                # a category row only matches while a category is on show,
+                # otherwise "fav"/"recent"/"preset" is what to look for
+                matches = (
+                    display_what not in ("fav", "recent", "preset")
+                    and item.category_name == self.asset_browser_caterogies
+                )
+            else:
+                matches = item.row_kind == display_what
+
+            if matches:
+                if self.category_list_index != index:
+                    self.category_list_index = index
+                return
+
+    def on_category_list_index_changed(self):
+        """Act on whatever row was clicked.
+
+        A category row selects that category. Favourite Items/Recent
+        Items/Presets switch the display the same way their own buttons
+        used to. The spacer row does nothing - there is nothing to select
+        it for other than to put a gap in the list.
+
+        Guarded against the reverse direction for a category row:
+        sync_category_list_index moves this index to follow the selected
+        category, and without the check that write would bounce straight
+        back into setting the category again.
+        """
+        index = self.category_list_index
+        if not (0 <= index < len(self.category_list)):
+            return
+
+        item = self.category_list[index]
+        if item.row_kind == "category":
+            if item.category_name != self.asset_browser_caterogies:
+                self.asset_browser_caterogies = item.category_name
+            else:
+                # Same category as before, so the assignment above would not
+                # fire on_category_selected and the panel would stay on
+                # whatever special view was up - leaving a category row
+                # clicked but Favourite/Recent/Presets still showing, which
+                # sync_category_list_index then "corrects" by dragging the
+                # highlight back off the row just clicked.
+                self.on_category_selected()
+        elif item.row_kind == "fav":
+            self.show_favourite_obejcts()
+        elif item.row_kind == "recent":
+            self.show_recent_objects()
+        elif item.row_kind == "preset":
+            self.show_presets()
 
 
     def get_grid_size_prop_string(self):
@@ -286,6 +447,9 @@ class AssetBrowser(bpy.types.PropertyGroup):
 
     def show_favourite_obejcts(self):
         self.enum_asset_browser_what_to_display = "fav"
+        # the row is already highlighted when this came from clicking it,
+        # but not when the view was switched some other way
+        self.sync_category_list_index()
 
 
     def set_recent_objects(self, new_recent_objects):
@@ -300,6 +464,7 @@ class AssetBrowser(bpy.types.PropertyGroup):
 
     def show_recent_objects(self):
             self.enum_asset_browser_what_to_display = "recent"
+            self.sync_category_list_index()
 
     def add_to_recents_list(self, object_id):
         recent_objs = asset_browser_utils.push_recent(
@@ -313,6 +478,7 @@ class AssetBrowser(bpy.types.PropertyGroup):
 
     def show_presets(self):
         self.enum_asset_browser_what_to_display = "preset"
+        self.sync_category_list_index()
 
     def get_preset_data(self):
         return AssetBrowser.presets_data

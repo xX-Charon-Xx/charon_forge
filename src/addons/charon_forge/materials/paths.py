@@ -14,6 +14,6 @@ GHOSTED_JSON = os.path.join(RESOURCES_PATH, "ghosted.json")
 # All 151 palettes with all four slots, for the high res library.
 PALETTE_JSON = os.path.join(RESOURCES_PATH, "colour_palette_by_index.json")
 
-# What each finish does to a high res part's surface. Ours rather than the
-# game's, so it lives with Charon Forge's own resources.
-FINISHES_JSON = os.path.join(ADDON_PATH, "resources", "finishes.json")
+# The game's palettes, finishes and per part colour groups, written by
+# the extraction pipeline alongside the library. See game_data.py.
+COLOURS_JSON = os.path.join(RESOURCES_PATH, "colours.json")

@@ -1,7 +1,7 @@
 """Collapsing the whole-library passes of a bulk build into one each.
 
 dedupe.dedupe_appended_data() and the no-argument form of
-finish_nodes.ensure_finish_nodes() both walk every material node tree in the
+materials.prepare_materials() both walk every material node tree in the
 file. That is the right cost to pay once at the end of an import, and the
 wrong one to pay per part: placing a part calls all of them, so a scene wide
 rebuild - a proxy quality switch, a batch replace - spends most of its time
@@ -25,7 +25,7 @@ def defer_shared_data():
     wrap a batch without caring whether something inside it does the same.
 
     Nothing is deferred that a caller asked for explicitly - passing a
-    materials list to ensure_finish_nodes() still does exactly that work, since
+    materials list to prepare_materials() still does exactly that work, since
     that form is already scoped to what changed.
     """
     global _defer_depth, _defer_pending
@@ -37,13 +37,17 @@ def defer_shared_data():
         if _defer_depth == 0 and _defer_pending:
             _defer_pending = False
             # imported here, both of them import this module
-            from . import dedupe, finish_nodes
+            from . import colourise, dedupe, emission, finish_nodes
 
             # dedupe first, so the surviving shared materials are the ones
-            # that get the finish nodes rather than copies about to be thrown
-            # away - the same order a bulk import uses.
+            # that get prepared rather than copies about to be thrown away -
+            # the same order a bulk import uses. (prepare_materials itself
+            # would see the deferral still pending, so its passes are
+            # called directly, in its order.)
             dedupe.dedupe_appended_data()
-            finish_nodes.ensure_finish_nodes()
+            finish_nodes.strip_legacy_finish_nodes()
+            colourise.ensure_colourise()
+            emission.ensure_emission()
 
 
 def should_defer():

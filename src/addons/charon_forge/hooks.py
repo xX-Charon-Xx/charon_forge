@@ -11,6 +11,8 @@ Charon Forge's high res parts:
     object.color. Ours repaints those instead - see materials/mixin.py.
   - Builder: its tools place parts through get_builder().add_part(), so ours
     puts the high res model there where the library has one.
+  - Colour paths that go around the material hook (groups, curve followers)
+    are wrapped in host_patches.py, so they colour high res parts too.
 
 Blender doesn't promise which addon registers first, so when the base builder
 addon isn't loaded yet the install is retried on a timer for a few seconds.
@@ -18,12 +20,13 @@ addon isn't loaded yet the install is retried on a timer for a few seconds.
 
 import bpy
 
-from . import builder, materials
+from . import builder, host_patches, materials
 from .utils import base_builder_utils
 
 # Turn either half off here if it ever needs to be taken back out.
 INSTALL_BUILDER = True
 INSTALL_MATERIALS = True
+INSTALL_PATCHES = True
 
 # How long to keep looking for the other addon while blender starts up.
 RETRY_SECONDS = 1.0
@@ -65,6 +68,11 @@ def install(retry=True):
         host_builder = builder.create_host_builder()
         installed &= host_builder is not None and base_builder_utils.set_builder(host_builder)
 
+    # not counted towards `installed` - a colour path that can't be wrapped
+    # only means that tool keeps the addon's own behaviour
+    if INSTALL_PATCHES and INSTALL_MATERIALS:
+        host_patches.install()
+
     _installed = installed
     _attempts = 0
     if installed:
@@ -78,6 +86,7 @@ def remove():
     _wanted = False
     _attempts = 0
 
+    host_patches.remove()
     if _installed and base_builder_utils.is_available():
         base_builder_utils.reset_all()
     _installed = False

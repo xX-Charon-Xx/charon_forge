@@ -2,8 +2,9 @@ import os
 
 import bpy
 
-from . import addon_preferences, hooks
+from . import addon_preferences, hooks, materials
 from .addon import asset_browser
+from .addon import crossing
 from .addon import header
 from .addon import helmsman
 from .addon import optimiser
@@ -54,6 +55,8 @@ def register():
     header.register()
     optimiser.register()
     helmsman.register()
+    crossing.register()
+    materials.register()
     asset_browser.register()
 
     # the "Builder" and "I/O" dropdowns in the 3D viewport's header
@@ -70,6 +73,8 @@ def unregister():
     base_builder_menu.unregister_menu()
 
     asset_browser.unregister()
+    materials.unregister()
+    crossing.unregister()
     helmsman.unregister()
     optimiser.unregister()
     header.unregister()

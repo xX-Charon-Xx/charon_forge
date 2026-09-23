@@ -122,16 +122,20 @@ def add_part(builder_object, object_id, user_data=None, build_rigs=True, high_re
     part_class = get_default_part_class(builder_object)
     stamp_part_properties(bpy_object, object_id, part_class)
 
-    # colour by object property, so this placement goes on sharing the mesh
+    # colour by object property, so this placement goes on sharing the mesh.
+    # A new part gets what the game gives it: its own default palette and
+    # finish, not palette 0 - a corvette part is BIGGS0, a station part
+    # STATION0.
     if user_data is None:
-        user_data = part_class.DEFAULT_USER_DATA
+        user_data = materials.default_user_data(object_id)
     materials.recolour_from_user_data([bpy_object], user_data)
 
     # if the asset was appended just now it brought its own copies of textures
     # and of the colourise node group with it. Cheap to call either way - with
-    # nothing to collapse this is a scan of bpy.data.images and no more
+    # nothing to collapse this is a scan of bpy.data.images, and materials
+    # already prepared are skipped by their tag
     materials.dedupe_appended_data()
-    materials.ensure_finish_nodes()
+    materials.prepare_materials(bpy_object.data.materials)
 
     item = part_class(
         bpy_object=bpy_object, builder_object=builder_object, build_rigs=build_rigs

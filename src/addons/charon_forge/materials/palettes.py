@@ -5,12 +5,11 @@ Two sources:
 - DT_Palettes.csv, one row per (colour, finish) pair, read at import time. The
   flat materials take their single colour from it, and it has the readable
   English names for both colours and finishes.
-- colour_palette_by_index.json, all 151 palettes with all four slots, loaded
-  on first use. The high res library colours from it. It was extracted from
-  the game's own basebuildingobjectstable and cross-checked 84/84 against the
-  CSV, which only has 120 palettes with two slots each. The Cosmos update
-  appended STATION0..35 at 115..150 for the space station parts (palette group
-  STATIONBASE) and left every earlier index where it was.
+- colour_palette_by_index.json, all 151 palettes with all four slots. No
+  longer used for high res parts: those colour from the game data in
+  colours.json (game_data.py), which also knows each part's palette and finish
+  groups. The functions reading it are kept for anything outside the package
+  still calling them.
 
 UserData layout (the bitfield nms/utils/userdata.py implements):
 

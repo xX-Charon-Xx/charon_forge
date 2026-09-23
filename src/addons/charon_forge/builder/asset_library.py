@@ -246,6 +246,9 @@ def load_high_res_mesh(object_id, asset_index=None):
     mesh[MESH_TAG] = object_id
     if CLEAN_DUPLICATE_FACES:
         _remove_duplicate_faces(mesh)
+    # a lamp's glow carries the power of the part's game lights - see
+    # materials/emission.py
+    materials.emission.stamp_glow(mesh, object_id)
     # The append brought this asset's own copies of its textures and of the
     # colourise node group with it. A caller inside a deferred block is not
     # going to call the collapse itself, so tell it there is now something to
@@ -286,6 +289,7 @@ def rebuild_variant_mesh(object_id, asset_index=None):
     mesh = transformed_copy(root_mesh, matrix)
     mesh.name = MESH_PREFIX + object_id
     mesh[MESH_TAG] = object_id
+    materials.emission.stamp_glow(mesh, object_id)
     return mesh
 
 

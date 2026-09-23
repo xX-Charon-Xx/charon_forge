@@ -139,6 +139,30 @@ batch_tool_module = _HostModuleProxy("tools.batch_tool")
 # writes, backups and atomic replace included.
 save_editor_utils = _HostModuleProxy("save_editor.save_editor_utils")
 
+# The host addon's utils.material - BAKED_PALETTES_UI (the material_switch
+# enum items) and get_colours_from_palette(palette).
+material = _HostModuleProxy("utils.material")
+
+
+def get_colour_preview_collection():
+    """The host addon's bpy.utils.previews collection of colour swatch icons.
+
+    Built at the host's own register() from its images/colours folder and
+    kept on its top level __init__ module rather than a submodule, so this
+    reaches into sys.modules for that module directly instead of going
+    through _HostModuleProxy (which only resolves dotted submodules). None
+    if the host addon is not loaded or has not registered yet.
+    """
+    addon_module = get_addon_module_name()
+    if addon_module is None:
+        return None
+
+    module = sys.modules.get(addon_module)
+    if module is None:
+        return None
+
+    return getattr(module, "preview_collections", {}).get("main")
+
 
 def get_batch_tool():
     """The host addon's scene.nms_batch_tool, or None if it is not loaded."""

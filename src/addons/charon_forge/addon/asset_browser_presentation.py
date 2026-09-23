@@ -9,6 +9,9 @@ ADDON_ID = asset_browser_utils.ADDON_ID
 OP_OBJECT_SELECTED = "object.nms_asset_browser_object_selected"
 OP_MORE_OPTIONS = "object.nms_asset_browser_more_options"
 
+# How tall the main panel's category list is before it starts scrolling.
+CATEGORY_LIST_ROWS = 25
+
 
 def draw_sub_category(pcoll , container, label, elements_list, number_of_columns, icon_size, grid_type = "Grid", show_title = True ):
             
@@ -308,26 +311,61 @@ class NMS_UL_asset_browser_category_order(bpy.types.UIList):
         down_button.direction = "DOWN"
         
         
+# row_kind -> (icon, description) for the special rows at the top of the
+# list - see AssetBrowser.SPECIAL_LIST_ROWS.
+SPECIAL_ROW_ICONS = {
+    "fav": "FUND",
+    "recent": "RECOVER_LAST",
+    "preset": "ASSET_MANAGER",
+}
+
+# How thin the rule between list rows is. Blender has no divider of its own,
+# so an empty box squashed on the y axis stands in for one - a box is the
+# only thing that paints a border, and with nothing in it all that is left
+# is the border itself.
+ROW_RULE_SCALE_Y = 0.06
+
+
+
 class NMS_UL_asset_browser_category(bpy.types.UIList):
-    
+    """Rows for the main panel's category list.
+
+    Three kinds of row share this list - see AssetBrowser.refresh_category_list:
+    a plain category (with a pin button), one of the three special views
+    (Favourite/Recent/Preset Items), or a blank spacer row separating the
+    two groups. Selecting a row is what activates it - the list's own index
+    drives it, see AssetBrowser.on_category_list_index_changed - so names
+    are plain labels rather than operator buttons.
+    """
+
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        if item.row_kind == "spacer":
+            # deliberately empty - just the gap between the special rows and
+            # the ordinary categories below them
+            layout.separator()
+            return
+
         asset_browser = data
-        category = item.category_name
-        ab_category = asset_browser.asset_browser_caterogies
-        is_active = category == ab_category
+
+        if item.row_kind != "category":
+            cell = layout.column(align=True)
+            cell.label(
+                text=item.category_name,
+                icon=SPECIAL_ROW_ICONS.get(item.row_kind, "BLANK1"),
+            )
+            return
+
+        is_active = item.category_name == asset_browser.asset_browser_caterogies
         display_what = asset_browser.enum_asset_browser_what_to_display
-        
-        row = layout.row(align=True)
+        is_expanded = is_active and display_what == "asset"
+
+        # everything for this row goes in one column, so the selected row's
+        # highlight covers the sub categories too rather than just the name
+        cell = layout.column(align=True)
+
+        row = cell.row(align=True)
         row.label(text=item.category_name)
-        
-        
-        #cat_button = row.operator(
-        #    "object.nms_asset_browser_category_selected",
-        #    text = item.category_name,
-        #    emboss = False,
-        #    icon = "TRIA_DOWN" if is_active and display_what == "asset" else "BLANK1" #"RIGHTARROW_THIN"
-        #)
-        #cat_button.category = category
+
         controls_row = row.row(align=True)
         controls_row.alignment = "RIGHT"
         fav_button = controls_row.operator(
@@ -338,16 +376,35 @@ class NMS_UL_asset_browser_category(bpy.types.UIList):
         )
         fav_button.category = item.category_name
 
+        if is_expanded:
+            # a row can be taller than the rest - see NMS_UL_actions_list in the
+            # base builder addon, which draws a whole grid of buttons in one
+            sub_cat_col = cell.column(align=True)
+            sub_cat_col.scale_y = 0.8
+            for sub_cat in asset_browser.get_enum_sub_categories_list():
+                sub_category = sub_cat[0]
+                is_sub_active = sub_category == asset_browser.asset_browser_sub_caterogies
+
+                button_row = sub_cat_col.row(align=True)
+                button_row.alignment = "LEFT"
+                sub_cat_button = button_row.operator(
+                    "object.nms_asset_browser_sub_category_selected",
+                    text=sub_category,
+                    depress=is_sub_active,
+                    emboss=False,
+                    icon="TRIA_RIGHT" if is_sub_active else "BLANK1",
+                )
+                sub_cat_button.sub_category = sub_category
+            #rule = cell.row(align = True)
+            #rule.scale_y = 0.3
+            #rule.label(text = ".................................................................")
+            #rule.separator()
+        #.separator(factor = 1)
+
 
 def draw_asset_browser_left_options(context, asset_browser_box, scene):
     asset_browser = scene.nms_asset_browser
     prefs = get_preferences(context)
-    display_what = asset_browser.enum_asset_browser_what_to_display
-
-    ab_category = asset_browser.asset_browser_caterogies
-    ab_sub_category = asset_browser.asset_browser_sub_caterogies
-    fav_cats = asset_browser.get_favourite_categories()
-
 
     search_column= asset_browser_box.column(align=True)
     search_column.scale_y = 1.4
@@ -361,19 +418,6 @@ def draw_asset_browser_left_options(context, asset_browser_box, scene):
         size_column.prop(prefs, "asset_browser_number_of_columns_other", text = "Columns")
     asset_browser_box.separator()
 
-    def draw_button(parent,operator ,label, what_type ,icon = "LEFT"):
-        cat_element_row = parent.box().row(align = True)
-        cat_element_row.scale_y = 0.7
-        cat_container_row = cat_element_row.row(align = True)
-        cat_row = cat_container_row.row(align = True)
-        cat_row.alignment = "LEFT"
-        cat_row.operator(
-            operator,
-            text = label,
-            emboss = False,
-            icon = "TRIA_RIGHT" if what_type == display_what else "BLANK1"#"RIGHTARROW_THIN"
-        )
-
     cats_col = asset_browser_box.column(align = True)
     cats_header_row = cats_col.row(align = True)
     cats_header_row.label(text="Categories" )
@@ -381,76 +425,21 @@ def draw_asset_browser_left_options(context, asset_browser_box, scene):
     reorder_row.alignment = "RIGHT"
     reorder_row.operator( "object.nms_asset_browser_category_reorder_popup", text = "Reorder", icon = "SORTSIZE" )
     cats_col.separator()
-    draw_button(cats_col,"object.nms_asset_browser_show_fav_items", "Favourite Items", icon = "FUND", what_type= "fav")
-    draw_button(cats_col,"object.nms_asset_browser_show_recent_items", "Recent Items", icon = "RECOVER_LAST", what_type= "recent")
-    draw_button(cats_col,"object.nms_asset_browser_show_presets", "Presets", icon = "ASSET_MANAGER", what_type = "preset")
-    cats_col.separator()
 
-    # created either way: it used to exist only when there were favourites, so
-    # anything that reached the favourite branch without them raised
-    # UnboundLocalError
-    
-    
-    fav_cats_col = cats_col.column(align = True)
+    # the rows can first be asked for mid-draw, where they cannot be written
+    asset_browser.request_category_list_refresh()
 
     categories_col = cats_col.column(align = True)
     categories_col.enabled = not asset_browser.check_display_search_results
-    for category_element in asset_browser.get_enum_categories_list():
-        category = category_element[0]
-
-        is_active = category == ab_category
-        is_fav = fav_cats and category in fav_cats
-
-        if is_fav:
-            cat_element_col = fav_cats_col.box().column(align = True)
-        else:
-            cat_element_col = categories_col.box().column(align = True)
-
-        cat_container_row = cat_element_col.row(align = True)
-        cat_container_row.scale_y = 0.7
-        cat_row = cat_container_row.row(align = True)
-        cat_row.alignment = "LEFT"
-        cat_button = cat_row.operator(
-            "object.nms_asset_browser_category_selected",
-            text = category,
-            depress = is_active,
-            emboss = False,
-            icon = "TRIA_DOWN" if is_active and display_what == "asset" else "BLANK1" #"RIGHTARROW_THIN"
-        )
-        cat_button.category = category
-
-        cat_fav_button_row = cat_container_row.row(align = True)
-        cat_fav_button_row.alignment = "RIGHT"
-        fav_button = cat_fav_button_row.row(align = True).operator(
-            "object.nms_asset_browser_category_favourite",
-            text = "",
-            icon = "PINNED" if is_fav else "UNPINNED",
-            emboss = False
-        )
-        fav_button.category = category
-
-        if is_active and display_what == "asset":
-            sub_cat_main_row = cat_element_col.row(align = True)
-            sub_cat_main_row.scale_y = 0.8
-            sub_cat_gap_col = sub_cat_main_row.column(align = True)
-            sub_cat_gap_col.scale_x = 0.8
-            sub_cat_gap_col.label(text = "", icon = "BLANK1")
-            sub_cat_col = sub_cat_main_row.column(align = True)
-            sub_cat_col.separator()
-            for sub_cat in asset_browser.get_enum_sub_categories_list():
-                sub_category = sub_cat[0]
-                is_sub_active = sub_category == ab_sub_category
-
-                sub_cat_row = sub_cat_col.row(align = True)
-                sub_cat_row.alignment = "LEFT"
-                sub_cat_button = sub_cat_row.operator(
-                    "object.nms_asset_browser_sub_category_selected",
-                    text = sub_category,
-                    depress = is_sub_active,
-                    emboss = False,
-                    icon = "TRIA_RIGHT" if is_sub_active else "BLANK1"
-                )
-                sub_cat_button.sub_category = sub_category
+    categories_col.template_list(
+        "NMS_UL_asset_browser_category",
+        "",
+        asset_browser,
+        "category_list",
+        asset_browser,
+        "category_list_index",
+        rows = CATEGORY_LIST_ROWS,
+    )
 
 
 
