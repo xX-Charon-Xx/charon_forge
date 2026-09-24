@@ -17,6 +17,7 @@ time. A disable/enable or reload of that addon re-imports it, which drops
 whatever we set; apply ours again afterwards.
 """
 
+import importlib
 import sys
 
 import bpy
@@ -45,13 +46,29 @@ def get_addon_module_name():
     """
     enabled = bpy.context.preferences.addons.keys()
 
+    found = None
     if PREFERRED_ADDON_MODULE in enabled and _hooks_module_for(PREFERRED_ADDON_MODULE):
-        return PREFERRED_ADDON_MODULE
+        found = PREFERRED_ADDON_MODULE
+    else:
+        for addon_module in enabled:
+            if _hooks_module_for(addon_module):
+                found = addon_module
+                break
 
-    for addon_module in enabled:
-        if _hooks_module_for(addon_module):
-            return addon_module
-    return None
+    if found is not None and _on_addon_found is not None:
+        _on_addon_found()
+    return found
+
+
+# Called whenever a lookup finds the addon - hooks.py sets it, so an addon
+# that was installed or enabled after Charon Forge is hooked into by the
+# next thing that reaches for it. See hooks.ensure_installed.
+_on_addon_found = None
+
+
+def set_on_addon_found(callback):
+    global _on_addon_found
+    _on_addon_found = callback
 
 
 def get_hooks_module():
@@ -94,16 +111,23 @@ def get_module(relative_path):
 class _HostModuleProxy:
     """Stands in for a host addon submodule, resolved on every attribute access.
 
-    `blend_utils = _HostModuleProxy("utils.blend_utils")` then
+    `blend_utils = _HostModuleProxy("utils.blend_utils", fallback="blend_utils")` then
     `blend_utils.add_to_scene(...)` behaves like the module was imported
     directly, except the lookup happens now rather than at import time.
+
+    With a `fallback` (a module in utils/fallbacks), calls go there while
+    the host addon is not installed, so Charon Forge works on its own, and
+    switch to the host's module as soon as it is.
     """
 
-    def __init__(self, relative_path):
+    def __init__(self, relative_path, fallback=None):
         self._relative_path = relative_path
+        self._fallback = fallback
 
     def __getattr__(self, name):
         module = get_module(self._relative_path)
+        if module is None and self._fallback is not None:
+            module = importlib.import_module(f".fallbacks.{self._fallback}", __package__)
         if module is None:
             raise AttributeError(
                 f"{self._relative_path} has no attribute {name!r} "
@@ -120,14 +144,14 @@ blend_utils = _HostModuleProxy("utils.blend_utils")
 # up, and register_override(class_ref, object_ids)/unregister_override(ids) to
 # add or remove entries - the extension point another addon's own part
 # classes are meant to go through, ahead of the built in table.
-overrides = _HostModuleProxy("builder.overrides")
+overrides = _HostModuleProxy("builder.overrides", fallback="overrides")
 
 # The host addon's utils.userdata - packing/unpacking a UserData bitfield.
-userdata = _HostModuleProxy("utils.userdata")
+userdata = _HostModuleProxy("utils.userdata", fallback="userdata")
 
 # The host addon's utils.python - load_dictionary, get_adjacent_dict_key,
 # prefer_int. Plain python helpers, nothing addon specific about them.
-python_utils = _HostModuleProxy("utils.python")
+python_utils = _HostModuleProxy("utils.python", fallback="python")
 
 # The host addon's tools.batch_tool - BatchTool, the class behind
 # scene.nms_batch_tool. The host addon registers that scene pointer itself,
@@ -171,14 +195,15 @@ def get_batch_tool():
 
 
 def get_save_data():
-    """The host addon's scene.nms_save_data (a SaveManager), or None.
+    """Charon Forge's own scene.charon_save_data (a CharonSaveManager), or None.
 
-    Holds nms_account_selected/nms_save_slot - the Save Manager panel's
-    Account/Save Slot dropdowns, reused here rather than duplicated so
-    picking one there and here cannot disagree.
+    Holds nms_account_selected/nms_save_slot - the Account/Save Slot
+    dropdowns - and the corvettes read from the chosen slot. Charon Forge's
+    own copy of the save editor (save_editor/), so the Helmsman panel works
+    without the base builder addon.
     """
     scene = bpy.context.scene
-    return getattr(scene, "nms_save_data", None)
+    return getattr(scene, "charon_save_data", None)
 
 
 def get_save_corvettes():
@@ -187,8 +212,8 @@ def get_save_corvettes():
     BaseData objects - base_index, base_name, user_data, parts_count - as
     extracted by the host addon's save_editor_utils.extract_bases_list_from_save
     and already sorted by user_data, which is the corvette's position in the
-    player's ship slots. Populated over there when a save slot is picked, so
-    this only has anything once that has happened.
+    player's ship slots. Populated when a save slot is picked, so this only
+    has anything once that has happened.
     """
     save_data = get_save_data()
     if save_data is None:
@@ -217,9 +242,10 @@ def get_current_save_links():
 def write_objects_to_corvette(objects_data, corvette, save_links):
     """Replace one corvette's parts in the save file.
 
-    Straight through to the host addon's save_base_to_save_file, which is
-    what the Save Manager's own Export to Save uses: it backs both save
-    files up, writes atomically, and rolls back if a later write fails.
+    Straight through to save_editor_utils.save_base_to_save_file (Charon
+    Forge's own copy), which is what the Save Manager's Export to Save uses:
+    it backs both save files up, writes atomically, and rolls back if a
+    later write fails.
 
     base_name is deliberately left off - passing one sends that function
     down a branch that subscripts the identifier (base_identifier
@@ -234,7 +260,9 @@ def write_objects_to_corvette(objects_data, corvette, save_links):
     Returns:
         (bool, str): whether it was written, and a message for the user.
     """
-    return save_editor_utils.save_base_to_save_file(
+    from ..save_editor import save_editor_utils as charon_save_editor_utils
+
+    return charon_save_editor_utils.save_base_to_save_file(
         objects_data, corvette, save_links
     )
 

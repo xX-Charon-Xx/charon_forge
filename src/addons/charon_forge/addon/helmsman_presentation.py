@@ -1,7 +1,10 @@
+import bpy
 from bpy.types import Panel
 
+from ..save_editor.save_manager import CharonSaveManager
 from ..utils import base_builder_utils, helmsman_utils, icon_utils
 from .helmsman_operators import (
+    EditShipNote,
     ExportResultFiles,
     ExportReviews,
     ExportToSave,
@@ -13,14 +16,48 @@ from .helmsman_operators import (
 )
 
 
+# Set once _load_save_accounts has run, so a load that fails (no save
+# folder, lz4 could not be installed) is not retried on every redraw.
+_accounts_load_attempted = False
+
+
+def _load_save_accounts():
+    """Timer callback - fill the account list once per session.
+
+    The save editor fills it when its own panel is switched on; Helmsman has
+    no such switch, so this does the same the first time the panel draws
+    (draw() itself cannot write properties). That also installs the lz4
+    module save files are read with, if it is missing - see
+    save_editor_dependencies. Returns None so the timer does not repeat.
+    """
+    global _accounts_load_attempted
+    _accounts_load_attempted = True
+    save_data = base_builder_utils.get_save_data()
+    if save_data is not None:
+        try:
+            save_data.on_check_plugin_enabled(bpy.context)
+        except Exception as error:                        # noqa: BLE001
+            print("Charon Forge: could not load save accounts: %r" % error)
+    return None
+
+
 def draw_save_slot_picker(layout, context):
     """Account / Save Slot, the same two dropdowns the Save Manager panel
-    has at the top of its own picker - reused rather than duplicated, since
-    both read/write the host addon's own scene.nms_save_data.
+    has at the top of its own picker - reading and writing Charon Forge's
+    own scene.charon_save_data.
     """
     save_data = base_builder_utils.get_save_data()
     if save_data is None:
         layout.label(text="Save Manager unavailable", icon="ERROR")
+        return
+
+    if not CharonSaveManager.enum_accounts_list:
+        if _accounts_load_attempted:
+            layout.label(text="Could not load save accounts", icon="ERROR")
+            return
+        if not bpy.app.timers.is_registered(_load_save_accounts):
+            bpy.app.timers.register(_load_save_accounts, first_interval=0.0)
+        layout.label(text="Loading save accounts...", icon="TIME")
         return
 
     column = layout.column(align=True)
@@ -33,7 +70,7 @@ def draw_save_slot_picker(layout, context):
 def is_save_slot_selected(context):
     """Whether a real save slot is picked - "Default" is the placeholder
     "Select Save Slot" entry get_save_slots_list() puts at the top of the
-    list in the host addon's save_manager.py, not an actual slot.
+    list in save_editor/save_manager.py, not an actual slot.
     """
     save_data = base_builder_utils.get_save_data()
     return save_data is not None and save_data.nms_save_slot != "Default"
@@ -90,7 +127,7 @@ class CHARON_PT_helmsman_panel(Panel):
         if not helmsman.batch_list_visible:
             return
 
-        # a change of save slot has to be noticed here: the host addon's own
+        # a change of save slot has to be noticed here: the save manager's
         # dropdown has no hook of ours to call - see
         # Helmsman.request_slot_reassign_if_save_changed
         helmsman.request_slot_reassign_if_save_changed()
@@ -98,12 +135,21 @@ class CHARON_PT_helmsman_panel(Panel):
         step_3_box = steps_column.box().column(align = True)
         step_3_box.label(text = "Step - 3 :   Load into Ship Slots")
 
+        # the ship count shows even on a single page, the page number only
+        # once there is more than one
         page_count = helmsman.get_page_count()
+        ship_count = len(helmsman.batch_ship_reviews)
+        # page number on the left, ship count on the right
+        progress_row = step_3_box.row(align=True)
+        page_side = progress_row.row(align=True)
+        page_side.alignment = "LEFT"
         if page_count > 1:
-            progress_row = step_3_box.row(align=True)
-            progress_row.alignment = "CENTER"
-            progress_row.label(text=f"Page {helmsman.current_page + 1} of {page_count}")
+            page_side.label(text=f"Page {helmsman.current_page + 1} of {page_count}")
+        count_side = progress_row.row(align=True)
+        count_side.alignment = "RIGHT"
+        count_side.label(text=f"{ship_count} ship{'' if ship_count == 1 else 's'} imported")
 
+        if page_count > 1:
             tabs_row = step_3_box.row(align=True)
             for page in range(page_count):
                 tab = tabs_row.operator(
@@ -119,32 +165,40 @@ class CHARON_PT_helmsman_panel(Panel):
             warning_column.scale_y = 0.8
             warning_column.alert = True
             warning_column.label(
-                text=f"{unassigned_count} ship(s) on this page have no free slot",
+                text=f"{unassigned_count} ship(s) on this page have no ship slot",
                 icon="ERROR",
             )
 
         batch_list_column = step_3_box.column(align = True)
         for index, ship in helmsman.get_page_items():
             batch_list_element_box = batch_list_column.box()
-            batch_list_element_box.scale_y = 0.6
             row = batch_list_element_box.row(align=True)
             #row.alignment = "LEFT"
             #row.label(text = f"{index}. ")
-            checkbox_row = row.row(align=True)
-            checkbox_row.scale_y = 1.5
-            checkbox_row.prop(ship, "included", text="")
+            #checkbox_row = row.row(align=True)
+            #checkbox_row.scale_y = 1.5
+            #checkbox_row.prop(ship, "included", text="")
 
             column = row.column(align = True)
             column.alert = ship.slot_bumped
-            column.label(text=ship.ship_name)
-            column.label(text=f"{ship.part_count} parts")
+            column.label(text=f"{ship.ship_name } ({ship.part_count} pts)")
 
+            note_row = column.row(align=True)
+            note_row.scale_y = 1.2
+            note_row.alert = False
+            note_edit = note_row.operator(
+                EditShipNote.bl_idname, text="", icon="TEXT", emboss=True
+            )
+            note_edit.row_index = index
+            note_row.label(text=ship.note or " No Note")
+
+            # two lines tall, level with the name and note lines beside it
             options_row = row.row(align = True)
             options_row.scale_y = 2
             options_row.enabled = ship.included
             slot_row = options_row.row(align = True)
             slot_row.scale_x = 0.65
-            slot_row.alert = ship.slot == helmsman_utils.NO_SLOT_ID or ship.slot_bumped
+            slot_row.alert = ship.slot_value in ("", helmsman_utils.NO_SLOT_ID) or ship.slot_bumped
             slot_row.prop(ship, "slot", text="")
 
             options_row.separator()
@@ -179,7 +233,6 @@ class CHARON_PT_helmsman_panel(Panel):
         missing_rows = page_size - len(helmsman.get_page_items())
         for _ in range(max(0, missing_rows)):
             dummy_box = batch_list_column.box()
-            dummy_box.scale_y = 0.6
             dummy_column = dummy_box.column(align=True)
             dummy_column.label(text="")
             dummy_column.label(text="")

@@ -12,7 +12,7 @@ from datetime import datetime
 from . import save_translation
 from .save_translation import SaveTranslation
 from .. import addon_preferences
-from ..utils.blend_utils import ShowMessageBox
+from ..utils.fallbacks.blend_utils import ShowMessageBox
 
 system = platform.system()
 

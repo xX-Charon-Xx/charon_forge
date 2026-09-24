@@ -1,3 +1,5 @@
+import json
+
 import bpy
 from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntProperty, PointerProperty
 
@@ -16,6 +18,12 @@ NO_SLOT_LABEL = helmsman_utils.NO_SLOT_LABEL
 # strings it built are garbage collected - same reason
 # addon_preferences._theme_enum_items exists.
 _slot_enum_items = []
+
+# The stored number of the "None" entry. Fixed, and far past any real
+# corvette position: it used to be len(corvettes), so a row left on None
+# would silently point at a real corvette once a save with more corvettes
+# was picked.
+NO_SLOT_NUMBER = 100000
 
 
 def get_slot_enum_items(self, context):
@@ -84,7 +92,7 @@ def get_slot_enum_items(self, context):
         _slot_enum_items.extend(used_items)
     _slot_enum_items.append(None)
     _slot_enum_items.append(
-        (NO_SLOT_ID, NO_SLOT_LABEL, "Leave this ship out of the export", len(corvettes))
+        (NO_SLOT_ID, NO_SLOT_LABEL, "Leave this ship out of the export", NO_SLOT_NUMBER)
     )
     return _slot_enum_items
 
@@ -99,6 +107,12 @@ REVIEW_STATUS_ITEMS = [
 ]
 
 
+# Set while Helmsman.assign_slots is writing rows one at a time, so each
+# row's update callback does not steal slots from, or store, a page that is
+# only half assigned yet.
+_assigning_slots = False
+
+
 def _on_slot_changed(self, context):
     """Bump any other row on the current page off the slot just picked.
 
@@ -107,16 +121,19 @@ def _on_slot_changed(self, context):
     whichever other row on the page was holding it - see Helmsman.
     steal_slot_from_other_rows.
     """
+    if _assigning_slots:
+        return
+
     picked = self.slot
     self.slot_bumped = False
     self.slot_value = picked
 
-    if picked == NO_SLOT_ID:
-        return
-
     helmsman = getattr(context.scene, "charon_helmsman", None)
-    if helmsman is not None:
+    if helmsman is None:
+        return
+    if picked != NO_SLOT_ID:
         helmsman.steal_slot_from_other_rows(self, picked)
+    helmsman.store_page_slots()
 
 
 class BatchShipReviewItem(bpy.types.PropertyGroup):
@@ -153,16 +170,21 @@ class BatchShipReviewItem(bpy.types.PropertyGroup):
     # Helmsman.steal_slot_from_other_rows and _on_slot_changed.
     slot_bumped: BoolProperty(default=False)
 
+    # The reviewer's note on this ship, entered through EditShipNote.
+    note: bpy.props.StringProperty(name="Note")
+
 
 def _reassign_slots():
     """Timer callback - redo the slot assignments after a redraw.
 
     Registered by Helmsman.request_slot_reassign_if_save_changed, which
     cannot do the write itself. Returns None so the timer does not repeat.
+    The stored slots belonged to the old save's corvettes, so they go.
     """
     scene = getattr(bpy.context, "scene", None)
     helmsman = getattr(scene, "charon_helmsman", None) if scene else None
     if helmsman is not None and len(helmsman.batch_ship_reviews):
+        helmsman.clear_stored_slots()
         helmsman.assign_slots()
     return None
 
@@ -201,6 +223,13 @@ class Helmsman(bpy.types.PropertyGroup):
     # corvette-count ships each, so every page can fill every slot.
     current_page: IntProperty(default=0, min=0)
 
+    # Every row's slot as JSON, {row index: slot id}, so switching pages
+    # brings a page's slots back as they were left instead of refilling
+    # them. Only the current page's rows hold a slot on the rows themselves
+    # (every page shares the same corvettes), so this is the record for the
+    # rest. Kept up to date by store_page_slots on every slot change.
+    stored_slots_json: bpy.props.StringProperty(default="{}")
+
     def toggle_active(self):
         self.is_active = not self.is_active
         return self.is_active
@@ -215,6 +244,7 @@ class Helmsman(bpy.types.PropertyGroup):
 
         self.batch_ship_reviews.clear()
         self.current_page = 0
+        self.clear_stored_slots()
 
         for ship in helmsman_utils.get_batch_ships():
             item = self.batch_ship_reviews.add()
@@ -253,42 +283,95 @@ class Helmsman(bpy.types.PropertyGroup):
         return list(enumerate(self.batch_ship_reviews))[start:end]
 
     def set_page(self, page):
-        """Switch to a page, clamped to what exists, and refill its slots."""
+        """Switch to a page, clamped to what exists, and bring back its slots."""
+        self.store_page_slots()
         page_count = self.get_page_count()
         self.current_page = max(0, min(page, page_count - 1))
         self.assign_slots()
 
+    # Stored slots ---
+    def get_stored_slots(self):
+        """{row index (str): slot id} - see stored_slots_json."""
+        try:
+            stored = json.loads(self.stored_slots_json or "{}")
+        except ValueError:
+            return {}
+        return stored if isinstance(stored, dict) else {}
+
+    def store_page_slots(self):
+        """Record the current page's slots into stored_slots_json."""
+        stored = self.get_stored_slots()
+        for index, item in self.get_page_items():
+            stored[str(index)] = item.slot_value or NO_SLOT_ID
+        self.stored_slots_json = json.dumps(stored)
+
+    def clear_stored_slots(self):
+        self.stored_slots_json = "{}"
+
+    def get_row_slot(self, index):
+        """A row's slot id, whether or not its page is showing."""
+        for page_index, item in self.get_page_items():
+            if page_index == index:
+                return item.slot_value or NO_SLOT_ID
+        return self.get_stored_slots().get(str(index), NO_SLOT_ID)
+
     def assign_slots(self):
         """Pair each row on the current page with a corvette from the save.
 
-        Each page fills every slot from the start: the first ship on the
-        page goes to the first corvette, the second to the second, and so
-        on, so switching pages re-fills the same slot numbers for the next
-        batch of ships to review - see get_page_items. The corvette list is
-        already sorted by user_data (its position in the player's ship
-        slots) over in the host addon.
+        A row with a stored slot (see stored_slots_json) gets it back, as
+        long as that corvette still exists and no row before it on the page
+        already took it. Every other row gets the first corvette nobody on
+        the page has, in the save's order, so a page seen for the first time
+        fills 1, 2, 3 ... exactly as before. The corvette list is already
+        sorted by user_data (its position in the player's ship slots) over
+        in the host addon.
 
         Rows outside the current page are left on NO_SLOT_ID - they are not
         being exported right now, so nothing should point at a corvette
-        that is not theirs to overwrite yet.
+        that is not theirs to overwrite yet. Their slots live on in
+        stored_slots_json.
         """
+        global _assigning_slots
         from ..utils import base_builder_utils
 
-        corvettes = base_builder_utils.get_save_corvettes()
+        corvette_ids = [
+            str(corvette.user_data) for corvette in base_builder_utils.get_save_corvettes()
+        ]
+        stored = self.get_stored_slots()
+        page_items = self.get_page_items()
 
-        # slot_value is cleared alongside slot so the free/in-use split in
-        # get_slot_enum_items is worked out against this new assignment
-        # rather than the one it replaced
-        for item in self.batch_ship_reviews:
-            item.slot_value = NO_SLOT_ID
-            item.slot = NO_SLOT_ID
-            item.slot_bumped = False
+        # work out the whole page first, then write it
+        chosen = {}
+        taken = set()
+        for index, _ in page_items:
+            slot_id = stored.get(str(index))
+            if slot_id == NO_SLOT_ID:
+                chosen[index] = slot_id
+            elif slot_id in corvette_ids and slot_id not in taken:
+                chosen[index] = slot_id
+                taken.add(slot_id)
+        free_ids = [slot_id for slot_id in corvette_ids if slot_id not in taken]
+        for index, _ in page_items:
+            if index not in chosen:
+                chosen[index] = free_ids.pop(0) if free_ids else NO_SLOT_ID
 
-        for page_index, (_, item) in enumerate(self.get_page_items()):
-            if page_index < len(corvettes):
-                slot_id = str(corvettes[page_index].user_data)
-                item.slot_value = slot_id
-                item.slot = slot_id
+        _assigning_slots = True
+        try:
+            # slot_value is cleared alongside slot so the free/in-use split in
+            # get_slot_enum_items is worked out against this new assignment
+            # rather than the one it replaced
+            for item in self.batch_ship_reviews:
+                item.slot_value = NO_SLOT_ID
+                item.slot = NO_SLOT_ID
+                item.slot_bumped = False
+
+            for index, item in page_items:
+                item.slot_value = chosen[index]
+                item.slot = chosen[index]
+        finally:
+            _assigning_slots = False
+
+        self.store_page_slots()
 
         save_data = base_builder_utils.get_save_data()
         self.assigned_save_slot = save_data.nms_save_slot if save_data else ""

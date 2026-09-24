@@ -146,10 +146,19 @@ def get_save_folder_path():
     """The NMS save folder to use, or None.
 
     The user's own choice if they have set one, else whatever the host
-    addon's save manager is pointed at (its own default is OS specific -
-    see save_editor_utils.get_default_save_folder there).
+    addon's save manager is pointed at, else the game's usual folder for
+    this OS (save_editor_utils.get_default_save_folder) when it exists.
     """
     prefs = get_addon_preferences()
     if prefs is not None and prefs.save_folder_path:
         return prefs.save_folder_path
-    return base_builder_utils.get_host_save_folder_path()
+
+    host_path = base_builder_utils.get_host_save_folder_path()
+    if host_path:
+        return host_path
+
+    import os
+    from .save_editor import save_editor_utils
+
+    default_path = str(save_editor_utils.get_default_save_folder())
+    return default_path if os.path.isdir(default_path) else None

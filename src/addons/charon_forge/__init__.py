@@ -11,6 +11,7 @@ from .addon import optimiser
 from .addon_preferences import CharonAddonPreferences
 from .menu import base_builder_menu, base_builder_menu_operators
 from .objects import preset
+from . import save_editor
 from .utils import icon_utils, themes_util
 
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -52,6 +53,7 @@ def register():
     if prefs is not None:
         themes_util.apply_named_theme(prefs.theme)
 
+    save_editor.register()
     header.register()
     optimiser.register()
     helmsman.register()
@@ -78,6 +80,7 @@ def unregister():
     helmsman.unregister()
     optimiser.unregister()
     header.unregister()
+    save_editor.unregister()
 
     for _class in reversed(classes):
         bpy.utils.unregister_class(_class)

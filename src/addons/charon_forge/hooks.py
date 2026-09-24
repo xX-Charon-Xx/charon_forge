@@ -16,7 +16,14 @@ Charon Forge's high res parts:
 
 Blender doesn't promise which addon registers first, so when the base builder
 addon isn't loaded yet the install is retried on a timer for a few seconds.
+
+Charon Forge doesn't need that addon to work (base_builder_utils falls back
+to its own copies of the helpers it borrows). If the addon is installed or
+enabled later, or reloaded and drops our hooks, the next thing of ours that
+looks it up hooks into it again - see ensure_installed.
 """
+
+import time
 
 import bpy
 
@@ -36,6 +43,18 @@ _wanted = False
 _installed = False
 _attempts = 0
 
+# what install() last handed over, so ensure_installed can tell whether the
+# addon still has them
+_host_builder = None
+_host_provider = None
+
+# ensure_installed runs on every lookup of the addon, which can be thousands
+# of times in a bulk build; once the hooks are confirmed in place it only
+# looks again after this many seconds
+VERIFY_INTERVAL = 1.0
+_verified_at = 0.0
+_ensuring = False
+
 
 def is_installed():
     return _installed
@@ -50,8 +69,9 @@ def install(retry=True):
     Returns:
         bool: True once both requested hooks are in place.
     """
-    global _wanted, _installed, _attempts
+    global _wanted, _installed, _attempts, _host_builder, _host_provider
     _wanted = True
+    base_builder_utils.set_on_addon_found(ensure_installed)
 
     if not base_builder_utils.is_available():
         if retry:
@@ -63,10 +83,12 @@ def install(retry=True):
     if INSTALL_MATERIALS:
         provider = materials.create_host_material_provider()
         installed &= provider is not None and base_builder_utils.set_material_provider(provider)
+        _host_provider = provider
 
     if INSTALL_BUILDER:
         host_builder = builder.create_host_builder()
         installed &= host_builder is not None and base_builder_utils.set_builder(host_builder)
+        _host_builder = host_builder
 
     # not counted towards `installed` - a colour path that can't be wrapped
     # only means that tool keeps the addon's own behaviour
@@ -80,16 +102,66 @@ def install(retry=True):
     return installed
 
 
+def ensure_installed():
+    """Hook into the addon now if it has appeared, or lost our hooks, since
+    install() last ran.
+
+    base_builder_utils calls this whenever one of its lookups finds the
+    addon, so Charon Forge hooks into an addon installed after it the next
+    time anything reaches for it, with no restart.
+
+    Returns:
+        bool: True when the hooks are in place.
+    """
+    global _installed, _verified_at, _ensuring
+    if not _wanted or _ensuring:
+        return _installed
+
+    # checked at most once a second, whether the last check found the hooks
+    # in place or failed to install them - a failing install is not retried
+    # on every lookup
+    now = time.monotonic()
+    if now - _verified_at < VERIFY_INTERVAL:
+        return _installed
+    _verified_at = now
+
+    # install() and the checks below look the addon up again, which calls
+    # back in here
+    _ensuring = True
+    try:
+        if _installed and _hooks_still_ours():
+            return True
+        # our timer is still trying, leave it to that
+        if bpy.app.timers.is_registered(_retry):
+            return False
+        _installed = False
+        return install(retry=False)
+    finally:
+        _ensuring = False
+
+
+def _hooks_still_ours():
+    """False once the addon has been reloaded or reset and dropped ours."""
+    if INSTALL_BUILDER and base_builder_utils.get_builder() is not _host_builder:
+        return False
+    if INSTALL_MATERIALS and base_builder_utils.get_material_provider() is not _host_provider:
+        return False
+    return True
+
+
 def remove():
     """Give the base builder addon its own builder and materials back."""
-    global _wanted, _installed, _attempts
+    global _wanted, _installed, _attempts, _host_builder, _host_provider
     _wanted = False
     _attempts = 0
+    base_builder_utils.set_on_addon_found(None)
 
     host_patches.remove()
     if _installed and base_builder_utils.is_available():
         base_builder_utils.reset_all()
     _installed = False
+    _host_builder = None
+    _host_provider = None
 
 
 def _schedule_retry():
@@ -116,8 +188,8 @@ def _retry():
 
     if _attempts >= RETRY_LIMIT:
         print(
-            "Charon Forge: base builder addon not found, "
-            "its panels will not colour or build Charon Forge parts"
+            "Charon Forge: base builder addon not found, working on its own - "
+            "it will be hooked into once it is installed"
         )
         return None
     return RETRY_SECONDS

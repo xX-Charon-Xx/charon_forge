@@ -34,9 +34,10 @@ class ExportReviews(bpy.types.Operator):
     def execute(self, context):
         helmsman = context.scene.charon_helmsman
 
+        # get_row_slot, so ships on other pages show the slot they were left on
         lines = [
-            f"{ship.ship_name}: slot {ship.slot}, {ship.review_status.title()}"
-            for ship in helmsman.batch_ship_reviews
+            f"{ship.ship_name}: slot {helmsman.get_row_slot(index)}, {ship.review_status.title()}"
+            for index, ship in enumerate(helmsman.batch_ship_reviews)
         ]
         context.window_manager.clipboard = "\n".join(lines)
 
@@ -57,18 +58,21 @@ class ExportResultFiles(bpy.types.Operator):
 
 
 class ExportToSave(bpy.types.Operator):
-    """Write every ship that has a ship slot into the save file"""
+    """Write every ship on the list that has a ship slot into the save file"""
 
     bl_idname = "object.charon_export_to_save"
     bl_label = "Export to Save"
 
     def _get_writable_rows(self, helmsman):
-        """Approved rows that have a ship slot to be written to.
+        """Rows that have a ship slot to be written to.
 
-        A row has to be explicitly marked APPROVE to be written - pending or
-        rejected rows are left alone even if they have a slot, so a page can
-        be exported without pulling in ships the user hasn't reviewed yet.
-        An unchecked row is skipped outright, whatever its review_status.
+        Approve/Reject is only a review result for Export Results to
+        Clipboard - it has no say in what is written here. An unchecked row
+        is skipped outright.
+
+        Reads slot_value rather than slot: slot is a dynamic enum stored as
+        a number, and after the save's corvettes change that number can
+        point at a different corvette until the rows are reassigned.
         """
         from ..utils import helmsman_utils
 
@@ -76,14 +80,13 @@ class ExportToSave(bpy.types.Operator):
             (index, ship)
             for index, ship in enumerate(helmsman.batch_ship_reviews)
             if ship.included
-            and ship.slot != helmsman_utils.NO_SLOT_ID
-            and ship.review_status == "APPROVE"
+            and ship.slot_value not in ("", helmsman_utils.NO_SLOT_ID)
         ]
 
     def invoke(self, context, event):
         helmsman = context.scene.charon_helmsman
         if not self._get_writable_rows(helmsman):
-            self.report({"WARNING"}, "No approved ships with a ship slot to write to")
+            self.report({"WARNING"}, "No ships with a ship slot to write to")
             return {"CANCELLED"}
 
         # this overwrites ship slots in the player's actual save file, so it
@@ -106,18 +109,29 @@ class ExportToSave(bpy.types.Operator):
             str(corvette.user_data): corvette
             for corvette in base_builder_utils.get_save_corvettes()
         }
+        # matched by id, not position: the batch file is read again here, and
+        # if it changed since Import Batch its ships may have moved
         batch_ships = helmsman_utils.get_batch_ships()
+        batch_ships_by_id = {ship["id"]: ship for ship in batch_ships if ship["id"]}
 
         written = 0
         failures = []
         for index, ship in self._get_writable_rows(helmsman):
-            corvette = corvettes_by_user_data.get(ship.slot)
-            if corvette is None or index >= len(batch_ships):
-                failures.append(f"{ship.ship_name} (ship slot {ship.slot} is gone)")
+            corvette = corvettes_by_user_data.get(ship.slot_value)
+            if corvette is None:
+                failures.append(f"{ship.ship_name} (ship slot {ship.slot_value} is gone)")
+                continue
+
+            if ship.ship_id:
+                batch_ship = batch_ships_by_id.get(ship.ship_id)
+            else:
+                batch_ship = batch_ships[index] if index < len(batch_ships) else None
+            if batch_ship is None:
+                failures.append(f"{ship.ship_name} (no longer in the batch file)")
                 continue
 
             success, message = base_builder_utils.write_objects_to_corvette(
-                batch_ships[index]["objects"], corvette, save_links
+                batch_ship["objects"], corvette, save_links
             )
             if success:
                 written += 1
@@ -162,6 +176,45 @@ class ToggleReviewStatus(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class EditShipNote(bpy.types.Operator):
+    """Write a note on this ship"""
+
+    bl_idname = "object.charon_edit_ship_note"
+    bl_label = "Ship Note"
+
+    row_index: bpy.props.IntProperty()
+    note: bpy.props.StringProperty(name="Note")
+
+    def _get_ship(self, context):
+        reviews = context.scene.charon_helmsman.batch_ship_reviews
+        return reviews[self.row_index] if self.row_index < len(reviews) else None
+
+    def invoke(self, context, event):
+        ship = self._get_ship(context)
+        if ship is None:
+            return {"CANCELLED"}
+        # start from the current note so an edit doesn't mean retyping it
+        self.note = ship.note
+        return context.window_manager.invoke_props_dialog(self, width=400)
+
+    def draw(self, context):
+        self.layout.prop(self, "note", text="")
+
+    def execute(self, context):
+        ship = self._get_ship(context)
+        if ship is None:
+            return {"CANCELLED"}
+        ship.note = self.note.strip()
+
+        # the dialog closes over the panel without redrawing it, so the new
+        # note would only show on the next mouse-over - redraw it now
+        for window in context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.type == "VIEW_3D":
+                    area.tag_redraw()
+        return {"FINISHED"}
+
+
 class SetBatchPage(bpy.types.Operator):
     """Switch the batch ship list to a page, refilling its slots"""
 
@@ -185,6 +238,7 @@ class ResetReviews(bpy.types.Operator):
     def execute(self, context):
         helmsman = context.scene.charon_helmsman
         helmsman.batch_ship_reviews.clear()
+        helmsman.clear_stored_slots()
         helmsman.batch_list_visible = False
         return {"FINISHED"}
 
@@ -196,6 +250,7 @@ classes = (
     ExportResultFiles,
     ExportToSave,
     ToggleReviewStatus,
+    EditShipNote,
     SetBatchPage,
     ResetReviews,
 )

@@ -8,7 +8,7 @@ import shutil
 
 from .save_translation import SaveTranslation
 from .save_editor_utils import BaseData, BaseType
-from ..utils.blend_utils import ShowMessageBox
+from ..utils.fallbacks.blend_utils import ShowMessageBox
 
 MAGIC = 0xFEEDA1E5
 CHUNK_SIZE = 0x80000  # 524288 bytes

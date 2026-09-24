@@ -6,7 +6,10 @@ from .save_editor_utils import BaseType, BaseData
 
 
 #save data to persist within blend files.
-class SaveManager(bpy.types.PropertyGroup):
+# Registered as scene.charon_save_data - see save_editor/__init__.py. Named
+# CharonSaveManager so it can be registered beside the base builder addon's
+# own SaveManager; SaveManager below keeps the name the rest of this file uses.
+class CharonSaveManager(bpy.types.PropertyGroup):
     
     #array to populate accounts list
     enum_accounts_list = []
@@ -616,3 +619,6 @@ class SaveManager(bpy.types.PropertyGroup):
         current_slot_data = self.get_current_slot_data()
         SaveManager.extracted_base_data = save_editor_utils.extract_bases_list_from_save(current_slot_data["saves"])
         self.on_base_type_selected()
+
+
+SaveManager = CharonSaveManager

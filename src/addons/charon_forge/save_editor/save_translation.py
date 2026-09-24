@@ -1,5 +1,5 @@
 import os
-from ..utils import python as python_utils
+from ..utils.fallbacks import python as python_utils
 
 # load save map that contains collection of only used keys
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
