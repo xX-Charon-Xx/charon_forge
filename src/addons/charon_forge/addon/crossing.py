@@ -1,5 +1,7 @@
+import json
+
 import bpy
-from bpy.props import BoolProperty, IntProperty, PointerProperty
+from bpy.props import PointerProperty, StringProperty
 
 from . import crossing_operators, crossing_presentation
 
@@ -7,27 +9,35 @@ from . import crossing_operators, crossing_presentation
 # State for the crossing panel, stored on the scene as scene.charon_crossing.
 class Crossing(bpy.types.PropertyGroup):
 
-    # Dummy for now - nothing acts on it yet.
-    is_active: BoolProperty(
-        name="Crossing Active",
-        description="Whether the crossing is currently active",
-        default=False,
-    )
+    # The so.json and ccd.json of the last .nmsship imported, as JSON - the
+    # game's ship record (name, model, inventories) and its customisation.
+    # Nothing in Blender builds these, so Export as .nmsship writes them back
+    # out around the scene's parts. Empty until a ship has been imported,
+    # and then export uses resources/nmsship_template.json - see utils/nmsship.py.
+    ship_record_json: StringProperty()
+    customisation_json: StringProperty()
 
-    # dummy value, counts how many times the cross button was pressed
-    cross_count: IntProperty(
-        name="Cross Count",
-        default=0,
-        min=0,
-    )
+    # the file the stored ship came from, for the panel to show
+    source_file: StringProperty()
 
-    def toggle_active(self):
-        self.is_active = not self.is_active
-        return self.is_active
+    def store_ship(self, ship, customisation, source_file):
+        self.ship_record_json = json.dumps(ship, ensure_ascii=False)
+        self.customisation_json = json.dumps(customisation, ensure_ascii=False)
+        self.source_file = source_file
 
-    def cross(self):
-        self.cross_count += 1
-        return self.cross_count
+    def get_ship(self):
+        """(ship record, customisation) stored from an import, or None."""
+        if not self.ship_record_json:
+            return None
+        try:
+            return json.loads(self.ship_record_json), json.loads(self.customisation_json or "{}")
+        except ValueError:
+            return None
+
+    def clear_ship(self):
+        self.ship_record_json = ""
+        self.customisation_json = ""
+        self.source_file = ""
 
 
 classes = (

@@ -1,0 +1,741 @@
+{
+  "so": {
+    "Name": "Charon Forge Ship",
+    "Resource": {
+      "Filename": "MODELS/COMMON/SPACECRAFT/BIGGS/BIGGS.SCENE.MBIN",
+      "Seed": [
+        true,
+        "0x6A2704AC"
+      ],
+      "ProceduralTexture": {
+        "Samplers": []
+      },
+      "AltId": ""
+    },
+    "Inventory": {
+      "Slots": [],
+      "ValidSlotIndices": [
+        {
+          "X": 0,
+          "Y": 0
+        },
+        {
+          "X": 1,
+          "Y": 0
+        },
+        {
+          "X": 2,
+          "Y": 0
+        },
+        {
+          "X": 3,
+          "Y": 0
+        },
+        {
+          "X": 4,
+          "Y": 0
+        },
+        {
+          "X": 5,
+          "Y": 0
+        },
+        {
+          "X": 6,
+          "Y": 0
+        },
+        {
+          "X": 7,
+          "Y": 0
+        },
+        {
+          "X": 8,
+          "Y": 0
+        },
+        {
+          "X": 9,
+          "Y": 0
+        },
+        {
+          "X": 0,
+          "Y": 1
+        },
+        {
+          "X": 1,
+          "Y": 1
+        },
+        {
+          "X": 2,
+          "Y": 1
+        },
+        {
+          "X": 3,
+          "Y": 1
+        },
+        {
+          "X": 4,
+          "Y": 1
+        },
+        {
+          "X": 5,
+          "Y": 1
+        },
+        {
+          "X": 6,
+          "Y": 1
+        },
+        {
+          "X": 7,
+          "Y": 1
+        },
+        {
+          "X": 8,
+          "Y": 1
+        },
+        {
+          "X": 9,
+          "Y": 1
+        },
+        {
+          "X": 0,
+          "Y": 2
+        },
+        {
+          "X": 1,
+          "Y": 2
+        },
+        {
+          "X": 2,
+          "Y": 2
+        },
+        {
+          "X": 3,
+          "Y": 2
+        },
+        {
+          "X": 4,
+          "Y": 2
+        },
+        {
+          "X": 5,
+          "Y": 2
+        },
+        {
+          "X": 6,
+          "Y": 2
+        },
+        {
+          "X": 7,
+          "Y": 2
+        },
+        {
+          "X": 8,
+          "Y": 2
+        },
+        {
+          "X": 9,
+          "Y": 2
+        },
+        {
+          "X": 0,
+          "Y": 3
+        },
+        {
+          "X": 1,
+          "Y": 3
+        },
+        {
+          "X": 2,
+          "Y": 3
+        },
+        {
+          "X": 3,
+          "Y": 3
+        },
+        {
+          "X": 4,
+          "Y": 3
+        },
+        {
+          "X": 5,
+          "Y": 3
+        },
+        {
+          "X": 6,
+          "Y": 3
+        },
+        {
+          "X": 7,
+          "Y": 3
+        },
+        {
+          "X": 8,
+          "Y": 3
+        },
+        {
+          "X": 9,
+          "Y": 3
+        },
+        {
+          "X": 0,
+          "Y": 4
+        },
+        {
+          "X": 1,
+          "Y": 4
+        },
+        {
+          "X": 2,
+          "Y": 4
+        },
+        {
+          "X": 3,
+          "Y": 4
+        },
+        {
+          "X": 4,
+          "Y": 4
+        },
+        {
+          "X": 5,
+          "Y": 4
+        },
+        {
+          "X": 6,
+          "Y": 4
+        },
+        {
+          "X": 7,
+          "Y": 4
+        },
+        {
+          "X": 8,
+          "Y": 4
+        },
+        {
+          "X": 9,
+          "Y": 4
+        },
+        {
+          "X": 0,
+          "Y": 5
+        },
+        {
+          "X": 1,
+          "Y": 5
+        },
+        {
+          "X": 2,
+          "Y": 5
+        },
+        {
+          "X": 3,
+          "Y": 5
+        },
+        {
+          "X": 4,
+          "Y": 5
+        },
+        {
+          "X": 5,
+          "Y": 5
+        },
+        {
+          "X": 6,
+          "Y": 5
+        },
+        {
+          "X": 7,
+          "Y": 5
+        },
+        {
+          "X": 8,
+          "Y": 5
+        },
+        {
+          "X": 9,
+          "Y": 5
+        },
+        {
+          "X": 0,
+          "Y": 6
+        },
+        {
+          "X": 1,
+          "Y": 6
+        },
+        {
+          "X": 2,
+          "Y": 6
+        },
+        {
+          "X": 3,
+          "Y": 6
+        },
+        {
+          "X": 4,
+          "Y": 6
+        },
+        {
+          "X": 5,
+          "Y": 6
+        },
+        {
+          "X": 6,
+          "Y": 6
+        },
+        {
+          "X": 7,
+          "Y": 6
+        },
+        {
+          "X": 8,
+          "Y": 6
+        },
+        {
+          "X": 9,
+          "Y": 6
+        },
+        {
+          "X": 0,
+          "Y": 7
+        },
+        {
+          "X": 1,
+          "Y": 7
+        },
+        {
+          "X": 2,
+          "Y": 7
+        },
+        {
+          "X": 3,
+          "Y": 7
+        },
+        {
+          "X": 4,
+          "Y": 7
+        },
+        {
+          "X": 5,
+          "Y": 7
+        },
+        {
+          "X": 6,
+          "Y": 7
+        }
+      ],
+      "Class": {
+        "InventoryClass": "S"
+      },
+      "StackSizeGroup": {
+        "InventoryStackSizeGroup": "Ship"
+      },
+      "BaseStatValues": [
+        {
+          "BaseStatID": "^SHIP_DAMAGE",
+          "Value": 19.43386459350586
+        },
+        {
+          "BaseStatID": "^SHIP_SHIELD",
+          "Value": 113.50016784667969
+        },
+        {
+          "BaseStatID": "^SHIP_HYPERDRIVE",
+          "Value": 57.58808135986328
+        },
+        {
+          "BaseStatID": "^SHIP_AGILE",
+          "Value": 13.132536888122559
+        }
+      ],
+      "SpecialSlots": [],
+      "Width": 10,
+      "Height": 12,
+      "IsCool": false,
+      "Name": "",
+      "Version": 1,
+      "NumSlotsFromTech": 3
+    },
+    "Inventory_Cargo": {
+      "Slots": [],
+      "ValidSlotIndices": [],
+      "Class": {
+        "InventoryClass": "S"
+      },
+      "StackSizeGroup": {
+        "InventoryStackSizeGroup": "ShipCargo"
+      },
+      "BaseStatValues": [
+        {
+          "BaseStatID": "^SHIP_DAMAGE",
+          "Value": 19.43386459350586
+        },
+        {
+          "BaseStatID": "^SHIP_SHIELD",
+          "Value": 113.50016784667969
+        },
+        {
+          "BaseStatID": "^SHIP_HYPERDRIVE",
+          "Value": 57.58808135986328
+        },
+        {
+          "BaseStatID": "^SHIP_AGILE",
+          "Value": 13.132536888122559
+        }
+      ],
+      "SpecialSlots": [],
+      "Width": 8,
+      "Height": 5,
+      "IsCool": false,
+      "Name": "",
+      "Version": 1,
+      "NumSlotsFromTech": 0
+    },
+    "Inventory_TechOnly": {
+      "Slots": [],
+      "ValidSlotIndices": [
+        {
+          "X": 0,
+          "Y": 0
+        },
+        {
+          "X": 1,
+          "Y": 0
+        },
+        {
+          "X": 2,
+          "Y": 0
+        },
+        {
+          "X": 3,
+          "Y": 0
+        },
+        {
+          "X": 4,
+          "Y": 0
+        },
+        {
+          "X": 5,
+          "Y": 0
+        },
+        {
+          "X": 6,
+          "Y": 0
+        },
+        {
+          "X": 7,
+          "Y": 0
+        },
+        {
+          "X": 8,
+          "Y": 0
+        },
+        {
+          "X": 9,
+          "Y": 0
+        },
+        {
+          "X": 0,
+          "Y": 1
+        },
+        {
+          "X": 1,
+          "Y": 1
+        },
+        {
+          "X": 2,
+          "Y": 1
+        },
+        {
+          "X": 3,
+          "Y": 1
+        },
+        {
+          "X": 4,
+          "Y": 1
+        },
+        {
+          "X": 5,
+          "Y": 1
+        },
+        {
+          "X": 6,
+          "Y": 1
+        },
+        {
+          "X": 7,
+          "Y": 1
+        },
+        {
+          "X": 8,
+          "Y": 1
+        },
+        {
+          "X": 9,
+          "Y": 1
+        },
+        {
+          "X": 0,
+          "Y": 2
+        },
+        {
+          "X": 1,
+          "Y": 2
+        },
+        {
+          "X": 2,
+          "Y": 2
+        },
+        {
+          "X": 3,
+          "Y": 2
+        },
+        {
+          "X": 4,
+          "Y": 2
+        },
+        {
+          "X": 5,
+          "Y": 2
+        },
+        {
+          "X": 6,
+          "Y": 2
+        },
+        {
+          "X": 7,
+          "Y": 2
+        },
+        {
+          "X": 8,
+          "Y": 2
+        },
+        {
+          "X": 9,
+          "Y": 2
+        },
+        {
+          "X": 0,
+          "Y": 3
+        },
+        {
+          "X": 1,
+          "Y": 3
+        },
+        {
+          "X": 2,
+          "Y": 3
+        },
+        {
+          "X": 3,
+          "Y": 3
+        },
+        {
+          "X": 4,
+          "Y": 3
+        },
+        {
+          "X": 5,
+          "Y": 3
+        },
+        {
+          "X": 6,
+          "Y": 3
+        },
+        {
+          "X": 7,
+          "Y": 3
+        },
+        {
+          "X": 8,
+          "Y": 3
+        },
+        {
+          "X": 9,
+          "Y": 3
+        },
+        {
+          "X": 0,
+          "Y": 4
+        },
+        {
+          "X": 1,
+          "Y": 4
+        },
+        {
+          "X": 2,
+          "Y": 4
+        },
+        {
+          "X": 3,
+          "Y": 4
+        },
+        {
+          "X": 4,
+          "Y": 4
+        },
+        {
+          "X": 5,
+          "Y": 4
+        },
+        {
+          "X": 6,
+          "Y": 4
+        },
+        {
+          "X": 7,
+          "Y": 4
+        },
+        {
+          "X": 8,
+          "Y": 4
+        },
+        {
+          "X": 9,
+          "Y": 4
+        },
+        {
+          "X": 0,
+          "Y": 5
+        },
+        {
+          "X": 1,
+          "Y": 5
+        },
+        {
+          "X": 2,
+          "Y": 5
+        },
+        {
+          "X": 3,
+          "Y": 5
+        },
+        {
+          "X": 4,
+          "Y": 5
+        },
+        {
+          "X": 5,
+          "Y": 5
+        },
+        {
+          "X": 6,
+          "Y": 5
+        },
+        {
+          "X": 7,
+          "Y": 5
+        },
+        {
+          "X": 8,
+          "Y": 5
+        },
+        {
+          "X": 9,
+          "Y": 5
+        }
+      ],
+      "Class": {
+        "InventoryClass": "S"
+      },
+      "StackSizeGroup": {
+        "InventoryStackSizeGroup": "Default"
+      },
+      "BaseStatValues": [
+        {
+          "BaseStatID": "^SHIP_DAMAGE",
+          "Value": 19.43386459350586
+        },
+        {
+          "BaseStatID": "^SHIP_SHIELD",
+          "Value": 113.50016784667969
+        },
+        {
+          "BaseStatID": "^SHIP_HYPERDRIVE",
+          "Value": 57.58808135986328
+        },
+        {
+          "BaseStatID": "^SHIP_AGILE",
+          "Value": 13.132536888122559
+        }
+      ],
+      "SpecialSlots": [
+        {
+          "Type": {
+            "InventorySpecialSlotType": "TechBonus"
+          },
+          "Index": {
+            "X": 2,
+            "Y": 1
+          }
+        },
+        {
+          "Type": {
+            "InventorySpecialSlotType": "TechBonus"
+          },
+          "Index": {
+            "X": 9,
+            "Y": 1
+          }
+        },
+        {
+          "Type": {
+            "InventorySpecialSlotType": "TechBonus"
+          },
+          "Index": {
+            "X": 0,
+            "Y": 2
+          }
+        },
+        {
+          "Type": {
+            "InventorySpecialSlotType": "TechBonus"
+          },
+          "Index": {
+            "X": 4,
+            "Y": 1
+          }
+        }
+      ],
+      "Width": 10,
+      "Height": 6,
+      "IsCool": false,
+      "Name": "",
+      "Version": 1,
+      "NumSlotsFromTech": 0
+    },
+    "InventoryLayout": {
+      "Slots": 10,
+      "Seed": [
+        true,
+        "0x1"
+      ],
+      "Level": 1
+    },
+    "Location": 0,
+    "Position": [
+      0.0,
+      0.0,
+      0.0,
+      -1.0
+    ],
+    "Direction": [
+      0.0,
+      0.0,
+      0.0,
+      -1.0
+    ],
+    "FA8": []
+  },
+  "ccd": {
+    "SelectedPreset": "^",
+    "CustomData": {
+      "DescriptorGroups": [],
+      "PaletteID": "^",
+      "Colours": [],
+      "TextureOptions": [],
+      "BoneScales": [],
+      "Scale": 1.0
+    }
+  }
+}
