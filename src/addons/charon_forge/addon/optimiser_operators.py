@@ -36,14 +36,17 @@ class OptimiseMaterials(bpy.types.Operator):
 
 
 class OptimiseNow(bpy.types.Operator):
-    """Optimise the scene now"""
+    """Reorder the scene's parts now: parts in the priority list first, in
+    its order, then everything else"""
 
     bl_idname = "object.charon_optimise_now"
     bl_label = "Optimise Now"
 
     def execute(self, context):
-        # dummy for now - the panel just needs the button to exist
-        self.report({"INFO"}, "Optimise Now (not implemented)")
+        from ..builder import get_builder
+
+        count = optimiser_utils.reorder_scene_objects(get_builder())
+        self.report({"INFO"}, f"Reordered {count} part(s)")
         return {"FINISHED"}
 
 

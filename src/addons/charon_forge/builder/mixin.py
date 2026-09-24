@@ -16,6 +16,7 @@ its own Builder class.
 """
 
 from . import asset_library, importer, placement
+from ..utils import optimiser_utils
 
 
 class HighResBuilderMixin(object):
@@ -86,6 +87,21 @@ class HighResBuilderMixin(object):
         cache = getattr(self, "_Builder__part_cache", None)
         if isinstance(cache, dict):
             cache.pop(object_id, None)
+
+    # Saving ---
+    def serialise(self, *args, **kwargs):
+        """The base class's serialise, with priority parts put first while
+        Auto Optimise is on - see optimiser_utils.reorder_scene_objects."""
+        if not optimiser_utils.is_auto_optimise_on():
+            return super(HighResBuilderMixin, self).serialise(*args, **kwargs)
+
+        ranks = optimiser_utils.get_priority_ranks()
+        optimiser_utils.reorder_scene_objects(self, ranks)
+        data = super(HighResBuilderMixin, self).serialise(*args, **kwargs)
+        for key in ("Objects", "Prefab"):
+            if isinstance(data.get(key), list):
+                optimiser_utils.sort_serialised_objects(data[key], ranks)
+        return data
 
     # Loading ---
     def deserialise_from_data(self, data):

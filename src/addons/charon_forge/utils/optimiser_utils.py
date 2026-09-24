@@ -175,3 +175,71 @@ def reset_priority_list():
         os.remove(get_user_priority_list_path())
     except OSError:
         pass
+
+
+# Ordering ---
+#
+# A part's "order" is its position in the saved Objects list. Parts whose
+# ObjectID is in the priority list go first, in the list's own order - group
+# by group, and part by part inside a group - and every other part comes
+# after all of them. Parts that tie keep the order they already had.
+
+
+def _strip_id(object_id):
+    return str(object_id or "").replace("^", "")
+
+
+def get_priority_ranks():
+    """{object id without "^": rank}, lowest first, from the priority list."""
+    ranks = {}
+    for group in get_priority_list():
+        for object_id in get_group_parts(group):
+            ranks.setdefault(_strip_id(object_id), len(ranks))
+    return ranks
+
+
+def _rank_key(ranks, object_id):
+    """Sort key: the part's rank, or after every ranked part."""
+    return ranks.get(_strip_id(object_id), len(ranks))
+
+
+def is_auto_optimise_on():
+    from ..addon_preferences import get_addon_preferences
+
+    prefs = get_addon_preferences()
+    return bool(prefs is not None and prefs.auto_optimise)
+
+
+def reorder_scene_objects(builder, ranks=None):
+    """Renumber every part's "order" so priority parts come first.
+
+    Args:
+        builder: The builder to read the scene's parts through.
+        ranks (dict): From get_priority_ranks(), to save reading it twice.
+
+    Returns:
+        int: How many parts were renumbered.
+    """
+    ranks = get_priority_ranks() if ranks is None else ranks
+    # already sorted by their current order, and sorted() is stable, so
+    # parts of the same rank keep their relative order
+    parts = builder.get_all_parts(include_lines=True)
+    parts = sorted(
+        parts, key=lambda obj: _rank_key(ranks, obj.get("ObjectID") or obj.get("SnapID"))
+    )
+    for order, obj in enumerate(parts):
+        if obj.get("order") != order:
+            obj["order"] = order
+    return len(parts)
+
+
+def sort_serialised_objects(object_list, ranks=None):
+    """Sort serialised part dicts the same way, in place.
+
+    Group members are serialised after every loose part, so reordering the
+    scene alone would still leave a priority part inside a group behind
+    loose parts that are not in the priority list.
+    """
+    ranks = get_priority_ranks() if ranks is None else ranks
+    object_list.sort(key=lambda data: _rank_key(ranks, data.get("ObjectID")))
+    return object_list
