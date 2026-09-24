@@ -1,59 +1,112 @@
 import bpy
+from bpy_extras.io_utils import ExportHelper, ImportHelper
+
+from ..utils import helmsman_utils
 
 
-class ImportShip(bpy.types.Operator):
-    """Import a ship (dummy)"""
+def _load_batch_text(operator, context, text, source):
+    """Validate a batch and fill the review list from it.
 
-    bl_idname = "object.charon_import_ship"
-    bl_label = "Import Ship"
+    Nothing is changed when it fails validation - the list the user already
+    has stays as it was.
+    """
+    try:
+        ships = helmsman_utils.parse_batch(text)
+    except helmsman_utils.BatchError as error:
+        operator.report({"ERROR"}, f"The {source} is not a valid ship batch: {error}")
+        return {"CANCELLED"}
+
+    context.scene.charon_helmsman.load_batch(ships)
+    operator.report({"INFO"}, f"Loaded {len(ships)} ship(s) from the {source}")
+    return {"FINISHED"}
+
+
+def _collect_results(operator, helmsman):
+    """The approved/rejected ships as a batch, or None (reported) if there
+    are none - see helmsman_utils.build_results."""
+    rows = []
+    for item in helmsman.batch_ship_reviews:
+        if item.review_status not in helmsman_utils.REVIEW_TO_APPROVAL:
+            continue
+        ship = helmsman.get_ship_data(item)
+        if ship is None:
+            operator.report({"WARNING"}, f"{item.ship_name}: its batch data is missing, left out")
+            continue
+        rows.append((ship, item.review_status, item.note))
+
+    results = helmsman_utils.build_results(rows)
+    if not results:
+        operator.report({"WARNING"}, "No approved or rejected ships to export")
+        return None
+    return results
+
+
+class ImportBatchFile(bpy.types.Operator, ImportHelper):
+    """Load a batch of ships to review from a .json or .txt file"""
+
+    bl_idname = "object.charon_import_batch_file"
+    bl_label = "Load Batch File"
+
+    filter_glob: bpy.props.StringProperty(default="*.json;*.txt", options={"HIDDEN", "SKIP_SAVE"})
 
     def execute(self, context):
-        self.report({"INFO"}, "Import Ship (dummy)")
-        return {"FINISHED"}
+        try:
+            with open(self.filepath, "r", encoding="utf-8-sig") as batch_file:
+                text = batch_file.read()
+        except (OSError, UnicodeDecodeError) as error:
+            self.report({"ERROR"}, f"Could not read the file: {error}")
+            return {"CANCELLED"}
+        return _load_batch_text(self, context, text, "file")
 
 
-class ImportBatch(bpy.types.Operator):
-    """List the ships in the batch ship file (dummy - nothing is placed yet)"""
+class ImportBatchClipboard(bpy.types.Operator):
+    """Load a batch of ships to review from the clipboard"""
 
     bl_idname = "object.charon_import_batch"
-    bl_label = "Import Batch"
+    bl_label = "Load Batch from Clipboard"
 
     def execute(self, context):
-        helmsman = context.scene.charon_helmsman
-        helmsman.refresh_batch_ship_reviews()
-        helmsman.batch_list_visible = True
-        return {"FINISHED"}
+        return _load_batch_text(self, context, context.window_manager.clipboard, "clipboard")
 
 
 class ExportReviews(bpy.types.Operator):
-    """Copy the review results to the clipboard (dummy format for now)"""
+    """Copy the approved and rejected ships (id, status and note) to the clipboard"""
 
     bl_idname = "object.charon_export_reviews"
-    bl_label = "Export"
+    bl_label = "Export Results to Clipboard"
 
     def execute(self, context):
-        helmsman = context.scene.charon_helmsman
+        results = _collect_results(self, context.scene.charon_helmsman)
+        if results is None:
+            return {"CANCELLED"}
 
-        # get_row_slot, so ships on other pages show the slot they were left on
-        lines = [
-            f"{ship.ship_name}: slot {helmsman.get_row_slot(index)}, {ship.review_status.title()}"
-            for index, ship in enumerate(helmsman.batch_ship_reviews)
-        ]
-        context.window_manager.clipboard = "\n".join(lines)
-
-        self.report({"INFO"}, f"Copied {len(helmsman.batch_ship_reviews)} ship(s) to clipboard")
+        context.window_manager.clipboard = helmsman_utils.dump_results(results)
+        self.report({"INFO"}, f"Copied {len(results)} ship(s) to the clipboard")
         return {"FINISHED"}
 
 
-class ExportResultFiles(bpy.types.Operator):
-    """Export the review results to files (dummy - nothing is written out yet)"""
+class ExportResultFiles(bpy.types.Operator, ExportHelper):
+    """Save the approved and rejected ships (id, status and note) to a .json file"""
 
     bl_idname = "object.charon_export_result_files"
-    bl_label = "Export Result Files"
+    bl_label = "Export Results to File"
+
+    filename_ext = ".json"
+    filter_glob: bpy.props.StringProperty(default="*.json;*.txt", options={"HIDDEN", "SKIP_SAVE"})
 
     def execute(self, context):
-        helmsman = context.scene.charon_helmsman
-        self.report({"INFO"}, f"Exported {len(helmsman.batch_ship_reviews)} ship(s) to files (dummy)")
+        results = _collect_results(self, context.scene.charon_helmsman)
+        if results is None:
+            return {"CANCELLED"}
+
+        try:
+            with open(self.filepath, "w", encoding="utf-8") as results_file:
+                results_file.write(helmsman_utils.dump_results(results))
+        except OSError as error:
+            self.report({"ERROR"}, f"Could not write the file: {error}")
+            return {"CANCELLED"}
+
+        self.report({"INFO"}, f"Saved {len(results)} ship(s) to {self.filepath}")
         return {"FINISHED"}
 
 
@@ -109,34 +162,33 @@ class ExportToSave(bpy.types.Operator):
             str(corvette.user_data): corvette
             for corvette in base_builder_utils.get_save_corvettes()
         }
-        # matched by id, not position: the batch file is read again here, and
-        # if it changed since Import Batch its ships may have moved
-        batch_ships = helmsman_utils.get_batch_ships()
-        batch_ships_by_id = {ship["id"]: ship for ship in batch_ships if ship["id"]}
-
-        written = 0
         failures = []
+        to_write = []   # (ship row, objects, corvette)
         for index, ship in self._get_writable_rows(helmsman):
             corvette = corvettes_by_user_data.get(ship.slot_value)
             if corvette is None:
                 failures.append(f"{ship.ship_name} (ship slot {ship.slot_value} is gone)")
                 continue
 
-            if ship.ship_id:
-                batch_ship = batch_ships_by_id.get(ship.ship_id)
-            else:
-                batch_ship = batch_ships[index] if index < len(batch_ships) else None
+            # the parts come off the row itself, stored when it was loaded
+            batch_ship = helmsman.get_ship_data(ship)
             if batch_ship is None:
-                failures.append(f"{ship.ship_name} (no longer in the batch file)")
+                failures.append(f"{ship.ship_name} (its batch data is missing)")
                 continue
 
-            success, message = base_builder_utils.write_objects_to_corvette(
-                batch_ship["objects"], corvette, save_links
+            to_write.append((ship, batch_ship["objects"], corvette))
+
+        # every ship goes into the save in one go: each save file is read,
+        # backed up and written once, rather than once per ship
+        written = 0
+        if to_write:
+            written_indices, write_failures, _ = base_builder_utils.write_objects_to_corvettes(
+                [(objects, corvette) for _, objects, corvette in to_write],
+                save_links,
             )
-            if success:
-                written += 1
-            else:
-                failures.append(f"{ship.ship_name}: {message}")
+            written = len(written_indices)
+            for index, reason in write_failures.items():
+                failures.append(f"{to_write[index][0].ship_name}: {reason}")
 
         # the corvette list the panel is showing came from the save file we
         # just wrote over, so it has to be re-read before it is used again
@@ -244,8 +296,8 @@ class ResetReviews(bpy.types.Operator):
 
 
 classes = (
-    ImportShip,
-    ImportBatch,
+    ImportBatchFile,
+    ImportBatchClipboard,
     ExportReviews,
     ExportResultFiles,
     ExportToSave,

@@ -137,17 +137,23 @@ def _on_slot_changed(self, context):
 
 
 class BatchShipReviewItem(bpy.types.PropertyGroup):
-    """One row of the batch ship review list - see Helmsman.refresh_batch_ship_reviews.
+    """One row of the batch ship review list - see Helmsman.load_batch.
 
     A scene level collection rather than reading the batch file straight
     into the panel's draw(), the same restriction that rules out doing that
     for the priority group list - see Optimiser.refresh_priority_part_list.
-    Filled in by ImportBatch.execute() instead, once per Import Batch click.
+    Filled in by the Load File / Load Clipboard operators instead, once per
+    load - see Helmsman.load_batch.
     """
 
     ship_id: bpy.props.StringProperty()
     ship_name: bpy.props.StringProperty()
     part_count: IntProperty()
+    # The ship's whole entry from the batch, as JSON - its parts for Export
+    # to Save, and everything else so the exported results carry it back
+    # out unchanged. Kept on the row (so in the .blend) because the clipboard
+    # or file it came from may be gone by then. See get_ship_data.
+    ship_json: bpy.props.StringProperty()
     slot: EnumProperty(items=get_slot_enum_items, name="Slot", update=_on_slot_changed)
     # Plain-string mirror of slot, kept in sync by _on_slot_changed and
     # everywhere else slot is assigned directly (assign_slots,
@@ -206,11 +212,11 @@ class Helmsman(bpy.types.PropertyGroup):
         min=0,
     )
 
-    # Whether the batch ship list is showing - toggled by ImportBatch.
+    # Whether the batch ship list is showing - set by load_batch.
     batch_list_visible: BoolProperty(default=False)
 
-    # Rows for the batch ship review list - filled in by ImportBatch.execute,
-    # see BatchShipReviewItem.
+    # Rows for the batch ship review list - filled in by load_batch, see
+    # BatchShipReviewItem.
     batch_ship_reviews: CollectionProperty(type=BatchShipReviewItem)
 
     # Which save slot the rows' corvette assignments were worked out against,
@@ -238,21 +244,38 @@ class Helmsman(bpy.types.PropertyGroup):
         self.steer_count += 1
         return self.steer_count
 
-    def refresh_batch_ship_reviews(self):
-        """Rebuild the review rows, one per ship in the batch file."""
+    def load_batch(self, ships):
+        """Rebuild the review rows, one per ship in a validated batch.
+
+        Args:
+            ships (list): From helmsman_utils.parse_batch.
+        """
         from ..utils import helmsman_utils
 
         self.batch_ship_reviews.clear()
         self.current_page = 0
         self.clear_stored_slots()
 
-        for ship in helmsman_utils.get_batch_ships():
+        for ship in ships:
             item = self.batch_ship_reviews.add()
             item.ship_id = ship["id"]
             item.ship_name = ship["name"]
-            item.part_count = ship["part_count"]
+            item.part_count = len(ship["objects"])
+            item.ship_json = json.dumps(ship, ensure_ascii=False)
+            item.review_status = helmsman_utils.get_review_status(ship)
+            item.note = ship.get("note", "").strip()
 
+        self.batch_list_visible = True
         self.assign_slots()
+
+    @staticmethod
+    def get_ship_data(item):
+        """A row's ship entry as loaded, or None if it cannot be read."""
+        try:
+            ship = json.loads(item.ship_json)
+        except ValueError:
+            return None
+        return ship if isinstance(ship, dict) else None
 
     def get_page_size(self):
         """How many ships one page holds - one per corvette in the save.

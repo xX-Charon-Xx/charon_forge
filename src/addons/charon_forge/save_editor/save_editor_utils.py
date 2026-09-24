@@ -303,53 +303,100 @@ def describe_error(error):
     return f"{type(error).__name__}: {error}"
 
 #save a base to save file
-# the newest save file is the one the game loads, so it must contain the base, the older one is updated too when it has it
-# both files are prepared and backed up before anything is written, and the older file is written first so the newest stays newest
-# returns (success, message)
+# returns (success, message) - see save_bases_to_save_file, which does the work
 def save_base_to_save_file(objects_data, base_identifier,  save_slot, base_name = None):
+    written, failures, message = save_bases_to_save_file(
+        [(objects_data, base_identifier, base_name)], save_slot
+    )
+    if written:
+        return True, message
+    return False, failures.get(0) or message
+
+
+# the user_data a base is identified by, off a BaseData or a plain dict
+def _identifier_user_data(base_identifier):
+    if isinstance(base_identifier, dict):
+        return base_identifier["user_data"]
+    return base_identifier.user_data
+
+
+#save many bases to one save slot in one go
+# every save file is loaded, updated with every base, backed up and written ONCE, however many bases there are
+# the newest save file is the one the game loads, so it must contain a base for that base to be written at all; the older one is updated too where it has it
+# both files are prepared and backed up before anything is written, and the older file is written first so the newest stays newest
+# entries: [(objects_data, base_identifier, base_name or None), ...]
+# returns (written, failures, message):
+#   written  - indices into entries that were written
+#   failures - {index: reason} for entries that were not
+#   message  - a summary for the user
+def save_bases_to_save_file(entries, save_slot):
     from .save_file import SaveFile, write_file_atomic
 
     newest = get_lastes_save_file_location(save_slot)
     ordered_paths = [Path(p) for p in save_slot if Path(p) != newest] + [newest]
-    obf_objects = save_translation.translate_to_obf_data(objects_data)
+    obf_objects = [save_translation.translate_to_obf_data(entry[0]) for entry in entries]
 
-    # load, update and compress each file in memory, nothing is written yet
-    prepared = []
+    def fail_all(reason):
+        return [], {index: reason for index in range(len(entries))}, reason
+
+    # load every file once, nothing is written yet
+    loaded = {}
     skipped = []
     for path in ordered_paths:
-        is_newest = path == newest
         try:
             save_file = SaveFile(path)
             save_file.load()
+            loaded[path] = save_file
+        except Exception as error:
+            if path == newest:
+                return fail_all(f"Export failed reading {path.name}: {describe_error(error)}. Nothing was written")
+            skipped.append(f"{path.name} ({describe_error(error)})")
 
-            # look for base in save file to see it it exist or not
-            in_base = save_file.search_base_with_identifier(base_identifier)
-            if in_base is None:
-                if is_newest:
-                    return False, (
-                        f"Export failed: base not found in {path.name}, the newest save file. "
-                        "Nothing was written, repinning the base may resolve this issue"
-                    )
-                skipped.append(f"{path.name} (base not found)")
+    # a base missing from the newest file is left out of every file, the game would not load it
+    failures = {}
+    for index, (_, base_identifier, _) in enumerate(entries):
+        if loaded[newest].search_base_with_identifier(base_identifier) is None:
+            failures[index] = (
+                f"base not found in {newest.name}, the newest save file, "
+                "repinning the base may resolve this issue"
+            )
+    to_write = [index for index in range(len(entries)) if index not in failures]
+    if not to_write:
+        return [], failures, "Export failed, none of the bases were found. Nothing was written"
+
+    # put every base into each file, then compress it, still in memory
+    prepared = []
+    for path, save_file in loaded.items():
+        try:
+            changed = False
+            for index in to_write:
+                _, base_identifier, base_name = entries[index]
+                in_base = save_file.search_base_with_identifier(base_identifier)
+                if in_base is None:
+                    # only possible in the older file, the newest was checked above
+                    continue
+
+                # here update objects list with list provided
+                in_base[SaveTranslation.objects] = obf_objects[index]
+
+                # update name of base if provided
+                if base_name is not None:
+                    # update name in PersistentPlayerBases
+                    in_base[SaveTranslation.base_name] = base_name
+
+                    # update name in ship_ownsership
+                    userdata = _identifier_user_data(base_identifier)
+                    ship_ownsership_element = save_file.get_ship_ownsership_element(userdata)
+                    ship_ownsership_element[SaveTranslation.base_name] = base_name
+                changed = True
+
+            if not changed:
+                skipped.append(f"{path.name} (bases not found)")
                 continue
-
-            # here update objects list with list provided
-            in_base[SaveTranslation.objects] = obf_objects
-
-            # update name of base if provided
-            if base_name is not None:
-                # update name in PersistentPlayerBases
-                in_base[SaveTranslation.base_name] = base_name
-
-                # update name in ship_ownsership
-                userdata = base_identifier["user_data"]
-                ship_ownsership_element = save_file.get_ship_ownsership_element(userdata)
-                ship_ownsership_element[SaveTranslation.base_name] = base_name
-
             prepared.append((path, save_file.pack()))
         except Exception as error:
-            if is_newest:
-                return False, f"Export failed preparing {path.name}: {describe_error(error)}. Nothing was written"
+            if path == newest:
+                return fail_all(f"Export failed preparing {path.name}: {describe_error(error)}. Nothing was written")
             skipped.append(f"{path.name} ({describe_error(error)})")
 
     # back up every file before the first write
@@ -358,22 +405,26 @@ def save_base_to_save_file(objects_data, base_identifier,  save_slot, base_name 
         try:
             backups[path] = SaveFile(path).make_backup()
         except Exception as error:
-            return False, f"Export failed backing up {path.name}: {describe_error(error)}. Nothing was written"
+            return fail_all(f"Export failed backing up {path.name}: {describe_error(error)}. Nothing was written")
 
     # write, and put back files already written if a later one fails, so the slot is never left half exported
-    written = []
+    written_paths = []
     for path, data in prepared:
         try:
             write_file_atomic(path, data)
         except Exception as error:
             message = f"Export failed writing {path.name}: {describe_error(error)}. "
-            return False, message + restore_from_backups(written, backups)
-        written.append(path)
+            return fail_all(message + restore_from_backups(written_paths, backups))
+        written_paths.append(path)
 
-    message = "Base/Corvette saved sucessfully to " + " and ".join(path.name for path, _ in reversed(prepared))
+    count = len(to_write)
+    message = (
+        ("Base/Corvette" if count == 1 else f"{count} bases/corvettes")
+        + " saved sucessfully to " + " and ".join(path.name for path, _ in reversed(prepared))
+    )
     if skipped:
         message += ", skipped " + ", ".join(skipped)
-    return True, message
+    return to_write, failures, message
 
 # put written save files back from their backups, keeping their original modified times so the newest file stays newest
 # returns a sentence describing what happened, for the export message

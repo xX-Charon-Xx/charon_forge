@@ -8,8 +8,8 @@ from .helmsman_operators import (
     ExportResultFiles,
     ExportReviews,
     ExportToSave,
-    ImportBatch,
-    ImportShip,
+    ImportBatchClipboard,
+    ImportBatchFile,
     ResetReviews,
     SetBatchPage,
     ToggleReviewStatus,
@@ -120,8 +120,8 @@ class CHARON_PT_helmsman_panel(Panel):
         step_2_box = steps_column.box().column(align = True)
         step_2_box.label(text = "Step - 2 :   Select Files for Review")
         import_row = step_2_box.row(align=True)
-        import_row.operator(ImportShip.bl_idname, text = "Load File")
-        import_row.operator(ImportBatch.bl_idname, text = "Load Clipboard")
+        import_row.operator(ImportBatchFile.bl_idname, text = "Load File")
+        import_row.operator(ImportBatchClipboard.bl_idname, text = "Load Clipboard")
 
         helmsman = context.scene.charon_helmsman
         if not helmsman.batch_list_visible:
@@ -249,7 +249,7 @@ class CHARON_PT_helmsman_panel(Panel):
         step_4_box = steps_column.box().column(align = True)
         step_4_box.label(text = "Step - 4 :   Export Results")
         step_4_box.operator(ExportReviews.bl_idname, text="Export Results to Clipboard", icon="EXPORT")
-        step_4_box.operator(ExportResultFiles.bl_idname, text="Export Result Files", icon="FILE_FOLDER")
+        step_4_box.operator(ExportResultFiles.bl_idname, text="Export Results to File", icon="FILE_FOLDER")
 
 
 

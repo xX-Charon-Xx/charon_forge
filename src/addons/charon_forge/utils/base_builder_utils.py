@@ -239,31 +239,29 @@ def get_current_save_links():
     return slot_data["saves"] if slot_data else None
 
 
-def write_objects_to_corvette(objects_data, corvette, save_links):
-    """Replace one corvette's parts in the save file.
+def write_objects_to_corvettes(ships, save_links):
+    """Replace several corvettes' parts in the save file, in one go.
 
-    Straight through to save_editor_utils.save_base_to_save_file (Charon
-    Forge's own copy), which is what the Save Manager's Export to Save uses:
-    it backs both save files up, writes atomically, and rolls back if a
-    later write fails.
-
-    base_name is deliberately left off - passing one sends that function
-    down a branch that subscripts the identifier (base_identifier
-    ["user_data"]), which a BaseData does not support.
+    Straight through to save_editor_utils.save_bases_to_save_file (Charon
+    Forge's own copy): each save file is read, updated with every ship,
+    backed up and written once, however many ships there are, and rolled
+    back if a later write fails.
 
     Args:
-        objects_data (list): parts, English keyed, as they come out of
-            helmsman_utils.get_batch_ships.
-        corvette: the BaseData to overwrite - see get_save_corvettes.
+        ships (list): (objects_data, corvette) pairs - parts English keyed as
+            they come in a ship batch (see helmsman_utils), and the BaseData
+            to overwrite (see get_save_corvettes).
         save_links: the slot's save paths - see get_current_save_links.
 
     Returns:
-        (bool, str): whether it was written, and a message for the user.
+        (list, dict, str): indices into `ships` that were written, {index:
+            reason} for those that were not, and a message for the user.
     """
     from ..save_editor import save_editor_utils as charon_save_editor_utils
 
-    return charon_save_editor_utils.save_base_to_save_file(
-        objects_data, corvette, save_links
+    return charon_save_editor_utils.save_bases_to_save_file(
+        [(objects_data, corvette, None) for objects_data, corvette in ships],
+        save_links,
     )
 
 
