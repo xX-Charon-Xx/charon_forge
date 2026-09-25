@@ -139,7 +139,9 @@ def draw_list_element(
     add_button_2.object_id = object_id
     add_button_2.has_variants = has_variants
     if has_variants:
-        variants_json = json.dumps(variants)
+        # the part itself first, as the grid view does - without it the
+        # popup offered only the variants and the base could not be placed
+        variants_json = json.dumps([object_id] + list(variants))
         add_button_2.variants = variants_json
     
 

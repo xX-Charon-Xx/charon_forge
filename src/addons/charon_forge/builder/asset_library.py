@@ -6,9 +6,11 @@ datablocks. See placement.py for turning those into parts.
 """
 
 import os
+import time
 
 import bmesh
 import bpy
+import numpy as np
 
 from .. import materials
 from ..utils import variant_map
@@ -56,6 +58,106 @@ FACING_TOLERANCE = 0.9
 # Set once per session by get_asset_index().
 _asset_index = None
 
+# Seconds spent in each stage of loading assets, and how many were loaded,
+# since the last reset_load_stats() - the importer prints them after a build
+# so a slow import shows where its time went.
+_load_stats = {"assets": 0, "append": 0.0, "clean": 0.0, "glow": 0.0}
+
+
+def reset_load_stats():
+    for key in _load_stats:
+        _load_stats[key] = 0 if key == "assets" else 0.0
+
+
+def get_load_stats():
+    return dict(_load_stats)
+
+
+def _find_duplicate_faces(coords, normals, loop_starts, loop_totals, loop_vertices, precision=5):
+    """The faces that sit exactly on top of an earlier face pointing the same way.
+
+    Pure numpy over flat arrays, so it can be checked without Blender - see
+    _remove_duplicate_faces for what the duplicates are and why they go.
+
+    A face's key is the sorted set of its vertices' positions, rounded to
+    `precision` decimals the way int() truncates. Faces sharing a key are
+    compared in index order: each one is dropped if it faces the same way as
+    one already kept, and kept otherwise (a genuine back face).
+
+    Args:
+        coords: vertex positions, flat (x, y, z, x, y, z, ...).
+        normals: face normals, flat.
+        loop_starts, loop_totals: per face, its first loop and loop count.
+        loop_vertices: per loop, its vertex index.
+
+    Returns:
+        list: Indices of the faces to remove, ascending.
+    """
+    face_count = len(loop_totals)
+    if face_count < 2:
+        return []
+
+    # one id per distinct rounded position, so faces made of separate but
+    # coincident vertices still share a key
+    scale = 10 ** precision
+    positions = np.trunc(np.asarray(coords, dtype=np.float64).reshape(-1, 3) * scale).astype(np.int64)
+    # each row viewed as one 24 byte value: a 1-D unique, about twice as
+    # fast as np.unique(axis=0) on the same rows
+    packed = np.ascontiguousarray(positions).view(np.dtype((np.void, 24))).reshape(-1)
+    _, position_ids = np.unique(packed, return_inverse=True)
+    loop_positions = position_ids.reshape(-1)[np.asarray(loop_vertices, dtype=np.int64)]
+
+    starts = np.asarray(loop_starts, dtype=np.int64)
+    totals = np.asarray(loop_totals, dtype=np.int64)
+    normals = np.asarray(normals, dtype=np.float64).reshape(-1, 3)
+
+    doomed = []
+    # faces can only match faces with the same number of corners, so each
+    # corner count is its own fixed width table
+    for corners in np.unique(totals):
+        faces = np.nonzero(totals == corners)[0]
+        if len(faces) < 2:
+            continue
+
+        keys = np.sort(loop_positions[starts[faces, None] + np.arange(corners)], axis=1)
+
+        # sort the keys so equal ones sit next to each other; the face index
+        # as the last tiebreak keeps each run in index order
+        order = np.lexsort((faces,) + tuple(keys[:, column] for column in range(corners - 1, -1, -1)))
+        sorted_keys = keys[order]
+        same_as_previous = np.all(sorted_keys[1:] == sorted_keys[:-1], axis=1)
+        if not same_as_previous.any():
+            continue
+
+        run_starts = np.nonzero(np.concatenate(([True], ~same_as_previous)))[0]
+        run_lengths = np.diff(np.append(run_starts, len(order)))
+
+        # nearly every duplicate is one pair - those are settled in one go:
+        # the second of the two goes when it faces the same way as the first
+        pair_starts = run_starts[run_lengths == 2]
+        firsts = faces[order[pair_starts]]
+        seconds = faces[order[pair_starts + 1]]
+        facing = np.einsum("ij,ij->i", normals[seconds], normals[firsts])
+        doomed.extend(seconds[facing > FACING_TOLERANCE].tolist())
+
+        # three or more faces on one key, one at a time
+        for start, length in zip(run_starts, run_lengths):
+            if length < 3:
+                continue
+            end = start + length
+            kept = []
+            for face in faces[order[start:end]]:
+                normal = normals[face]
+                if any(float(normal @ normals[other]) > FACING_TOLERANCE for other in kept):
+                    doomed.append(int(face))
+                else:
+                    # the first of its key, or coincident but pointing
+                    # elsewhere - a real back face, kept
+                    kept.append(face)
+
+    doomed.sort()
+    return doomed
+
 
 def _remove_duplicate_faces(mesh, precision=5):
     """Drop faces that sit exactly on top of another face pointing the same way.
@@ -78,6 +180,10 @@ def _remove_duplicate_faces(mesh, precision=5):
     own vertices: the duplicated faces in T_WALL_Q_H1 sit on 820 coincident but
     separate vertices, so nothing about the indices gives the overlap away.
 
+    The search is numpy (_find_duplicate_faces): it runs over every face of
+    every mesh appended, a few hundred thousand on the big corvette parts,
+    which in plain python was most of the time it took to place one.
+
     This is specific to how models-high-res was generated, so unlike
     add_to_scene/select/and so on it has no equivalent in the base builder
     addon and stays implemented here rather than resolved through it.
@@ -89,56 +195,26 @@ def _remove_duplicate_faces(mesh, precision=5):
     Returns:
         int: How many faces were removed.
     """
-    polygon_count = len(mesh.polygons)
-    if polygon_count < 2:
+    face_count = len(mesh.polygons)
+    if face_count < 2:
         return 0
 
-    # foreach_get rather than walking the collections: this runs over meshes of
-    # a few hundred thousand faces, where per element attribute access is the
-    # whole cost of the pass.
-    coords = [0.0] * (len(mesh.vertices) * 3)
+    # foreach_get straight into numpy buffers of the property's own type -
+    # no per element access and no conversion on the way out
+    coords = np.empty(len(mesh.vertices) * 3, dtype=np.float32)
     mesh.vertices.foreach_get("co", coords)
-    normals = [0.0] * (polygon_count * 3)
+    normals = np.empty(face_count * 3, dtype=np.float32)
     mesh.polygons.foreach_get("normal", normals)
-    loop_starts = [0] * polygon_count
+    loop_starts = np.empty(face_count, dtype=np.int32)
     mesh.polygons.foreach_get("loop_start", loop_starts)
-    loop_totals = [0] * polygon_count
+    loop_totals = np.empty(face_count, dtype=np.int32)
     mesh.polygons.foreach_get("loop_total", loop_totals)
-    loop_vertices = [0] * len(mesh.loops)
+    loop_vertices = np.empty(len(mesh.loops), dtype=np.int32)
     mesh.loops.foreach_get("vertex_index", loop_vertices)
 
-    scale = 10 ** precision
-    seen = {}
-    doomed = []
-
-    for polygon in range(polygon_count):
-        start = loop_starts[polygon]
-        key = tuple(sorted(
-            (int(coords[vertex * 3] * scale),
-             int(coords[vertex * 3 + 1] * scale),
-             int(coords[vertex * 3 + 2] * scale))
-            for vertex in loop_vertices[start:start + loop_totals[polygon]]
-        ))
-
-        kept = seen.get(key)
-        if kept is None:
-            seen[key] = [polygon]
-            continue
-
-        offset = polygon * 3
-        normal = (normals[offset], normals[offset + 1], normals[offset + 2])
-        for other in kept:
-            other_offset = other * 3
-            facing = (normal[0] * normals[other_offset]
-                      + normal[1] * normals[other_offset + 1]
-                      + normal[2] * normals[other_offset + 2])
-            if facing > FACING_TOLERANCE:
-                doomed.append(polygon)
-                break
-        else:
-            # coincident but pointing elsewhere - a real back face, kept
-            kept.append(polygon)
-
+    doomed = _find_duplicate_faces(
+        coords, normals, loop_starts, loop_totals, loop_vertices, precision
+    )
     if not doomed:
         return 0
 
@@ -228,6 +304,7 @@ def load_high_res_mesh(object_id, asset_index=None):
 
     # every library file holds exactly one mesh object. We only want its mesh -
     # the object datablock is thrown away and each placement gets a fresh one
+    started = time.perf_counter()
     with bpy.data.libraries.load(blend_path, link=False) as (source, target):
         target.objects = list(source.objects)
 
@@ -239,16 +316,22 @@ def load_high_res_mesh(object_id, asset_index=None):
             mesh = appended_object.data
         bpy.data.objects.remove(appended_object)
 
+    appended = time.perf_counter()
+    _load_stats["append"] += appended - started
     if mesh is None:
         return None
 
+    _load_stats["assets"] += 1
     mesh.name = mesh_name
     mesh[MESH_TAG] = object_id
     if CLEAN_DUPLICATE_FACES:
         _remove_duplicate_faces(mesh)
+    cleaned = time.perf_counter()
+    _load_stats["clean"] += cleaned - appended
     # a lamp's glow carries the power of the part's game lights - see
     # materials/emission.py
     materials.emission.stamp_glow(mesh, object_id)
+    _load_stats["glow"] += time.perf_counter() - cleaned
     # The append brought this asset's own copies of its textures and of the
     # colourise node group with it. A caller inside a deferred block is not
     # going to call the collapse itself, so tell it there is now something to

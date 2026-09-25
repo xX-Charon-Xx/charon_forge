@@ -28,6 +28,9 @@ from . import asset_library, placement
 # name of collection to import objects to
 IMPORT_COLLECTION_NAME = "Collection"
 
+# Print where each import's time went to the console - see _report_timing.
+REPORT_TIMING = True
+
 # This is to compensate blender's Z up axis.
 X_ROT_90 = mathutils.Matrix.Rotation(math.radians(90.0), 4, "X")
 
@@ -50,6 +53,8 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
     to_colour = []
 
     asset_index = asset_library.get_asset_index() if high_res else {}
+    timing = {"start": time.perf_counter()}
+    asset_library.reset_load_stats()
 
     # exclude the collection from the view layer, so creating objects doesn't
     # update the scene after every disk read or new object
@@ -109,17 +114,53 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
             bpy_object.matrix_world = deserialise_matrix_world(part_data)
             bpy_object[Part.PROP_ORDER] = order
 
+        timing["build"] = time.perf_counter()
+
         # colour every high res part in one pass, then dedupe so the shared
         # materials are the ones that get prepared (glow wired, old finish
         # nodes out)
         materials.apply_many(to_colour)
+        timing["colour"] = time.perf_counter()
         materials.dedupe_appended_data()
+        timing["dedupe"] = time.perf_counter()
         materials.prepare_materials()
         materials.use_object_colour_in_viewport()
+        timing["prepare"] = time.perf_counter()
 
     finally:
         collection_utils.set_collection_visibility(import_collection.name, visible=True)
         bpy.context.view_layer.update()
+
+    timing["end"] = time.perf_counter()
+    if REPORT_TIMING:
+        _report_timing(len(objects_data), timing)
+
+
+def _report_timing(part_count, timing):
+    """One console line saying where an import's time went.
+
+    The asset stages (append, clean, glow) happen inside the build loop the
+    first time each id is met, so they are shown as part of it.
+    """
+    stats = asset_library.get_load_stats()
+    start = timing["start"]
+
+    def span(first, last):
+        if first not in timing or last not in timing:
+            return "-"
+        return "%.2fs" % (timing[last] - timing[first])
+
+    print(
+        "Charon Forge: imported %d parts in %.2fs - build %s (%d new assets: "
+        "append %.2fs, clean %.2fs, glow %.2fs), colour %s, dedupe %s, "
+        "prepare %s, scene update %s"
+        % (
+            part_count, timing["end"] - start, span("start", "build"),
+            stats["assets"], stats["append"], stats["clean"], stats["glow"],
+            span("build", "colour"), span("colour", "dedupe"),
+            span("dedupe", "prepare"), span("prepare", "end"),
+        )
+    )
 
 
 # colour is a flat material on the mesh, so objects can only share a mesh when

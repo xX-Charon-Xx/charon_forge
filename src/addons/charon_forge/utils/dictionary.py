@@ -62,6 +62,20 @@ def get_parts_definition():
     return part_definition_dictionary
 
 
+def export_object_id(row_id):
+    """The object id a part definition row places, saves and exports as.
+
+    Usually the row's own id. An alternate form row - `B_HAB_A_OPEN`, the hab
+    with its room walls open - has a model of its own but IS `B_HAB_A`: its
+    13th column, `ObjectID`, names that. Older files have no such column.
+    """
+    row_id = row_id.replace("^", "")
+    row = get_parts_definition().get("^" + row_id)
+    if row is not None and len(row) > 12 and row[12].strip():
+        return row[12].strip().replace("^", "")
+    return row_id
+
+
 def get_category_vise_objects():
     """Object ids grouped by category/sub-category, variants nested under
     the object id they are a variant of."""

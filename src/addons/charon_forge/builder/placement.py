@@ -13,6 +13,7 @@ import bpy
 
 from ..objects.part import Part
 from .. import materials
+from ..utils import dictionary
 from ..utils.base_builder_utils import blend_utils
 from . import asset_library, proxy_library
 
@@ -93,7 +94,11 @@ def add_part(builder_object, object_id, user_data=None, build_rigs=True, high_re
     Returns:
         Part: The new part.
     """
-    object_id = object_id.replace("^", "")
+    # `model_id` picks the mesh, `object_id` is what the part IS. They differ
+    # only for an alternate form (B_HAB_A_OPEN places B_HAB_A with its walls
+    # open) - see dictionary.export_object_id.
+    model_id = object_id.replace("^", "")
+    object_id = dictionary.export_object_id(model_id)
 
     # matched before the part exists, so a new part lands on whatever was
     # selected rather than on itself
@@ -115,12 +120,15 @@ def add_part(builder_object, object_id, user_data=None, build_rigs=True, high_re
         return item
 
     # ids the high res library doesn't cover fall back to the proxy too
-    bpy_object = new_high_res_object(object_id) if high_res else None
+    bpy_object = new_high_res_object(model_id) if high_res else None
     if bpy_object is None:
         return _add_proxy_part(builder_object, object_id, user_data, build_rigs)
 
     part_class = get_default_part_class(builder_object)
     stamp_part_properties(bpy_object, object_id, part_class)
+    if model_id != object_id:
+        # which model this placement shows; never exported
+        bpy_object["nms_form_model"] = model_id
 
     # colour by object property, so this placement goes on sharing the mesh.
     # A new part gets what the game gives it: its own default palette and
