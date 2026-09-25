@@ -8,6 +8,7 @@ from .addon import crossing
 from .addon import header
 from .addon import helmsman
 from .addon import optimiser
+from .addon import the_forge
 from .addon_preferences import CharonAddonPreferences
 from .menu import base_builder_menu, base_builder_menu_operators
 from .objects import preset
@@ -58,6 +59,7 @@ def register():
     optimiser.register()
     helmsman.register()
     crossing.register()
+    the_forge.register()
     materials.register()
     asset_browser.register()
 
@@ -76,6 +78,7 @@ def unregister():
 
     asset_browser.unregister()
     materials.unregister()
+    the_forge.unregister()
     crossing.unregister()
     helmsman.unregister()
     optimiser.unregister()

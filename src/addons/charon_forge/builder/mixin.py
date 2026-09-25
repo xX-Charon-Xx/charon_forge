@@ -16,6 +16,7 @@ its own Builder class.
 """
 
 from . import asset_library, importer, placement
+from ..objects.sphere import Sphere
 from ..utils import optimiser_utils
 
 
@@ -88,19 +89,42 @@ class HighResBuilderMixin(object):
         if isinstance(cache, dict):
             cache.pop(object_id, None)
 
+    # Lookups ---
+    def get_all_groups(self):
+        """Every group but the Forge spheres, which serialise() saves with
+        their own serialiser. A sphere carries a GroupID so the group tools
+        work on it, and the base class would otherwise save it as a group."""
+        return [
+            group_obj
+            for group_obj in super(HighResBuilderMixin, self).get_all_groups()
+            if not Sphere.is_sphere(group_obj)
+        ]
+
+    def get_all_spheres(self):
+        return Sphere.get_all_spheres()
+
     # Saving ---
     def serialise(self, *args, **kwargs):
-        """The base class's serialise, with priority parts put first while
-        Auto Optimise is on - see optimiser_utils.reorder_scene_objects."""
-        if not optimiser_utils.is_auto_optimise_on():
-            return super(HighResBuilderMixin, self).serialise(*args, **kwargs)
+        """The base class's serialise with the Forge spheres added as their
+        parts, and priority parts put first while Auto Optimise is on - see
+        optimiser_utils.reorder_scene_objects."""
+        auto_optimise = optimiser_utils.is_auto_optimise_on()
+        if auto_optimise:
+            ranks = optimiser_utils.get_priority_ranks()
+            optimiser_utils.reorder_scene_objects(self, ranks)
 
-        ranks = optimiser_utils.get_priority_ranks()
-        optimiser_utils.reorder_scene_objects(self, ranks)
         data = super(HighResBuilderMixin, self).serialise(*args, **kwargs)
-        for key in ("Objects", "Prefab"):
-            if isinstance(data.get(key), list):
-                optimiser_utils.sort_serialised_objects(data[key], ranks)
+        key = "Prefab" if kwargs.get("as_prefab") else "Objects"
+
+        # spheres go out with the groups, the way the base class treats them
+        if kwargs.get("include_groups", True) and isinstance(data.get(key), list):
+            for sphere_obj in self.get_all_spheres():
+                data[key] += Sphere.serialise(sphere_obj)
+
+        if auto_optimise:
+            for data_key in ("Objects", "Prefab"):
+                if isinstance(data.get(data_key), list):
+                    optimiser_utils.sort_serialised_objects(data[data_key], ranks)
         return data
 
     # Loading ---
