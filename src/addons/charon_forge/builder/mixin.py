@@ -16,7 +16,8 @@ its own Builder class.
 """
 
 from . import asset_library, importer, placement
-from ..objects.sphere import Sphere
+from ..objects import circle, cuboid, polygon, rectangle, shape, sphere  # noqa: F401 - registers the forged kinds
+from ..objects.forged import Forged
 from ..utils import optimiser_utils
 
 
@@ -91,21 +92,22 @@ class HighResBuilderMixin(object):
 
     # Lookups ---
     def get_all_groups(self):
-        """Every group but the Forge spheres, which serialise() saves with
-        their own serialiser. A sphere carries a GroupID so the group tools
-        work on it, and the base class would otherwise save it as a group."""
+        """Every group but the Forge's spheres and shapes, which serialise()
+        saves with their own serialiser. They carry a GroupID so the group
+        tools work on them, and the base class would otherwise save them as
+        groups."""
         return [
             group_obj
             for group_obj in super(HighResBuilderMixin, self).get_all_groups()
-            if not Sphere.is_sphere(group_obj)
+            if not Forged.is_forged(group_obj)
         ]
 
-    def get_all_spheres(self):
-        return Sphere.get_all_spheres()
+    def get_all_forged(self):
+        return Forged.get_all()
 
     # Saving ---
     def serialise(self, *args, **kwargs):
-        """The base class's serialise with the Forge spheres added as their
+        """The base class's serialise with the Forge's objects added as their
         parts, and priority parts put first while Auto Optimise is on - see
         optimiser_utils.reorder_scene_objects."""
         auto_optimise = optimiser_utils.is_auto_optimise_on()
@@ -116,10 +118,10 @@ class HighResBuilderMixin(object):
         data = super(HighResBuilderMixin, self).serialise(*args, **kwargs)
         key = "Prefab" if kwargs.get("as_prefab") else "Objects"
 
-        # spheres go out with the groups, the way the base class treats them
+        # forged objects go out with the groups, the way the base class treats them
         if kwargs.get("include_groups", True) and isinstance(data.get(key), list):
-            for sphere_obj in self.get_all_spheres():
-                data[key] += Sphere.serialise(sphere_obj)
+            for forged_obj in self.get_all_forged():
+                data[key] += Forged.serialise(forged_obj)
 
         if auto_optimise:
             for data_key in ("Objects", "Prefab"):

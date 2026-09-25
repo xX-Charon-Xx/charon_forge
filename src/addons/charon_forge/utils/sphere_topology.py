@@ -3,12 +3,16 @@
 Pure numpy, no Blender: every topology comes down to a unit normal per copy
 plus the two directions its part's sides line up with (`along` and `up`,
 both on the surface). place() turns those into positions and rotations.
-Kept apart from objects/sphere.py so it can be run and checked outside Blender.
+Kept apart from objects/sphere.py so it can be run and checked outside
+Blender.
 """
 
 import math
 
 import numpy as np
+
+from . import frames
+from .frames import unit as _unit
 
 RINGS = "RINGS"
 MERIDIANS = "MERIDIANS"
@@ -21,11 +25,6 @@ POLE = math.pi / 2 - 1e-4
 GOLDEN_ANGLE = math.pi * (3 - math.sqrt(5))
 # edge of an icosahedron whose corners are on the unit sphere
 ICOSAHEDRON_EDGE = 4 / math.sqrt(10 + 2 * math.sqrt(5))
-
-
-def _unit(vectors):
-    lengths = np.linalg.norm(vectors, axis=-1, keepdims=True)
-    return vectors / np.where(lengths > 0, lengths, 1)
 
 
 def lat_lon_frame(latitudes, longitudes):
@@ -203,48 +202,26 @@ def spiral(bottom, top, sweep, count):
 
 
 # Placing ---
-def place(normals, along, up, radius, turn, centre, scale):
-    """Positions and rotations for the copies.
-
-    Args:
-        turn (3x3): the part's rotation into the surface frame (x along,
-            y up, z out), its local rotation included.
-        centre (3): the part's centre in that frame, kept on the surface.
-        scale (float): every copy's scale.
+def ellipsoid(normals, along, up, radius, axes=(1.0, 1.0, 1.0)):
+    """The frames on a sphere of `radius`, stretched by `axes` into an
+    ellipsoid: each point moves with the stretch, its sides turn with the
+    surface under it (directions along a surface stretch like it, the one out
+    of it by the inverse) so a copy still lies flat on it.
 
     Returns:
-        (N x 3, N x 3 x 3): where each copy's origin goes, and its rotation.
+        (centres, normals, along, up)
     """
-    frames = np.stack([along, up, normals], axis=-1)
-    rotations = frames @ np.asarray(turn, dtype=np.float64)
-    offsets = frames @ np.asarray(centre, dtype=np.float64)
-    return normals * radius - offsets * scale, rotations
+    axes = np.asarray(axes, dtype=np.float64)
+    centres = normals * radius * axes
+    if np.allclose(axes, 1.0):
+        return centres, normals, along, up
+    out = _unit(normals / axes)
+    stretched = along * axes
+    along = _unit(stretched - out * (stretched * out).sum(axis=1, keepdims=True))
+    return centres, out, along, np.cross(out, along)
 
 
-def to_quaternions(matrices):
-    """(w, x, y, z) for each rotation matrix - Shepperd's method, picking the
-    stable branch per matrix."""
-    m = matrices
-    m00, m01, m02 = m[:, 0, 0], m[:, 0, 1], m[:, 0, 2]
-    m10, m11, m12 = m[:, 1, 0], m[:, 1, 1], m[:, 1, 2]
-    m20, m21, m22 = m[:, 2, 0], m[:, 2, 1], m[:, 2, 2]
-    trace = m00 + m11 + m22
-
-    def root(value):
-        return np.sqrt(np.clip(value, 1e-12, None)) * 2
-
-    s0 = root(trace + 1)
-    s1 = root(1 + m00 - m11 - m22)
-    s2 = root(1 + m11 - m00 - m22)
-    s3 = root(1 + m22 - m00 - m11)
-    candidates = np.stack([
-        np.stack([s0 / 4, (m21 - m12) / s0, (m02 - m20) / s0, (m10 - m01) / s0], -1),
-        np.stack([(m21 - m12) / s1, s1 / 4, (m01 + m10) / s1, (m02 + m20) / s1], -1),
-        np.stack([(m02 - m20) / s2, (m01 + m10) / s2, s2 / 4, (m12 + m21) / s2], -1),
-        np.stack([(m10 - m01) / s3, (m02 + m20) / s3, (m12 + m21) / s3, s3 / 4], -1),
-    ])
-    branch = np.where(
-        trace > 0, 0,
-        np.where((m00 > m11) & (m00 > m22), 1, np.where(m11 > m22, 2, 3)),
-    )
-    return candidates[branch, np.arange(len(m))]
+def place(normals, along, up, radius, turn, centre, scale, axes=(1.0, 1.0, 1.0)):
+    """Positions and rotations for copies on a sphere of `radius`, stretched
+    by `axes` - see frames.place."""
+    return frames.place(*ellipsoid(normals, along, up, radius, axes), turn, centre, scale)

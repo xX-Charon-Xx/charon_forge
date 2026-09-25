@@ -97,11 +97,11 @@ class Group:
         Returns:
             Dictionary of cached child data, or None if not found or invalid
         """
-        # a Forge sphere's cache is written from its current copies when read
-        sphere = getattr(parent_obj, "charon_sphere", None)
-        if sphere is not None and sphere.is_sphere:
-            from .sphere import Sphere
-            Sphere.refresh_child_cache(parent_obj)
+        # a Forge sphere or shape writes its cache from its copies when read
+        forged = getattr(parent_obj, "charon_forged", None)
+        if forged is not None and forged.form:
+            from .forged import Forged
+            Forged.refresh_child_cache(parent_obj)
 
         if Group.PROP_CHILD_CACHE not in parent_obj:
             return None, None
@@ -871,10 +871,11 @@ class Group:
             for group_obj in list(context.scene.objects):
                 if Group.PROP_GROUP_ID not in group_obj:
                     continue
-                # a Forge sphere's mesh is the points its node tree places
-                # the part on, not a merged mesh - see objects/sphere.py
-                sphere = getattr(group_obj, "charon_sphere", None)
-                if sphere is not None and sphere.is_sphere:
+                # a Forge sphere's or shape's mesh is the points its node
+                # tree places the part on, not a merged mesh - see
+                # objects/forged.py
+                forged = getattr(group_obj, "charon_forged", None)
+                if forged is not None and forged.form:
                     continue
                 if materials.is_high_res(group_obj) == target_high_res:
                     continue

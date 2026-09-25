@@ -1,0 +1,456 @@
+"""Objects The Forge makes out of copies of one part - spheres, shapes.
+
+Each is a single object until it is split. Its kind (objects/sphere.py,
+objects/shape.py) works out where every copy goes from the object's settings
+(object.charon_forged, addon/the_forge.py), in one vectorised numpy pass.
+The copies are written to the object's own mesh as points carrying a
+rotation, and a geometry nodes modifier puts the part on every point as an
+instance of one mesh, drawn from a single GPU batch - nothing is copied or
+made real, which keeps dragging a slider smooth however many copies there
+are.
+
+The part's mesh sits on a holder object in no scene, which the modifier
+reads. The copies are instances of geometry, not of an object, so Blender
+draws them as the forged object and its colour properties paint them.
+
+A forged object is also a group (objects/group.py), so the group colour tools
+work on it and Ungroup - Split in The Forge - turns it back into normal
+parts. It exports through serialise(), which the builder calls.
+"""
+
+import contextlib
+import json
+import time
+import uuid
+
+import bpy
+import numpy as np
+from mathutils import Euler, Matrix, Vector
+
+from .. import materials
+from ..materials.properties import MESH_TAG
+from ..utils import frames
+from ..utils.mesh_utils import mesh_bounds
+from .group import Group
+from .part import Part
+
+
+class LayoutRefused(Exception):
+    """A layout that can't be built; its message is shown in the panel."""
+
+
+class Forged:
+
+    # set by each kind - the settings' `form`, and what its objects are called
+    FORM = ""
+    LABEL = ""
+
+    # a layout needing more copies than this is refused rather than built
+    MAX_PARTS = 10000
+    MIN_PITCH = 0.01
+
+    NODE_GROUP = "Charon Forge Sphere"
+    NODE_GROUP_VERSION = 3
+    MODIFIER = "Charon Forge Sphere"
+    ROTATION_ATTRIBUTE = "charon_rotation"
+
+    # the surface frame a part is laid into - x along, y up, z out - as seen
+    # where a sphere's latitude and longitude are 0: the world's Y, Z and X
+    SURFACE_FRAME = Matrix(((0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)))
+
+    _kinds = {}
+    _suspended = 0
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if cls.FORM:
+            Forged._kinds[cls.FORM] = cls
+
+    # Updates ---
+    @staticmethod
+    @contextlib.contextmanager
+    def suspended():
+        """Settings changed inside this don't update the object."""
+        Forged._suspended += 1
+        try:
+            yield
+        finally:
+            Forged._suspended -= 1
+
+    @staticmethod
+    def is_suspended():
+        return Forged._suspended > 0
+
+    @staticmethod
+    def is_forged(bpy_object):
+        return (
+            bpy_object is not None
+            and bpy_object.type == "MESH"
+            and bpy_object.charon_forged.form in Forged._kinds
+            and Group.PROP_GROUP_ID in bpy_object
+        )
+
+    @staticmethod
+    def kind_of(bpy_object):
+        return Forged._kinds.get(bpy_object.charon_forged.form)
+
+    # Measuring the part ---
+    @staticmethod
+    def part_to_surface(size):
+        """The rotation from the part's own axes into the surface frame, the
+        thinnest side facing out - a floor or panel lies flat on a surface."""
+        face = min(range(3), key=lambda i: size[i])
+        around, up = (face + 1) % 3, (face + 2) % 3
+        columns = [None, None, None]
+        columns[around] = Vector((1.0, 0.0, 0.0))
+        columns[up] = Vector((0.0, 1.0, 0.0))
+        columns[face] = Vector((0.0, 0.0, 1.0))
+        return Matrix(columns).transposed()
+
+    @staticmethod
+    def measure(settings, mesh):
+        """Store what a layout needs to know about the part: its footprint on
+        a surface, how it turns onto one, and where its centre is."""
+        size, centre = mesh_bounds(mesh)
+        size = size * settings.base_scale
+        orientation = Forged.part_to_surface(size)
+        extent = Vector([
+            sum(abs(orientation[row][column]) * size[column] for column in range(3))
+            for row in range(3)
+        ])
+        settings.part_size = size
+        settings.pitch_around = max(extent.x, Forged.MIN_PITCH)
+        settings.pitch_up = max(extent.y, Forged.MIN_PITCH)
+        settings.base_rotation = (Forged.SURFACE_FRAME @ orientation).to_euler("XYZ")
+        settings.centre_offset = Forged.SURFACE_FRAME @ orientation @ centre
+
+    @staticmethod
+    def _orientation(settings):
+        """The part's rotation into a surface frame, before its local rotation."""
+        base = Euler(settings.base_rotation, "XYZ").to_matrix()
+        return Forged.SURFACE_FRAME.transposed() @ base
+
+    @staticmethod
+    def turn_and_centre(settings):
+        """The part's rotation into a surface frame with its local rotation,
+        and its centre in that frame - what frames.place takes.
+
+        The local rotation turns each part about its own centre and nothing
+        else: the layout is worked out for the part unturned (see
+        footprint), so turning it never moves or adds a part.
+        """
+        orientation = Forged._orientation(settings)
+        turn = orientation @ Euler(settings.rotation, "XYZ").to_matrix()
+        centre = Forged.SURFACE_FRAME.transposed() @ Vector(settings.centre_offset)
+        # the centre in the part's own axes, turned with it
+        centre = turn @ (orientation.transposed() @ centre)
+        return np.array(turn, dtype=np.float64), np.array(centre, dtype=np.float64)
+
+    @staticmethod
+    def footprint(settings):
+        """How far the part reaches along a surface frame's x (along) and y
+        (up), at its scale - unturned by its local rotation, so the layout
+        stays put while it is turned."""
+        size = np.array(settings.part_size, dtype=np.float64)
+        if not size.any():
+            # measured before its size was kept
+            width, height = settings.pitch_around, settings.pitch_up
+        else:
+            orientation = np.array(Forged._orientation(settings), dtype=np.float64)
+            extent = np.abs(orientation) @ size
+            width, height = extent[0], extent[1]
+        scale = settings.tile_scale
+        return max(width, Forged.MIN_PITCH) * scale, max(height, Forged.MIN_PITCH) * scale
+
+    @staticmethod
+    def copy_scale(settings):
+        return settings.base_scale * settings.tile_scale
+
+    # For each kind ---
+    @classmethod
+    def initialise(cls, settings):
+        """Starting settings for a new object, once the part is measured."""
+
+    @classmethod
+    def compute(cls, settings):
+        """Lay the copies out.
+
+        Returns:
+            (positions, rotations, settings to write once it is accepted)
+
+        Raises:
+            LayoutRefused: when it can't be built.
+        """
+        raise NotImplementedError
+
+    # Node tree ---
+    @staticmethod
+    def _node_group():
+        """Every forged object's modifier: the part on each point, turned by
+        the point's rotation and scaled by the Scale input."""
+        tree = bpy.data.node_groups.get(Forged.NODE_GROUP)
+        if tree is not None and tree.get("charon_version") == Forged.NODE_GROUP_VERSION:
+            return tree
+        if tree is None:
+            tree = bpy.data.node_groups.new(Forged.NODE_GROUP, "GeometryNodeTree")
+        else:
+            tree.nodes.clear()
+            tree.interface.clear()
+
+        interface = tree.interface
+        interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
+        interface.new_socket("Part", in_out="INPUT", socket_type="NodeSocketObject")
+        interface.new_socket("Scale", in_out="INPUT", socket_type="NodeSocketFloat")
+        interface.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
+
+        nodes, links = tree.nodes, tree.links
+        group_input = nodes.new("NodeGroupInput")
+        part = nodes.new("GeometryNodeObjectInfo")
+        part.transform_space = "ORIGINAL"
+        rotation = nodes.new("GeometryNodeInputNamedAttribute")
+        rotation.data_type = "QUATERNION"
+        rotation.inputs["Name"].default_value = Forged.ROTATION_ATTRIBUTE
+        instances = nodes.new("GeometryNodeInstanceOnPoints")
+        group_output = nodes.new("NodeGroupOutput")
+
+        rotation_output = next(
+            (socket for socket in rotation.outputs
+             if socket.name == "Attribute" and socket.enabled),
+            rotation.outputs[0],
+        )
+        links.new(group_input.outputs["Part"], part.inputs["Object"])
+        links.new(group_input.outputs["Geometry"], instances.inputs["Points"])
+        links.new(part.outputs["Geometry"], instances.inputs["Instance"])
+        links.new(rotation_output, instances.inputs["Rotation"])
+        links.new(group_input.outputs["Scale"], instances.inputs["Scale"])
+        links.new(instances.outputs["Instances"], group_output.inputs["Geometry"])
+
+        group_input.location = (0, 0)
+        part.location = (220, -60)
+        rotation.location = (220, -260)
+        instances.location = (440, 0)
+        group_output.location = (660, 0)
+
+        tree["charon_version"] = Forged.NODE_GROUP_VERSION
+        return tree
+
+    @staticmethod
+    def _set_modifier_inputs(forged_obj, values):
+        tree = Forged._node_group()
+        modifier = forged_obj.modifiers.get(Forged.MODIFIER)
+        if modifier is None:
+            modifier = forged_obj.modifiers.new(Forged.MODIFIER, "NODES")
+        if modifier.node_group is not tree:
+            modifier.node_group = tree
+        identifiers = {
+            item.name: item.identifier
+            for item in tree.interface.items_tree
+            if getattr(item, "in_out", None) == "INPUT"
+        }
+        changed = False
+        for name, value in values.items():
+            identifier = identifiers.get(name)
+            if identifier is not None and modifier.get(identifier) != value:
+                modifier[identifier] = value
+                changed = True
+        return changed
+
+    @staticmethod
+    def _write_points(mesh, positions, rotations):
+        mesh.clear_geometry()
+        mesh.vertices.add(len(positions))
+        mesh.vertices.foreach_set("co", positions.astype(np.float32).ravel())
+        attribute = mesh.attributes.get(Forged.ROTATION_ATTRIBUTE)
+        if attribute is None:
+            attribute = mesh.attributes.new(Forged.ROTATION_ATTRIBUTE, "QUATERNION", "POINT")
+        attribute.data.foreach_set(
+            "value", frames.to_quaternions(rotations).astype(np.float32).ravel()
+        )
+        mesh.update()
+
+    # Objects ---
+    @classmethod
+    def create(cls, source):
+        """Turn a part into one of these, in its place.
+
+        Returns:
+            bpy.types.Object: The new object.
+        """
+        part_mesh = source.data
+        object_id = source[Part.PROP_OBJECT_ID].replace("^", "")
+        user_data = source.get(Part.PROP_USER_DATA, Part.DEFAULT_USER_DATA)
+        name = "%s %s" % (object_id, cls.LABEL)
+
+        # in no scene: only the modifier reads it
+        holder = bpy.data.objects.new("%s Part" % name, part_mesh)
+
+        # the colour tools read the part id off the mesh, the way they do a
+        # group's
+        points = bpy.data.meshes.new(name)
+        points[MESH_TAG] = object_id
+        forged_obj = bpy.data.objects.new(name, points)
+        for collection in source.users_collection:
+            collection.objects.link(forged_obj)
+        if not forged_obj.users_collection:
+            bpy.context.scene.collection.objects.link(forged_obj)
+        forged_obj.matrix_world = Matrix.Translation(source.matrix_world.translation)
+
+        # the colour the part had
+        for key in source.keys():
+            if key.startswith("nms_"):
+                forged_obj[key] = source[key]
+        forged_obj.color = source.color
+        forged_obj[Part.PROP_USER_DATA] = str(user_data)
+
+        forged_obj[Group.PROP_GROUP_ID] = str(uuid.uuid4())
+        forged_obj[Group.PROP_IS_MIRROR] = False
+        forged_obj[Group.PROP_ORIGIN_OFFSET] = (0.0, 0.0, 0.0)
+        forged_obj[Group.PROP_CHILD_CACHE] = "{}"
+
+        settings = forged_obj.charon_forged
+        scale = source.matrix_world.to_scale()
+        with Forged.suspended():
+            settings.form = cls.FORM
+            settings.part_object = holder
+            settings.object_id = object_id
+            settings.base_scale = (abs(scale.x) + abs(scale.y) + abs(scale.z)) / 3 or 1.0
+            Forged.measure(settings, part_mesh)
+            cls.initialise(settings)
+
+        bpy.data.objects.remove(source, do_unlink=True)
+        Forged.update(forged_obj)
+        return forged_obj
+
+    @staticmethod
+    def update(forged_obj):
+        """Lay the object out again from its settings. A refused layout
+        leaves it, and what it exports, as it was."""
+        settings = forged_obj.charon_forged
+        kind = Forged.kind_of(forged_obj)
+        holder = settings.part_object
+        if kind is None:
+            return
+        if holder is None or holder.data is None:
+            settings.message = "The part is gone"
+            return
+
+        try:
+            positions, rotations, accepted = kind.compute(settings)
+            if len(positions) > Forged.MAX_PARTS:
+                raise LayoutRefused(
+                    "%d parts, the most is %d" % (len(positions), Forged.MAX_PARTS)
+                )
+        except LayoutRefused as refusal:
+            settings.message = str(refusal)
+            return
+
+        settings.message = ""
+        settings.part_count = len(positions)
+        scale = Forged.copy_scale(settings)
+        with Forged.suspended():
+            settings.applied_scale = scale
+            for name, value in accepted.items():
+                setattr(settings, name, value)
+
+        Forged._write_points(forged_obj.data, positions, rotations)
+        if Forged._set_modifier_inputs(forged_obj, {"Part": holder, "Scale": scale}):
+            # inputs written from Python don't tag the object themselves
+            forged_obj.update_tag()
+
+    # Exporting ---
+    @staticmethod
+    def local_matrices(forged_obj):
+        """Every copy's matrix relative to the object, read off the points it
+        shows - so what exports is always what is on screen."""
+        mesh = forged_obj.data
+        count = len(mesh.vertices)
+        positions = np.empty(count * 3, dtype=np.float32)
+        mesh.vertices.foreach_get("co", positions)
+        quaternions = np.zeros(count * 4, dtype=np.float32)
+        attribute = mesh.attributes.get(Forged.ROTATION_ATTRIBUTE)
+        if attribute is not None and count:
+            attribute.data.foreach_get("value", quaternions)
+
+        matrices = np.zeros((count, 4, 4))
+        if count:
+            rotations = frames.from_quaternions(quaternions.reshape(-1, 4))
+            matrices[:, :3, :3] = rotations * forged_obj.charon_forged.applied_scale
+            matrices[:, :3, 3] = positions.reshape(-1, 3)
+            matrices[:, 3, 3] = 1.0
+        return matrices
+
+    @staticmethod
+    def get_all():
+        """Every forged object in the view layer."""
+        found = []
+        for obj in bpy.context.view_layer.objects:
+            try:
+                if Forged.is_forged(obj):
+                    found.append(obj)
+            except ReferenceError:
+                continue
+        return found
+
+    @staticmethod
+    def serialise(forged_obj):
+        """The object as the parts it stands for, in the form NMS saves them.
+
+        Returns:
+            List of serialised part dictionaries.
+        """
+        settings = forged_obj.charon_forged
+        object_id = f"^{settings.object_id}"
+        user_data = int(forged_obj.get(Part.PROP_USER_DATA, Part.DEFAULT_USER_DATA))
+        time_stamp = int(time.time())
+        world = np.array(forged_obj.matrix_world, dtype=np.float64)
+
+        serialised_objects = []
+        for matrix in world @ Forged.local_matrices(forged_obj):
+            pos, up, at = Group.extract_pos_up_at(Matrix(matrix.tolist()))
+            serialised_objects.append({
+                Part.PROP_TIMESTAMP: time_stamp,
+                Part.PROP_OBJECT_ID: object_id,
+                Part.PROP_USER_DATA: user_data,
+                Part.PROP_POSITION: [pos[0], pos[1], pos[2]],
+                Part.PROP_UP: [up[0], up[1], up[2]],
+                Part.PROP_AT: [at[0], at[1], at[2]],
+            })
+        return serialised_objects
+
+    @staticmethod
+    def refresh_child_cache(forged_obj):
+        """Write the object's child cache - what the group code reads when it
+        splits it or looks up its colour."""
+        settings = forged_obj.charon_forged
+        matrices = Forged.local_matrices(forged_obj)
+
+        user_data = forged_obj.get(Part.PROP_USER_DATA, Part.DEFAULT_USER_DATA)
+        stamp = int(time.time())
+        cache = {
+            "%s.%04d" % (settings.object_id, index): {
+                Group.PROP_OBJECT_ID: settings.object_id,
+                Group.PROP_USER_DATA: user_data,
+                Group.PROP_TIMESTAMP: stamp,
+                Group.PROP_MATRIX_LOCAL: matrix,
+            }
+            for index, matrix in enumerate(matrices.tolist())
+        }
+        forged_obj[Group.PROP_CHILD_CACHE] = json.dumps(cache)
+        forged_obj[Group.PROP_PART_COUNT] = len(matrices)
+        forged_obj[Group.PROP_ORIGIN_MATRIX] = json.dumps(
+            [list(row) for row in forged_obj.matrix_world]
+        )
+
+    @staticmethod
+    def split(forged_obj, builder):
+        """Turn the object into its parts. Returns them."""
+        holder = forged_obj.charon_forged.part_object
+        Forged.refresh_child_cache(forged_obj)
+        with Forged.suspended():
+            forged_obj.charon_forged.form = ""
+        # one texture and node group tidy for the lot, not one per part
+        with materials.defer_shared_data():
+            parts = Group.ungroup_objects(builder, forged_obj) or []
+        if holder is not None and holder.users == 0:
+            bpy.data.objects.remove(holder)
+        return parts
