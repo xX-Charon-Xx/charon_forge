@@ -1,5 +1,6 @@
 from bpy.types import Panel
 
+from ..utils import icon_utils
 from .crossing_operators import ExportShipFile, ImportShipFile
 
 
@@ -18,20 +19,32 @@ class CHARON_PT_crossing_panel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        main_box = layout.column(align=True)
 
-        import_export_row = main_box.row(align=True)
-        import_export_row.operator(ImportShipFile.bl_idname, icon="IMPORT")
-        import_export_row.operator(ExportShipFile.bl_idname, icon="EXPORT")
+        # laid out like the optimiser panel: the icon on the left, the
+        # description and buttons in a column beside it
+        description_row = layout.row(align = True)
+        description_row.scale_y = 0.6
+        description_icon_row = description_row.row(align = True)
+        description_icon_row.scale_x = 1.1
+        description_icon_row.template_icon(
+            icon_value=icon_utils.get_icon_id("crossing"),
+            scale=3,
+        )
+        description_column = description_row.column(align=True)
+        description_column.separator()
+        description_column.label(text="Import and export ships as")
+        description_column.label(text=".nmsship, .json or .txt files")
 
-        # which ship's name, model and inventories a .nmsship export will carry
-        crossing = context.scene.charon_crossing
-        info_row = main_box.row(align=True)
-        info_row.scale_y = 0.8
-        if crossing.source_file:
-            info_row.label(text=f"Ship data: {crossing.source_file}", icon="FILE")
-        else:
-            info_row.label(text="Ship data: template (empty inventories)", icon="FILE")
+        description_column.separator(factor = 2)
+        import_row = description_column.row(align=True)
+        import_row.scale_y = 2
+        import_row.operator(ImportShipFile.bl_idname, icon="IMPORT")
+
+        description_column.separator()
+        export_row = description_column.row(align=True)
+        export_row.scale_y = 2
+        export_row.operator(ExportShipFile.bl_idname, icon="EXPORT")
+
 
 
 classes = (

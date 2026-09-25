@@ -5,6 +5,7 @@ from ..save_editor.save_manager import CharonSaveManager
 from ..utils import base_builder_utils, helmsman_utils, icon_utils
 from .helmsman_operators import (
     EditShipNote,
+    ImportReviewShip,
     ExportResultFiles,
     ExportReviews,
     ExportToSave,
@@ -186,6 +187,10 @@ class CHARON_PT_helmsman_panel(Panel):
             note_row = column.row(align=True)
             note_row.scale_y = 1.2
             note_row.alert = False
+            import_ship = note_row.operator(
+                ImportReviewShip.bl_idname, text="", icon="IMPORT", emboss=True
+            )
+            import_ship.row_index = index
             note_edit = note_row.operator(
                 EditShipNote.bl_idname, text="", icon="TEXT", emboss=True
             )

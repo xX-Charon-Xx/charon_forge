@@ -228,6 +228,37 @@ class ToggleReviewStatus(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class ImportReviewShip(bpy.types.Operator):
+    """Build this ship's parts in the scene"""
+
+    bl_idname = "object.charon_import_review_ship"
+    bl_label = "Import Ship"
+    bl_options = {"REGISTER", "UNDO"}
+
+    row_index: bpy.props.IntProperty()
+
+    def execute(self, context):
+        from ..builder import get_builder
+        from ..utils import nmsship
+
+        helmsman = context.scene.charon_helmsman
+        if self.row_index >= len(helmsman.batch_ship_reviews):
+            return {"CANCELLED"}
+
+        item = helmsman.batch_ship_reviews[self.row_index]
+        ship = helmsman.get_ship_data(item)
+        if ship is None:
+            self.report({"ERROR"}, f"{item.ship_name}: its batch data is missing")
+            return {"CANCELLED"}
+
+        objects = ship.get("objects") or []
+        get_builder().deserialise_from_data(
+            {"Objects": objects, "BaseVersion": nmsship.DEFAULT_BASE_VERSION}
+        )
+        self.report({"INFO"}, f"Imported {item.ship_name} ({len(objects)} parts)")
+        return {"FINISHED"}
+
+
 class EditShipNote(bpy.types.Operator):
     """Write a note on this ship"""
 
@@ -302,6 +333,7 @@ classes = (
     ExportResultFiles,
     ExportToSave,
     ToggleReviewStatus,
+    ImportReviewShip,
     EditShipNote,
     SetBatchPage,
     ResetReviews,
