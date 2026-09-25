@@ -290,7 +290,54 @@ class NMS_OT_switch_proxies_to_high(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class NMS_OT_fix_broken_textures(bpy.types.Operator):
+    """Fix missing textures, and bring every part to the chosen proxy quality."""
+
+    bl_idname = "object.nms_fix_broken_textures"
+    bl_label = "Fix Scene"
+    bl_description = (
+        "Point textures whose file is missing - e.g. in a .blend made on "
+        "another computer - at the same texture in this install, and switch "
+        "any part or group not at the selected proxy quality to it"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        from ..materials import packing
+
+        # proxies first: switching to high res appends assets, whose images
+        # already point at this install, and relinking afterwards then only
+        # has the file's own broken images left to fix
+        target_high_res = context.scene.enum_proxy_quality == "high"
+        parts, groups, skipped = set_proxy_quality(context, target_high_res)
+        relinked, missing = packing.relink_library_textures()
+
+        quality = "high-res" if target_high_res else "low-res"
+        done = []
+        if parts or groups:
+            done.append("switched %d part(s) and %d group(s) to %s" % (parts, groups, quality))
+        if relinked:
+            done.append("fixed %d texture(s)" % relinked)
+        problems = []
+        if skipped:
+            problems.append("%d part(s) have no %s model (see the console)" % (skipped, quality))
+        if missing:
+            problems.append("%d texture(s) have no match in the library" % missing)
+
+        if not done and not problems:
+            self.report({"INFO"}, "Nothing to fix")
+            return {"FINISHED"}
+
+        message = ", ".join(done).capitalize() if done else "Nothing fixed"
+        if problems:
+            self.report({"WARNING"}, message + " - " + "; ".join(problems))
+        else:
+            self.report({"INFO"}, message)
+        return {"FINISHED"}
+
+
 classes = (
     NMS_OT_switch_proxies_to_low,
     NMS_OT_switch_proxies_to_high,
+    NMS_OT_fix_broken_textures,
 )

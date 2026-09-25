@@ -122,6 +122,8 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
             "object.nms_switch_proxies_to_high", text="High-res Proxies",
             icon="MESH_MONKEY", depress=quality == "high",
         )
+        proxy_row.separator()
+        proxy_row.operator("object.nms_fix_broken_textures", text="", icon="FILE_REFRESH")
 
         # Drawn straight off the preferences rather than mirrored onto the
         # scene: whether opening a file re-switches it is a per-user choice

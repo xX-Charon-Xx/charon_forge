@@ -8,6 +8,8 @@
     colouring.py     colouring high res parts through object properties
     colourise.py     a primary tint for colourable materials with no mask
     emission.py      making what glows in game glow in Blender
+    packing.py       packing the library's textures into a saved .blend
+    samplers.py      keeping materials under EEVEE's 32 texture limit
     finish_nodes.py  tearing the old hand-tuned finish preview out of old files
     palettes.py      DT_Palettes.csv, for the flat proxy materials only
     dedupe.py        collapsing the textures and node groups appends duplicate
@@ -23,7 +25,7 @@ docs/MATERIALS.md at the top of the repository explains the whole system.
 
 import bpy
 
-from . import colourise, emission, game_data, host
+from . import colourise, emission, game_data, host, packing, samplers
 from .colouring import (apply, apply_many, apply_palette, clear, decode,
                         default_user_data, encode, is_colourable, is_high_res,
                         object_id_of, recolour, recolour_from_user_data,
@@ -57,6 +59,7 @@ def prepare_materials(materials=None):
         return 0
     # the tint goes in before emission, so a glow copies the tinted colour
     return (strip_legacy_finish_nodes(materials)
+            + samplers.ensure_sampler_budget(materials)
             + colourise.ensure_colourise(materials)
             + emission.ensure_emission(materials))
 
@@ -158,8 +161,10 @@ def _on_load(_filepath=None):
 def register():
     if _on_load not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(_on_load)
+    packing.register()
 
 
 def unregister():
+    packing.unregister()
     if _on_load in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(_on_load)

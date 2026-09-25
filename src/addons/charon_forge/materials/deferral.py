@@ -37,7 +37,7 @@ def defer_shared_data():
         if _defer_depth == 0 and _defer_pending:
             _defer_pending = False
             # imported here, both of them import this module
-            from . import colourise, dedupe, emission, finish_nodes
+            from . import colourise, dedupe, emission, finish_nodes, samplers
 
             # dedupe first, so the surviving shared materials are the ones
             # that get prepared rather than copies about to be thrown away -
@@ -46,6 +46,7 @@ def defer_shared_data():
             # called directly, in its order.)
             dedupe.dedupe_appended_data()
             finish_nodes.strip_legacy_finish_nodes()
+            samplers.ensure_sampler_budget()
             colourise.ensure_colourise()
             emission.ensure_emission()
 

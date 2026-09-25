@@ -57,6 +57,17 @@ class CharonAddonPreferences(bpy.types.AddonPreferences):
         default="high",
     )
 
+    # Packing the library textures into the .blend on save, so a shared file
+    # shows its textures on any machine - see materials/packing.py.
+    pack_textures_on_save: BoolProperty(
+        name="Pack Textures on Save",
+        description=(
+            "Store the part textures inside the .blend when it is saved, so "
+            "the file shows them correctly when shared. Makes files larger"
+        ),
+        default=True,
+    )
+
     # Whether that handler runs at all. Off leaves an opened file at whatever
     # quality it was saved at, for working on a base built at one quality
     # without it being switched out from under you on every open.
@@ -132,6 +143,7 @@ class CharonAddonPreferences(bpy.types.AddonPreferences):
         layout.row().prop(self, "theme", text="Theme")
         layout.row().prop(self, "default_proxy_quality", expand=True)
         layout.row().prop(self, "auto_switch_on_open")
+        layout.row().prop(self, "pack_textures_on_save")
         layout.row().prop(self, "show_preview")
         layout.row().prop(self, "auto_optimise")
         layout.row().prop(self, "save_folder_path")

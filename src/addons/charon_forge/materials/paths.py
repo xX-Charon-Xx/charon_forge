@@ -5,6 +5,10 @@ import os
 ADDON_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 RESOURCES_PATH = os.path.join(ADDON_PATH, "resources")
 
+# The high res library's textures - what its assets' images point at, and
+# what packing.py packs into a saved .blend.
+TEXTURES_PATH = os.path.join(ADDON_PATH, "asset_browser", "textures")
+
 # The game's palette table, one row per (colour, finish) pair.
 COLOURS_CSV = os.path.join(RESOURCES_PATH, "DT_Palettes.csv")
 
