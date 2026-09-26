@@ -23,7 +23,6 @@ Charon Forge is a Blender extension for designing No Man's Sky bases and corvett
   - [The Forge](#the-forge)
   - [Helmsman](#helmsman)
 - [Working with the No Man's Sky Base Builder addon](#working-with-the-no-mans-sky-base-builder-addon)
-- [Building a release](#building-a-release)
 - [Credits and support](#credits-and-support)
 
 ---
@@ -47,15 +46,31 @@ Charon Forge is a Blender extension for designing No Man's Sky bases and corvett
 ## Requirements
 
 - [Blender](https://www.blender.org) **4.5 or newer**
-- Optional: the **No Man's Sky Base Builder** addon. Charon Forge works on its own; the Base Builder adds its own building tools, which Charon Forge then powers with high-resolution parts. See [Working with the No Man's Sky Base Builder addon](#working-with-the-no-mans-sky-base-builder-addon).
+- Optional: the **No Man's Sky Base Builder** addon, **version 7.0.0 only**. Charon Forge works on its own; the Base Builder adds its own building tools, which Charon Forge then powers with high-resolution parts. See [Working with the No Man's Sky Base Builder addon](#working-with-the-no-mans-sky-base-builder-addon).
 
 ## Installation
 
-1. Build the package with `generate_package.bat` (Windows) or `generate_package.sh` (macOS/Linux), or download a release.
-2. In Blender, open **Edit > Preferences > Get Extensions**, click the dropdown in the top right, and choose **Install from Disk...**
-3. Pick the `charon_forge-*.zip` file.
+First, download the latest `charon_forge-*.zip` from the [Releases page](https://github.com/xX-Charon-Xx/charon_forge/releases). Don't unzip it. Blender installs the `.zip` as it is.
+
+**Option 1: drag and drop**
+
+1. Open Blender.
+2. Drag the `.zip` file from your file browser and drop it anywhere onto the Blender window.
+3. Click **Install** in the popup that appears.
+
+**Option 2: from Preferences**
+
+1. In Blender, open **Edit > Preferences** and go to **Get Extensions**.
+2. Click the dropdown arrow in the top right corner and choose **Install from Disk...**
+3. Pick the `charon_forge-*.zip` file and click **Install from Disk**.
+
+Either way, Charon Forge is enabled straight away. To update later, install the new `.zip` the same way; it replaces the old version.
 
 Charon Forge then appears as a **Charon** menu in the 3D viewport's header, and a **Charon Forge** tab in the sidebar (press `N` in the viewport).
+
+**Optional: the No Man's Sky Base Builder addon.** To also use the Base Builder's own tools (see [Working with the No Man's Sky Base Builder addon](#working-with-the-no-mans-sky-base-builder-addon)), download it from its [7.0.0 release](https://github.com/kuma-the-wizard/nms-base-builder/releases/tag/7.0.0) and install its `.zip` the same way.
+
+> **Note:** only **version 7.0.0** of the Base Builder works with Charon Forge. Other versions, older or newer, aren't supported.
 
 ---
 
@@ -203,11 +218,6 @@ With the **No Man's Sky Base Builder** addon also installed, Charon Forge connec
 - **Simple Proxies** and **Replace Selected Objects** use the Base Builder's models and tools, so they need it installed. Charon says so where that applies.
 
 ---
-
-## Building a release
-
-- `generate_package.bat` (Windows) or `generate_package.sh` (macOS/Linux) builds the installable `.zip`.
-- Pushing a tag such as `v0.1.0` builds the extension on GitHub Actions and creates a release, using the matching section of `release_notes.md`.
 
 ## Credits and support
 

@@ -69,8 +69,15 @@ class PriorityListMove(bpy.types.Operator):
         return {"FINISHED"}
 
 
+# The edit popup that is open, if any: which group it edits, and whether
+# that group has been deleted from inside it. A button in the popup leaves it
+# open, and with the group gone its index would point at the next group - so
+# OK must not write anything once this says deleted.
+_edit_session = {"index": None, "deleted": False}
+
+
 class PriorityListDelete(bpy.types.Operator):
-    """Remove a priority group from the priority list"""
+    """Remove this priority group, and every part in it, from the priority list"""
 
     bl_idname = "object.charon_priority_list_delete"
     bl_label = "Delete Priority Group"
@@ -81,6 +88,10 @@ class PriorityListDelete(bpy.types.Operator):
     def execute(self, context):
         optimiser = context.scene.charon_optimiser
         optimiser.delete_priority_group(self.index)
+        if _edit_session["index"] == self.index:
+            _edit_session["deleted"] = True
+            optimiser.clear_priority_search()
+        self.report({"INFO"}, "Priority group deleted")
         return {"FINISHED"}
 
 class PriorityListDeletePart(bpy.types.Operator):
@@ -242,6 +253,8 @@ class PriorityListEdit(bpy.types.Operator):
         optimiser = context.scene.charon_optimiser
         optimiser.refresh_priority_part_list(self.index)
         optimiser.clear_priority_search()
+        _edit_session["index"] = self.index
+        _edit_session["deleted"] = False
 
         return context.window_manager.invoke_props_dialog(
             self, width=EDIT_POPUP_WIDTH
@@ -251,6 +264,14 @@ class PriorityListEdit(bpy.types.Operator):
         # only reached on OK - Cancel (or Esc) never calls this, so a
         # rename or a staged addition left mid edit is simply discarded
         optimiser = context.scene.charon_optimiser
+
+        # deleted from inside this popup: the index now points at another group
+        deleted = _edit_session["deleted"] and _edit_session["index"] == self.index
+        _edit_session["index"] = None
+        _edit_session["deleted"] = False
+        if deleted:
+            optimiser.clear_priority_search()
+            return {"FINISHED"}
 
         priority_list = optimiser_utils.get_priority_list()
         if 0 <= self.index < len(priority_list):
@@ -271,92 +292,85 @@ class PriorityListEdit(bpy.types.Operator):
         layout = self.layout
         optimiser = context.scene.charon_optimiser
 
+        if _edit_session["deleted"] and _edit_session["index"] == self.index:
+            layout.label(text="This group has been deleted", icon="TRASH")
+            layout.label(text="Close this window - nothing more will be saved", icon="BLANK1")
+            return
+
         priority_list = optimiser_utils.get_priority_list()
         if self.index < 0 or self.index >= len(priority_list):
             layout.label(text="This group no longer exists", icon="ERROR")
             return
 
-        layout_row = layout.row(align=False)
+        # One row at a time across both halves, so the group's side and the
+        # search side stay level: titles, then fields, then a status line,
+        # then the two lists at the same height.
+        def halves():
+            split = layout.split(factor=0.5)
+            return split.column(align=True), split.column(align=True)
 
-        # left: the group's current parts, with a remove button each
-        elements_list_column = layout_row.column(align=True)
-        elements_list_column.label(text="Title")
-        elements_list_column.prop(self, "group_name", text="")
-        elements_list_column.separator()
+        # titles
+        left, right = halves()
+        left.label(text="Title")
+        right.label(text="Add Parts")
 
-        if optimiser.priority_staged_additions:
-            elements_list_column.label(
-                text=f"+ {len(optimiser.priority_staged_additions)} staged, added on OK"
-            )
-        else:
-            elements_list_column.label(
-                text=f"Objects List"
-            )
-            
-        if not optimiser.priority_part_list:
-            elements_list_column.label(text="No Items")
+        # the group's name, with a button to delete the whole group - and the
+        # search box
+        left, right = halves()
+        name_row = left.row(align=True)
+        name_row.prop(self, "group_name", text="")
+        delete = name_row.operator(PriorityListDelete.bl_idname, text="", icon="TRASH")
+        delete.index = self.index
+        right.prop(optimiser, "priority_search_query", text="", icon="VIEWZOOM")
 
-        # always drawn, even empty - an empty template_list still renders as
-        # a box, which reads better here than the column jumping around as
-        # rows are added and removed
-        elements_list_column.template_list(
-            "CHARON_UL_priority_part_list", "",
-            optimiser, "priority_part_list",
-            optimiser, "priority_part_list_index",
-            rows=PART_LIST_ROWS + 1,
-        )
+        layout.separator()
 
-        # right: search for parts to stage into the group above
-        search_list_column = layout_row.column(align=True)
-        search_list_column.label(text="Add Parts")
-        search_list_column.prop(
-            optimiser, "priority_search_query", text="", icon="VIEWZOOM"
-        )
-        search_list_column.separator()
-
+        # status line: what the group holds, and how the search stands
         query = (optimiser.priority_search_query or "").strip()
+        left, right = halves()
+        part_count = len(optimiser.priority_part_list)
+        staged = len(optimiser.priority_staged_additions)
+        if staged:
+            left.label(text=f"Objects List - {staged} staged, added on OK", icon="ADD")
+        elif part_count:
+            left.label(text=f"Objects List ({part_count})")
+        else:
+            left.label(text="Objects List - no items yet")
 
-        # category / sub-category browse, same "list view" layout as the
-        # asset browser's own (Category label + dropdown, Sub-Category label
-        # + dropdown side by side) - only meaningful once the search box is
-        # empty, browsing is what fills the list in that case
         if not query:
+            # category / sub-category browse, like the asset browser's list view
             asset_browser = context.scene.nms_asset_browser
-            browse_row = search_list_column.row(align=True)
-
-            category_column = browse_row.column(align=True)
-            category_column.label(text="Category")
-            category_column.operator_menu_enum(
+            browse_row = right.row(align=True)
+            browse_row.operator_menu_enum(
                 PrioritySearchSelectCategory.bl_idname, "category",
                 text=asset_browser.asset_browser_caterogies or "Category",
             )
-
-            sub_category_column = browse_row.column(align=True)
-            sub_category_column.label(text="Sub-Category")
-            sub_category_column.operator_menu_enum(
+            browse_row.operator_menu_enum(
                 PrioritySearchSelectSubCategory.bl_idname, "sub_category",
                 text=asset_browser.asset_browser_sub_caterogies or "All",
             )
-
-            search_list_column.separator()
-
-        if query and len(query) < 3:
-            search_list_column.label(text="Type at least three characters to search")
+        elif len(query) < 3:
+            right.label(text="Type at least three characters", icon="INFO")
         elif not optimiser.priority_search_result_list:
-            search_list_column.label(text="No Items")
+            right.label(text="Nothing matches", icon="INFO")
+        else:
+            right.label(text=f"{len(optimiser.priority_search_result_list)} found")
 
-        # same list template as the left column, with an add button instead
-        # of a remove button - see
-        # optimiser_presentation.CHARON_UL_priority_search_result_list
-        search_list_column.template_list(
+        # the lists, the same height; the right one's rows have an add button
+        # instead of a remove one - see optimiser_presentation
+        left, right = halves()
+        left.template_list(
+            "CHARON_UL_priority_part_list", "",
+            optimiser, "priority_part_list",
+            optimiser, "priority_part_list_index",
+            rows=PART_LIST_ROWS,
+        )
+        right.template_list(
             "CHARON_UL_priority_search_result_list", "",
             optimiser, "priority_search_result_list",
             optimiser, "priority_search_result_list_index",
             rows=PART_LIST_ROWS,
         )
-
-
-
 
 
 class PriorityListAddRow(bpy.types.Operator):
