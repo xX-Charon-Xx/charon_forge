@@ -147,6 +147,12 @@ class CharonAddonPreferences(bpy.types.AddonPreferences):
         default=True,
         update=on_watchtower_update,
     )
+    watchtower_show_primary_labels: BoolProperty(
+        name="Label Primary Parts",
+        description="Float a label over the ship's primary cockpit and landing bay in the viewport",
+        default=True,
+        update=on_watchtower_update,
+    )
     watchtower_show_part_count: BoolProperty(
         name="Show Part Count",
         description="Show the scene's part count, and the base it was imported from, over the viewport",

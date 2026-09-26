@@ -99,7 +99,7 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
     bl_region_type = "HEADER"
     bl_label = "Base Builder"
     # Popovers size themselves from this rather than from their content.
-    bl_ui_units_x = 13
+    bl_ui_units_x = 18
     
 
     def draw(self, context):
@@ -156,6 +156,25 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
         recent_data = asset_browser.get_recent_objects_data()
         fav_data = asset_browser.get_favourite_objects_data()
 
+        # defined up here: the search below uses it too, and used to raise
+        # a NameError when there were no favourites or recents to define it
+        def draw_assets(container, asset_data):
+            if asset_data:
+                row = container.row(align = True)
+                for subcategories, object_ids in asset_data.items():
+                    asset_browser_presentation.draw_sub_category(
+                        pcoll = pcoll,
+                        container = row,
+                        label = subcategories,
+                        elements_list = object_ids,
+                        number_of_columns = 4,
+                        icon_size = 3,
+                        grid_type = "Other",
+                        show_title = False
+                    )
+            else:
+                container.label(text="No Items")
+
         # Neither tab has anything to show yet - skip the whole section
         # (including the Favourites/Recent switcher) rather than offer a
         # toggle between two empty lists.
@@ -167,47 +186,41 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
             quick_access_column.separator()
 
 
-            def draw_assets(asset_data):
-                if asset_data:
-                    row = quick_access_column.row(align = True)
-                    for subcategories, object_ids in asset_data.items():
-                        asset_browser_presentation.draw_sub_category(
-                            pcoll = pcoll,
-                            container = row,
-                            label = subcategories,
-                            elements_list = object_ids,
-                            number_of_columns = 4,
-                            icon_size = 2,
-                            grid_type = "Other",
-                            show_title = False
-                        )
-                else:
-                    quick_access_column.label(text="No Items")
-
-
             if enum_assets_quick_access_view_mode == "recent":
                 if recent_data:
                     recent_first_four = dict(list(recent_data.items())[:4])
                     recent_dict = {"Recent Objects": recent_first_four}
-                    draw_assets(recent_dict)
+                    draw_assets(quick_access_column, recent_dict)
                 else:
-                    draw_assets(None)
+                    draw_assets(quick_access_column, None)
             else:
                 if fav_data:
                     fav_first_four = dict(list(fav_data.items())[:4])
                     fav_dict = {"Favourite Objects": fav_first_four}
-                    draw_assets(fav_dict)
+                    draw_assets(quick_access_column, fav_dict)
                 else:
-                    draw_assets(None)
+                    draw_assets(quick_access_column, None)
         
         layout.separator()
         search_colun = layout.column(align = True)
         search_colun.label(text = "Search Items")
-        search_colun.prop(asset_browser, "asset_broser_search_query", text="", icon='VIEWZOOM')
-        
-        if asset_browser.enum_asset_browser_what_to_display == "search":
-            search_data = asset_browser.get_search_results()
-            draw_assets(search_data)
+        search_colun.prop(asset_browser, "quick_search_query", text="", icon='VIEWZOOM')
+
+        # the best eight, two rows of four, right under the search box
+        if asset_browser.quick_search_query.strip():
+            results, total = asset_browser.get_quick_search_results(limit=8)
+            search_colun.separator()
+            if results:
+                draw_assets(search_colun, {"Search Results": results})
+                if total > len(results):
+                    note = search_colun.row()
+                    note.scale_y = 0.8
+                    note.label(
+                        text=f"{len(results)} of {total} - type more, or use the Asset Browser",
+                        icon="INFO",
+                    )
+            else:
+                search_colun.label(text="Nothing matches", icon="INFO")
                         
 
 

@@ -53,6 +53,13 @@ class CHARON_PT_the_watchtower_panel(Panel):
             toggle=True,
         )
 
+        # the floating labels over the primary cockpit and landing bay
+        description_column.separator()
+        labels_row = description_column.row()
+        labels_row.scale_y = 1.4
+        labels_row.active = shown
+        labels_row.prop(prefs, "watchtower_show_primary_labels")
+
 
 classes = (
     CHARON_PT_the_watchtower_panel,

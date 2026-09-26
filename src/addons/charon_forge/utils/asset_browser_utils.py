@@ -584,6 +584,38 @@ def filter_objects(categories_data, search_filter):
     return search_results
 
 
+def quick_search(categories_data, search_filter, limit=8):
+    """The best `limit` parts for a query, for the header menu's search.
+
+    Parts whose name starts with the query come first, then those whose id
+    does, then anything containing it - each group in the category tree's
+    order.
+
+    Returns:
+        (dict, int): {object id: part data} for the parts shown, and how many
+            parts matched in all.
+    """
+    query = (search_filter or "").strip().lower()
+    if not query:
+        return {}, 0
+
+    ranked = ([], [], [])
+    for sub_categories in categories_data.values():
+        for objects_list in sub_categories.values():
+            for obj_id, obj_data in objects_list.items():
+                name = str(obj_data.get("name", "")).lower()
+                object_id = obj_id.lower()
+                if name.startswith(query):
+                    ranked[0].append((obj_id, obj_data))
+                elif object_id.startswith(query):
+                    ranked[1].append((obj_id, obj_data))
+                elif query in name or query in object_id:
+                    ranked[2].append((obj_id, obj_data))
+
+    matches = ranked[0] + ranked[1] + ranked[2]
+    return dict(matches[:limit]), len(matches)
+
+
 def iter_all_parts(categories_data):
     """Every part in the tree, as (object id, part data) pairs.
 

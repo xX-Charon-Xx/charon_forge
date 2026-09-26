@@ -1,7 +1,7 @@
 import bpy
 
 from ..builder import station_design, station_library, station_prompt
-from ..utils import seed_utils
+from ..utils import qr_code, qr_forge, seed_utils
 from ..objects.circle import Circle
 from ..objects.cuboid import Cuboid
 from ..objects.forged import Forged
@@ -557,7 +557,120 @@ class CreatePolygon(_CreateForged, bpy.types.Operator):
     kind = Polygon
 
 
+# the panel's long side over its short side, for the popup's panel estimate -
+# the build itself measures the part
+_QR_PANEL_RATIO = 2.4
+
+# (text, level) -> (squares along a side, panels) or the error, for the popup
+_qr_preview_cache = {}
+
+
+def _qr_preview(text, level):
+    """What the popup says about a code before it is forged. Cached, since
+    the popup redraws on every keystroke."""
+    key = (text, level)
+    if key not in _qr_preview_cache:
+        if len(_qr_preview_cache) > 32:
+            _qr_preview_cache.clear()
+        try:
+            modules = qr_code.encode(text, level)
+            _qr_preview_cache[key] = (len(modules), len(qr_forge.plan(modules, _QR_PANEL_RATIO)))
+        except qr_code.QRCodeError as error:
+            _qr_preview_cache[key] = str(error)
+    return _qr_preview_cache[key]
+
+
+class ForgeQRCode(bpy.types.Operator):
+    """Build a QR code out of storage panels, at the 3D cursor"""
+
+    # A forged code never gets scratched or smudged, so it takes the least
+    # error correction a QR code can have - which is also the smallest code,
+    # and the fewest panels. (There is no level with none at all.)
+    ERROR_CORRECTION = "L"
+
+    bl_idname = "object.charon_forge_qr_code"
+    bl_label = "Forge a QR Code"
+    bl_options = {"REGISTER", "UNDO"}
+
+    text: bpy.props.StringProperty(
+        name="Text",
+        description="What the QR code says - a link, or any text",
+    )
+    module_size: bpy.props.FloatProperty(
+        name="Square Size",
+        description="How big one square of the code is",
+        default=1.0, min=0.05, soft_max=10.0, unit="LENGTH",
+    )
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(
+            self, width=380, title="Forge a QR Code", confirm_text="Forge",
+        )
+
+    def draw(self, context):
+        layout = self.layout
+
+        intro = layout.column(align=True)
+        intro.scale_y = 0.8
+        intro.label(text="Turns any text or link into a QR code", icon="INFO")
+        intro.label(text="built from Storage Panels, at the 3D cursor.", icon="BLANK1")
+
+        layout.separator()
+        content = layout.box().column(align=True)
+        content.label(text="Content", icon="TEXT")
+        text_row = content.row()
+        text_row.scale_y = 1.4
+        text_row.activate_init = True
+        text_row.prop(self, "text", text="", icon="LINKED" if "://" in self.text else "FONT_DATA")
+
+        layout.separator()
+        size_row = layout.row()
+        size_row.scale_y = 1.2
+        size_row.prop(self, "module_size")
+
+        layout.separator()
+        summary = layout.box().column(align=True)
+        if not self.text.strip():
+            summary.label(text="Enter some text to see the code's size", icon="QUESTION")
+            return
+        preview = _qr_preview(self.text.strip(), self.ERROR_CORRECTION)
+        if isinstance(preview, str):
+            summary.alert = True
+            summary.label(text=preview.capitalize(), icon="ERROR")
+            return
+        squares, panels = preview
+        summary.label(text=f"{squares} x {squares} squares", icon="MESH_GRID")
+        summary.label(text=f"{squares * self.module_size:.1f} m across", icon="DRIVER_DISTANCE")
+        summary.label(text=f"About {panels} panels", icon="MOD_ARRAY")
+
+    def execute(self, context):
+        text = self.text.strip()
+        if not text:
+            self.report({"ERROR"}, "Enter the text for the QR code")
+            return {"CANCELLED"}
+
+        name = "QR Code: " + (text if len(text) <= 24 else text[:24] + "...")
+        try:
+            objects, size = qr_forge.build_qr_code(
+                text, self.ERROR_CORRECTION, self.module_size, collection_name=name,
+            )
+        except qr_code.QRCodeError as error:
+            self.report({"ERROR"}, f"Could not make a QR code: {error}")
+            return {"CANCELLED"}
+        except Exception as error:                            # noqa: BLE001
+            self.report({"ERROR"}, f"Could not forge the QR code: {error}")
+            return {"CANCELLED"}
+
+        _select_only(context, objects)
+        self.report(
+            {"INFO"},
+            f"Forged a {size} x {size} QR code from {len(objects)} panels, in '{name}'",
+        )
+        return {"FINISHED"}
+
+
 classes = (
+    ForgeQRCode,
     CreateSphere,
     CreateShape,
     CreateCuboid,

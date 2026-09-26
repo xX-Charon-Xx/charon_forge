@@ -67,6 +67,15 @@ class AssetBrowser(bpy.types.PropertyGroup):
         default = False
     )
 
+    # The header menu's search - its own query, so it and the browser's
+    # search box can each hold something different
+    quick_search_query: bpy.props.StringProperty(
+        name="Search Items",
+        description="Search every part by name or id",
+        default="",
+        options={'TEXTEDIT_UPDATE'},
+    )
+
     asset_broser_search_query: bpy.props.StringProperty(
         name="Search",
         default="",
@@ -397,6 +406,22 @@ class AssetBrowser(bpy.types.PropertyGroup):
     def get_search_results(self):
         return AssetBrowser.search_results
 
+    # (query, results, total) of the header menu's last search
+    _quick_search_cache = (None, {}, 0)
+
+    def get_quick_search_results(self, limit=8):
+        """The header menu's search results: ({object id: part data}, how
+        many matched). Worked out again only when the query changes, since
+        the menu redraws all the time."""
+        query = self.quick_search_query.strip()
+        cached_query, results, total = AssetBrowser._quick_search_cache
+        if query != cached_query:
+            results, total = asset_browser_utils.quick_search(
+                self.get_categories_data(), query, limit
+            )
+            AssetBrowser._quick_search_cache = (query, results, total)
+        return results, total
+
 
     def get_category_vise_objects(self):
         return asset_browser_utils.build_category_tree()
@@ -443,6 +468,9 @@ class AssetBrowser(bpy.types.PropertyGroup):
 
 
     def get_favourite_objects_data(self):
+        # the favourites are read in with the part tree - loading it here
+        # means the header menu has them before anything else has asked
+        self.get_categories_data()
         return AssetBrowser.favourite_objects_data
 
     def show_favourite_obejcts(self):
@@ -460,7 +488,9 @@ class AssetBrowser(bpy.types.PropertyGroup):
         )
 
     def get_recent_objects_data(self):
-            return AssetBrowser.recent_objects_data
+        # read in with the part tree, like the favourites
+        self.get_categories_data()
+        return AssetBrowser.recent_objects_data
 
     def show_recent_objects(self):
             self.enum_asset_browser_what_to_display = "recent"

@@ -48,6 +48,9 @@ class WatchtowerOverlayOptions(bpy.types.Operator):
             "watchtower_show_active_object", "watchtower_active_object_position",
         )
 
+        labels_box = settings.box()
+        labels_box.prop(prefs, "watchtower_show_primary_labels")
+
     @staticmethod
     def draw_setting(layout, prefs, label, show_prop, position_prop):
         box = layout.box()

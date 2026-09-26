@@ -15,6 +15,8 @@ addon through its set_builder() hook - that hook only accepts subclasses of
 its own Builder class.
 """
 
+import bpy
+
 from . import asset_library, importer, mirror_twins, placement, station_prompt
 from .. import materials
 from ..objects import circle, cuboid, polygon, rectangle, shape, sphere  # noqa: F401 - registers the forged kinds
@@ -142,8 +144,13 @@ class HighResBuilderMixin(object):
     # Loading ---
     def deserialise_from_data(self, data):
         """Given NMS data, reconstruct the base - and if it is a base inside a
-        space station, offer to build that station (see station_prompt)."""
+        space station, offer to build that station (see station_prompt). The
+        lowest order cockpit and landing bay it brings are marked primary."""
+        before = set(bpy.data.objects)
         result = self._deserialise_base(data)
+        # the ship's own cockpit and landing bay, picked in the optimiser panel
+        imported = [obj for obj in bpy.data.objects if obj not in before]
+        optimiser_utils.mark_primary_parts(imported)
         station_prompt.offer_station(data)
         return result
 

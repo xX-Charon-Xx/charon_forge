@@ -228,6 +228,79 @@ def get_primary_parts():
     return primaries
 
 
+# what the parts definition calls them: B_COK_A..., B_ALK_A, B_ALK_A_OPEN...
+COCKPIT_PREFIX = "B_COK_"
+LANDING_BAY_PREFIX = "B_ALK_"
+
+
+def mark_primary_parts(objects):
+    """Pick the cockpit and landing bay with the lowest order among `objects`
+    as the ship's primary ones, and switch the option on.
+
+    Called after an import with the parts it built: the save lists the
+    ship's own cockpit and landing bay first, so the lowest order is the one
+    the game treats as primary. A kind the import has none of keeps whatever
+    was picked before.
+
+    Returns:
+        tuple: (cockpit, landing bay) picked, either None.
+    """
+    optimiser = getattr(bpy.context.scene, "charon_optimiser", None)
+    if optimiser is None:
+        return None, None
+
+    def lowest(prefix):
+        found = []
+        for obj in objects:
+            try:
+                object_id = _strip_id(obj.get("ObjectID") or "")
+            except ReferenceError:
+                continue
+            if object_id.startswith(prefix):
+                found.append(obj)
+        return min(found, key=lambda obj: obj.get("order", 0), default=None)
+
+    cockpit = lowest(COCKPIT_PREFIX)
+    landing_bay = lowest(LANDING_BAY_PREFIX)
+    if cockpit is not None:
+        optimiser.cockpit = cockpit
+    if landing_bay is not None:
+        optimiser.landing_bay = landing_bay
+    if cockpit is not None or landing_bay is not None:
+        optimiser.use_primary_parts = True
+    return cockpit, landing_bay
+
+
+def mark_primary_if_first(bpy_object):
+    """Make a newly placed cockpit or landing bay the primary one when it is
+    the only one of its kind in the scene - the first placed of each kind is
+    the ship's own until the user picks another.
+
+    Returns:
+        str: "cockpit" or "landing_bay" when it was marked, else None.
+    """
+    scene = bpy.context.scene
+    optimiser = getattr(scene, "charon_optimiser", None)
+    if optimiser is None or bpy_object is None:
+        return None
+
+    object_id = _strip_id(bpy_object.get("ObjectID") or "")
+    for prefix, slot in ((COCKPIT_PREFIX, "cockpit"), (LANDING_BAY_PREFIX, "landing_bay")):
+        if not object_id.startswith(prefix):
+            continue
+        others = [
+            obj for obj in scene.objects
+            if obj is not bpy_object
+            and _strip_id(obj.get("ObjectID") or "").startswith(prefix)
+        ]
+        if others:
+            return None
+        setattr(optimiser, slot, bpy_object)
+        optimiser.use_primary_parts = True
+        return slot
+    return None
+
+
 def _position_key(object_id, position):
     """What a part is recognised by once serialised: its id and where it is."""
     return _strip_id(object_id), tuple(round(float(value), 3) for value in position)

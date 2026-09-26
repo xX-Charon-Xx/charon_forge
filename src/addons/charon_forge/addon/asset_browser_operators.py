@@ -407,6 +407,10 @@ class AssetBrowserObjectSelected(bpy.types.Operator):
             blend_utils.select(bpy_obj)
             asset_browser.add_to_recents_list(self.object_id)
 
+            # the ship's first cockpit or landing bay is its primary one
+            from ..utils import optimiser_utils
+            optimiser_utils.mark_primary_if_first(bpy_obj)
+
             # an id the high res library has no model for falls back to the
             # base builder addon's fbx, and to a plain cube without it
             from .. import materials

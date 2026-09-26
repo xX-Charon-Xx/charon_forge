@@ -1,8 +1,10 @@
+import json
 import os
 
 import bpy
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
+from ..builder import importer
 from ..utils import nmsship
 
 EXPORT_FORMATS = [
@@ -31,6 +33,9 @@ class ImportShipFile(bpy.types.Operator, ImportHelper):
         except nmsship.NmsShipError as error:
             self.report({"ERROR"}, f"Could not import {file_name}: {error}")
             return {"CANCELLED"}
+
+        # the file is read first, so a bad one leaves the scene as it was
+        importer.clear_scene_parts(context.scene)
 
         # the file's own BaseVersion, so an older export is placed the way it
         # was built
@@ -131,7 +136,72 @@ class ExportShipFile(bpy.types.Operator, ExportHelper):
         return {"FINISHED"}
 
 
+class ImportShipClipboard(bpy.types.Operator):
+    """Import a ship's parts from JSON on the clipboard - an array of parts,
+    or an object holding them in Objects"""
+
+    bl_idname = "object.charon_import_clipboard"
+    bl_label = "Import from Clipboard"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        from ..builder import get_builder
+
+        try:
+            objects, base_version = nmsship.read_parts_text(context.window_manager.clipboard)
+        except nmsship.NmsShipError as error:
+            self.report({"ERROR"}, f"Could not import from the clipboard: {error}")
+            return {"CANCELLED"}
+
+        # the clipboard is read first, so bad data leaves the scene as it was
+        importer.clear_scene_parts(context.scene)
+
+        get_builder().deserialise_from_data(
+            {"Objects": objects, "BaseVersion": base_version}
+        )
+        self.report({"INFO"}, f"Imported {len(objects)} part(s) from the clipboard")
+        return {"FINISHED"}
+
+
+class ExportShipClipboard(bpy.types.Operator):
+    """Copy the scene's parts to the clipboard as JSON - just the parts, or
+    the whole base with Objects Only off"""
+
+    bl_idname = "object.charon_export_clipboard"
+    bl_label = "Export to Clipboard"
+
+    def execute(self, context):
+        from ..builder import get_builder
+
+        data = get_builder().serialise()
+        objects = data.get("Objects", [])
+        if not objects:
+            self.report({"WARNING"}, "There are no parts in the scene to export")
+            return {"CANCELLED"}
+
+        if context.scene.charon_crossing.clipboard_objects_only:
+            # a bare array, the way the base builder addon's Objects Only does
+            export = objects
+        else:
+            # the whole base, with its properties, when the base builder
+            # addon holds them (scene.nms_base_tool, filled on import)
+            base_tool = getattr(context.scene, "nms_base_tool", None)
+            try:
+                export = base_tool.serialise() if base_tool is not None else None
+            except Exception as error:                        # noqa: BLE001
+                print("Charon Forge: could not serialise the base:", error)
+                export = None
+            if export is None:
+                export = {"Objects": objects, "BaseVersion": data.get("BaseVersion", 8)}
+
+        context.window_manager.clipboard = json.dumps(export, indent=2, ensure_ascii=False)
+        self.report({"INFO"}, f"Copied {len(objects)} part(s) to the clipboard")
+        return {"FINISHED"}
+
+
 classes = (
     ImportShipFile,
     ExportShipFile,
+    ImportShipClipboard,
+    ExportShipClipboard,
 )

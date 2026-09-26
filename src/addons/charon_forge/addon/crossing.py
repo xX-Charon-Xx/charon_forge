@@ -1,7 +1,7 @@
 import json
 
 import bpy
-from bpy.props import PointerProperty, StringProperty
+from bpy.props import BoolProperty, PointerProperty, StringProperty
 
 from . import crossing_operators, crossing_presentation
 
@@ -19,6 +19,16 @@ class Crossing(bpy.types.PropertyGroup):
 
     # the file the stored ship came from, for the panel to show
     source_file: StringProperty()
+
+    # Export to Clipboard: just the parts, or the whole base around them
+    clipboard_objects_only: BoolProperty(
+        name="Objects Only",
+        description=(
+            "Copy only the list of parts. Off copies the whole base - its name, "
+            "address and other properties - with the parts in it"
+        ),
+        default=True,
+    )
 
     def store_ship(self, ship, customisation, source_file):
         self.ship_record_json = json.dumps(ship, ensure_ascii=False)

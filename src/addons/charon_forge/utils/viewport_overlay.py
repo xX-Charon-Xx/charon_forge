@@ -7,6 +7,8 @@ drawn as blocks of text in the bottom or top left corner of the viewport:
     (planet base, corvette, freighter, space base, space station base...)
     and the part count, the parts inside groups included.
   - Active Part: the selected part's id, name, colour and material.
+  - Over the ship's primary cockpit and landing bay (the optimiser panel's
+    picks), a floating label naming each.
 
 It reads nothing of that addon's but, when it is loaded, the base its
 importer brought in (scene.nms_base_tool), so it works on its own. What is
@@ -18,6 +20,8 @@ import re
 
 import blf
 import bpy
+from bpy_extras.view3d_utils import location_3d_to_region_2d
+from mathutils import Vector
 
 from ..addon_preferences import get_addon_preferences
 from ..materials.properties import PROP_READONLY_COLOUR, PROP_READONLY_MATERIAL
@@ -218,6 +222,41 @@ def active_part_block(context):
     return block
 
 
+# Primary parts ---
+MARKER_SIZE = 13
+MARKER_COLOUR = (1.0, 0.82, 0.35, 1.0)
+# how far above the part's highest point the label floats, in pixels
+MARKER_LIFT = 14
+
+
+def draw_primary_markers(context, scale):
+    """A label floating over the primary cockpit and landing bay."""
+    from . import optimiser_utils
+    optimiser = getattr(context.scene, "charon_optimiser", None)
+    region = context.region
+    region_3d = getattr(context.space_data, "region_3d", None)
+    if optimiser is None or region_3d is None:
+        return
+
+    primaries = set(optimiser_utils.get_primary_parts())
+    labels = ((optimiser.cockpit, "Cockpit"), (optimiser.landing_bay, "Landing Bay"))
+    for obj, label in labels:
+        if obj is None or obj not in primaries or not obj.visible_get():
+            continue
+        # over the middle of the part, at its highest corner
+        corners = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+        top = max(corner.z for corner in corners)
+        centre = sum(corners, Vector()) / len(corners)
+        point = location_3d_to_region_2d(region, region_3d, Vector((centre.x, centre.y, top)))
+        if point is None:
+            continue    # behind the view
+
+        size = MARKER_SIZE * scale
+        blf.size(FONT_ID, size)
+        width = text_width(label)
+        draw_text(label, point.x - width / 2, point.y + MARKER_LIFT * scale, MARKER_COLOUR, size)
+
+
 # Drawing ---
 def _layout_corner(blocks, corner, region, scale):
     """Draw blocks stacked in a corner, the first nearest the corner's edge."""
@@ -249,6 +288,15 @@ def _draw_callback():
 
     corners = {POSITION_BOTTOM: [], POSITION_TOP: []}
     try:
+        # with no background behind it, a shadow keeps the text readable
+        # over whatever the scene shows there
+        blf.enable(FONT_ID, blf.SHADOW)
+        blf.shadow(FONT_ID, 3, 0.0, 0.0, 0.0, 1.0)
+        blf.shadow_offset(FONT_ID, 1, -1)
+
+        if prefs.watchtower_show_primary_labels:
+            draw_primary_markers(context, scale)
+
         if prefs.watchtower_show_part_count:
             corners[prefs.watchtower_part_count_position].append(base_block(context))
         if prefs.watchtower_show_active_object:
@@ -257,12 +305,6 @@ def _draw_callback():
                 corners[prefs.watchtower_active_object_position].append(block)
         if not any(corners.values()):
             return
-
-        # with no background behind it, a shadow keeps the text readable
-        # over whatever the scene shows there
-        blf.enable(FONT_ID, blf.SHADOW)
-        blf.shadow(FONT_ID, 3, 0.0, 0.0, 0.0, 1.0)
-        blf.shadow_offset(FONT_ID, 1, -1)
 
         for corner, blocks in corners.items():
             for block in blocks:

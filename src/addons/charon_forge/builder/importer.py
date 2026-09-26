@@ -35,6 +35,45 @@ REPORT_TIMING = True
 X_ROT_90 = mathutils.Matrix.Rotation(math.radians(90.0), 4, "X")
 
 
+# what marks an object as part of a build: parts, line points, presets,
+# groups (Forge shapes too), power line controls and curves carrying parts
+BUILD_PROPS = ("ObjectID", "SnapID", "PresetID", "GroupID", "rig_item",
+               "has_linked_objects", "curve_parent")
+
+
+def clear_scene_parts(scene=None):
+    """Remove everything buildable from the scene, before a ship is imported
+    into it - so the import is the ship and nothing left over from before.
+
+    Anything else - lights, cameras, a space station built by The Forge -
+    is left alone. The library meshes stay cached in bpy.data, so importing
+    the same parts again doesn't read them off disk.
+
+    Returns:
+        int: How many objects were removed.
+    """
+    scene = scene or bpy.context.scene
+    doomed = set()
+    holders = set()
+    for obj in scene.objects:
+        if not any(prop in obj for prop in BUILD_PROPS):
+            continue
+        doomed.add(obj)
+        doomed.update(obj.children_recursive)
+        # a Forge shape's part sits on a holder object in no scene
+        forged = getattr(obj, "charon_forged", None)
+        holder = getattr(forged, "part_object", None) if forged is not None else None
+        if holder is not None:
+            holders.add(holder)
+
+    if doomed:
+        bpy.data.batch_remove(list(doomed))
+    unused_holders = [holder for holder in holders if holder.users == 0]
+    if unused_holders:
+        bpy.data.batch_remove(unused_holders)
+    return len(doomed)
+
+
 def import_objects(builder_object, objects_data, compensate_normal=True, high_res=True):
     """Build every part in a save's "Objects" list.
 

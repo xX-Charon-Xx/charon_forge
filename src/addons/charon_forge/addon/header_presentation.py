@@ -28,12 +28,12 @@ class CHARON_PT_hero_panel(Panel):
         app_cover_row.scale_y = 0.6
         app_cover_row.template_icon(
             icon_value=icon_utils.get_icon_id("app_cover_2"),
-            scale=10,
+            scale=12,
         )
 
         
         
-        main_box.separator(factor = 2)
+        #main_box.separator(factor = 2)
         main_col = main_box.column(align = True)
         link_row = main_col.row(align=True)
         link_row.scale_y = 1.2

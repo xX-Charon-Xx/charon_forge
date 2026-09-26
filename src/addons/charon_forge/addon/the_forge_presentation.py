@@ -1,3 +1,4 @@
+import bpy
 from bpy.types import Panel
 
 from ..builder import station_library
@@ -18,12 +19,20 @@ from .the_forge_operators import (
     CreateSphere,
     CreateSquare,
     EditStation,
+    ForgeQRCode,
     FrameStation,
     RemoveStation,
     ResetForged,
     SplitForged,
     forge_source_problem,
 )
+
+
+# built in icons this blender has - QRCODE isn't in every version
+_ICONS = {
+    item.identifier
+    for item in bpy.types.UILayout.bl_rna.functions["label"].parameters["icon"].enum_items
+}
 
 
 # The Forge Panel ---
@@ -60,7 +69,8 @@ class CHARON_PT_the_forge_panel(Panel):
         #layout.separator()
         
         active_object = context.active_object
-        if Forged.is_forged(active_object):
+        editing = Forged.is_forged(active_object)
+        if editing:
             box = layout.box()  
             settings = active_object.charon_forged
             if settings.form == Circle.FORM:
@@ -78,9 +88,14 @@ class CHARON_PT_the_forge_panel(Panel):
             row = box.row()
             row.operator(ResetForged.bl_idname, icon="LOOP_BACK")
             row.operator(SplitForged.bl_idname, icon="MOD_EXPLODE")
-            return
+            layout.separator()
 
-        box = layout.box()
+        # everything else stays in view while a shape is being edited, greyed
+        # out until it is deselected
+        rest = layout.column()
+        rest.enabled = not editing
+
+        box = rest.box()
         forge_shape_col = box.column(align = True)
         forge_shape_col.label(text = "Forge a Shape")
         forge_shape_col.label(text="3D Shape")
@@ -95,7 +110,12 @@ class CHARON_PT_the_forge_panel(Panel):
         row.operator(CreateSquare.bl_idname, icon="MESH_PLANE")
         row.operator(CreatePolygon.bl_idname, icon="SEQ_CHROMA_SCOPE")
 
-        station_box = layout.box()
+        symbol_box = rest.box()
+        symbol_col = symbol_box.column(align=True)
+        symbol_col.label(text="Forge a Symbol")
+        symbol_col.operator(ForgeQRCode.bl_idname, icon="QRCODE" if "QRCODE" in _ICONS else "TEXTURE")
+
+        station_box = rest.box()
         station_box.label(text="Forge Space Station", icon="WORLD")
         if not station_library.find_stations():
             station_box.operator(EditStation.bl_idname, text="Import Space Station",
