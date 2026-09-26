@@ -14,6 +14,7 @@ import bpy
 
 from .. import builder as charon_builder
 from .. import materials
+from ..builder import placement
 from ..objects.group import Group
 from ..objects.part import Part
 from ..utils import base_builder_utils
@@ -116,24 +117,27 @@ def _switch_scene_parts(context, target_high_res, proxy_cache):
 
         object_id = source_object[Part.PROP_OBJECT_ID]
         user_data = source_object.get(Part.PROP_USER_DATA, Part.DEFAULT_USER_DATA)
+        # a fossil bone shows the bone in its Message, not the kind in its
+        # ObjectID - switching it by its ObjectID would swap in a generic bone
+        model_id = placement.model_id_of(object_id, source_object.get(Part.PROP_MESSAGE))
 
         if target_high_res:
-            new_mesh = charon_builder.load_high_res_mesh(object_id, asset_index)
+            new_mesh = charon_builder.load_high_res_mesh(model_id, asset_index)
             # An id the high res library does not cover - one of the ones it
             # still misses, or a mirrored part whose twin has no model of its
             # own. Left exactly as it is rather than swapped for something that
             # is not the part.
             if new_mesh is None:
-                missing_ids.append(object_id)
+                missing_ids.append(model_id)
                 continue
 
             source_object.data = new_mesh
             to_colour.append((source_object, user_data))
         else:
             if not charon_builder.apply_proxy_mesh(
-                source_object, object_id, user_data, cache=proxy_cache
+                source_object, model_id, user_data, cache=proxy_cache
             ):
-                missing_ids.append(object_id)
+                missing_ids.append(model_id)
                 continue
 
         switched += 1
@@ -291,18 +295,20 @@ class NMS_OT_switch_proxies_to_high(bpy.types.Operator):
 
 
 class NMS_OT_fix_broken_textures(bpy.types.Operator):
-    """Fix missing textures, and bring every part to the chosen proxy quality."""
+    """Bring the scene up to date with this install: parts at the chosen proxy quality, every library part and its textures reimported."""
 
     bl_idname = "object.nms_fix_broken_textures"
     bl_label = "Fix Scene"
     bl_description = (
-        "Point textures whose file is missing - e.g. in a .blend made on "
-        "another computer - at the same texture in this install, and switch "
-        "any part or group not at the selected proxy quality to it"
+        "Reimport every library part and group, and reload every texture, from "
+        "this install as it is now - picking up updated assets and textures. "
+        "Also points missing textures at this install and switches anything not "
+        "at the selected proxy quality to it"
     )
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
+        from ..builder import asset_library
         from ..materials import packing
 
         # proxies first: switching to high res appends assets, whose images
@@ -310,17 +316,42 @@ class NMS_OT_fix_broken_textures(bpy.types.Operator):
         # has the file's own broken images left to fix
         target_high_res = context.scene.enum_proxy_quality == "high"
         parts, groups, skipped = set_proxy_quality(context, target_high_res)
+
+        # then everything from the library again, as it is on disk now: the
+        # parts' shared meshes, and the groups merged out of them
+        reimported = rebuilt = 0
+        failed = 0
+        if target_high_res:
+            with _suspend_scene_updates(), _preserve_selection(context):
+                with materials.defer_shared_data():
+                    reimported, failed = asset_library.reimport_library_meshes()
+                    rebuilt, group_failed = Group.switch_scene_proxy_quality(
+                        context, charon_builder.get_builder(), True, force=True,
+                    )
+                    failed += group_failed
+
         relinked, missing = packing.relink_library_textures()
+        reloaded = packing.reload_library_textures()
+        # every material through the same passes a fresh import gets
+        materials.dedupe_appended_data()
+        materials.prepare_materials()
 
         quality = "high-res" if target_high_res else "low-res"
         done = []
         if parts or groups:
             done.append("switched %d part(s) and %d group(s) to %s" % (parts, groups, quality))
+        if reimported or rebuilt:
+            done.append("reimported %d part(s) and %d group(s)" % (reimported, rebuilt))
+        if reloaded:
+            done.append("reloaded %d texture(s)" % reloaded)
         if relinked:
             done.append("fixed %d texture(s)" % relinked)
+        if failed:
+            skipped += failed
         problems = []
         if skipped:
-            problems.append("%d part(s) have no %s model (see the console)" % (skipped, quality))
+            problems.append("%d part(s) or group(s) could not be loaded at %s "
+                            "(see the console)" % (skipped, quality))
         if missing:
             problems.append("%d texture(s) have no match in the library" % missing)
 

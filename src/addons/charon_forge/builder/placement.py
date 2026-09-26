@@ -23,6 +23,20 @@ from . import asset_library, proxy_library
 _NO_OVERRIDE_ID = ""
 
 
+# A fossil bone's ObjectID is only its kind (FOS_SKULL, FOS_TAIL...); the
+# bone it actually is - the model it shows - is in its Message. The base
+# builder addon's bone classes swap the two when a bone is placed.
+FOSSIL_PREFIX = "FOS_"
+
+
+def model_id_of(object_id, message=None):
+    """The model a part shows: its ObjectID, or a fossil bone's Message."""
+    stripped = str(object_id or "").replace("^", "")
+    if message and stripped.startswith(FOSSIL_PREFIX):
+        return str(message).replace("^", "")
+    return stripped
+
+
 def get_default_part_class(builder_object):
     """The builder's plain Part class."""
     return builder_object.get_part_class(_NO_OVERRIDE_ID)
@@ -41,7 +55,7 @@ def new_high_res_object(object_id, asset_index=None):
 
     Everything the high res library places goes through here, including the
     fossil bones, which build their own object rather than going through
-    add_part - see nms/part_overrides/bone.py.
+    add_part - see objects/fossil.py.
 
     No properties are set and nothing is coloured; that is the caller's job.
 

@@ -9,6 +9,8 @@ import json
 import os
 import tempfile
 
+import bpy
+
 RESOURCES_DIR = os.path.realpath(
     os.path.join(os.path.dirname(__file__), "..", "resources")
 )
@@ -203,6 +205,46 @@ def _rank_key(ranks, object_id):
     return ranks.get(_strip_id(object_id), len(ranks))
 
 
+# The primary corvette parts ---
+# A ship can have more than one cockpit or landing bay; the one picked in the
+# optimiser panel (scene.charon_optimiser) goes ahead of the others of its
+# kind, so the game takes it as the ship's own.
+
+def get_primary_parts():
+    """The cockpit and landing bay picked as primary, while the option is on
+    - leaving out any empty pick, and any part deleted or no longer in the
+    scene."""
+    scene = bpy.context.scene
+    optimiser = getattr(scene, "charon_optimiser", None)
+    if optimiser is None or not optimiser.use_primary_parts:
+        return []
+    primaries = []
+    for obj in (optimiser.cockpit, optimiser.landing_bay):
+        try:
+            if obj is not None and scene.objects.get(obj.name) is obj:
+                primaries.append(obj)
+        except ReferenceError:
+            continue
+    return primaries
+
+
+def _position_key(object_id, position):
+    """What a part is recognised by once serialised: its id and where it is."""
+    return _strip_id(object_id), tuple(round(float(value), 3) for value in position)
+
+
+def _primary_keys(primaries):
+    keys = set()
+    for obj in primaries:
+        object_id = obj.get("ObjectID")
+        if object_id:
+            # a part is serialised in the game's Y-up space - Blender's
+            # position turned -90 degrees about X (Group.extract_pos_up_at)
+            x, y, z = obj.matrix_world.translation
+            keys.add(_position_key(object_id, (x, z, -y)))
+    return keys
+
+
 def is_auto_optimise_on():
     from ..addon_preferences import get_addon_preferences
 
@@ -221,11 +263,16 @@ def reorder_scene_objects(builder, ranks=None):
         int: How many parts were renumbered.
     """
     ranks = get_priority_ranks() if ranks is None else ranks
+    primaries = {obj.as_pointer() for obj in get_primary_parts()}
     # already sorted by their current order, and sorted() is stable, so
-    # parts of the same rank keep their relative order
+    # parts of the same rank keep their relative order - except a primary
+    # part, which goes ahead of the rest of its rank
     parts = builder.get_all_parts(include_lines=True)
     parts = sorted(
-        parts, key=lambda obj: _rank_key(ranks, obj.get("ObjectID") or obj.get("SnapID"))
+        parts, key=lambda obj: (
+            _rank_key(ranks, obj.get("ObjectID") or obj.get("SnapID")),
+            0 if obj.as_pointer() in primaries else 1,
+        )
     )
     for order, obj in enumerate(parts):
         if obj.get("order") != order:
@@ -241,5 +288,16 @@ def sort_serialised_objects(object_list, ranks=None):
     loose parts that are not in the priority list.
     """
     ranks = get_priority_ranks() if ranks is None else ranks
-    object_list.sort(key=lambda data: _rank_key(ranks, data.get("ObjectID")))
+    primaries = _primary_keys(get_primary_parts())
+
+    def is_primary(data):
+        position = data.get("Position")
+        if not primaries or not position:
+            return False
+        return _position_key(data.get("ObjectID"), position) in primaries
+
+    object_list.sort(key=lambda data: (
+        _rank_key(ranks, data.get("ObjectID")),
+        0 if is_primary(data) else 1,
+    ))
     return object_list

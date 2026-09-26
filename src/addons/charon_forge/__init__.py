@@ -57,9 +57,10 @@ def register():
     save_editor.register()
     header.register()
     optimiser.register()
-    helmsman.register()
-    crossing.register()
     the_forge.register()
+    crossing.register()
+    helmsman.register()
+    
     materials.register()
     asset_browser.register()
 

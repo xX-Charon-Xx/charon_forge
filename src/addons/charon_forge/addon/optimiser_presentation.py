@@ -181,6 +181,20 @@ class CHARON_PT_optimiser_panel(Panel):
                 #icon="MOD_DECIM"
             )
 
+            # the corvette's main parts - each field searches the scene and
+            # has an eyedropper
+            optimiser = context.scene.charon_optimiser
+            description_column.separator()
+            description_column.separator()
+            primary_row = description_column.row(align=True)
+            primary_row.scale_y = 1.6
+            primary_row.prop(optimiser, "use_primary_parts")
+            if optimiser.use_primary_parts:
+                parts_col = description_column.column(align=True)
+                parts_col.scale_y = 2
+                parts_col.prop(optimiser, "cockpit")
+                parts_col.prop(optimiser, "landing_bay")
+
 
 class CHARON_PT_priority_list_panel(Panel):
     """The priority list, as a collapsible section of the optimiser panel.

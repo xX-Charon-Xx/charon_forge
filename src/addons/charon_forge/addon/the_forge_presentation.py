@@ -18,6 +18,7 @@ from .the_forge_operators import (
     CreateSphere,
     CreateSquare,
     EditStation,
+    FrameStation,
     RemoveStation,
     ResetForged,
     SplitForged,
@@ -95,7 +96,7 @@ class CHARON_PT_the_forge_panel(Panel):
         row.operator(CreatePolygon.bl_idname, icon="SEQ_CHROMA_SCOPE")
 
         station_box = layout.box()
-        station_box.label(text="Space Station")
+        station_box.label(text="Forge Space Station", icon="WORLD")
         if not station_library.find_stations():
             station_box.operator(EditStation.bl_idname, text="Import Space Station",
                                  icon="IMPORT")
@@ -106,18 +107,32 @@ class CHARON_PT_the_forge_panel(Panel):
             visibility_col = station_box.column(align=True)
             visibility_col.label(text="Visibility")
             parts_row = visibility_col.row()
-            if station_library.find_station(station_library.INTERIOR) is not None:
-                for section in ("core", "runway"):
+            # a section taken out on its own has nothing left to show
+            for section in ("core", "runway"):
+                if station_library.section_objects(section.upper()):
                     column = parts_row.column(align=True)
                     column.prop(forge, "show_station_%s" % section)
                     roof = column.row(align=True)
                     roof.separator(factor=2.0)
                     roof.enabled = getattr(forge, "show_station_%s" % section)
                     roof.prop(forge, "show_station_%s_roof" % section)
-            if station_library.find_station(station_library.EXTERIOR) is not None:
+            has_exterior = station_library.find_station(station_library.EXTERIOR) is not None
+            if has_exterior:
                 parts_row.column(align=True).prop(forge, "show_station_exterior")
+            visibility_col.separator(factor=0.5)
+            visibility_col.prop(forge, "station_selectable")
 
-            station_box.separator()
+            frame_row = station_box.row(align=True)
+            core = frame_row.row(align=True)
+            core.enabled = bool(station_library.section_objects("CORE"))
+            core.operator(FrameStation.bl_idname, text="Frame Core",
+                          icon="ZOOM_SELECTED").target = "CORE"
+            exterior = frame_row.row(align=True)
+            exterior.enabled = has_exterior
+            exterior.operator(FrameStation.bl_idname, text="Frame Exterior",
+                              icon="ZOOM_ALL").target = "EXTERIOR"
+
+            station_box.separator(factor=0.3)
             row = station_box.row(align=True)
             row.operator(EditStation.bl_idname, text="Modify Space Station",
                          icon="MODIFIER")

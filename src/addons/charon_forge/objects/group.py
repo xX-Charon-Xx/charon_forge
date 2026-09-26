@@ -33,7 +33,7 @@ class Group:
     PROP_OBJECT_ID = Part.PROP_OBJECT_ID
     PROP_USER_DATA = Part.PROP_USER_DATA
     PROP_TIMESTAMP = Part.PROP_TIMESTAMP
-    PROP_MESSAGE = Part.PROP_TIMESTAMP
+    PROP_MESSAGE = Part.PROP_MESSAGE
     
     # curve properties
     PROP_CHILD_CACHE = "child_cache"
@@ -79,6 +79,12 @@ class Group:
                 Group.PROP_TIMESTAMP: obj.get(Group.PROP_TIMESTAMP, int(time.time())),
                 Group.PROP_MATRIX_LOCAL: matrix_list,
             }
+            # a fossil bone's ObjectID is only its kind (FOS_SKULL); which
+            # bone it is lives in its Message, which a rebuild needs to put
+            # the right model back
+            message = obj.get(Group.PROP_MESSAGE)
+            if message:
+                cache[Group.PROP_MESSAGE] = str(message)
 
             cache_data[obj.name] = cache
 
@@ -280,7 +286,8 @@ class Group:
             # Add part via builder - the caller's builder is passed through so
             # its part cache stays the one that gets filled
             new_part = _charon_builder().add_part(
-                object_id, user_data, builder_object=builder
+                Group._model_id(cache_data), user_data,
+                builder_object=builder
             )
             if new_part is None or not hasattr(new_part, "object"):
                 continue
@@ -386,7 +393,8 @@ class Group:
             # Add part via builder - the caller's builder is passed through so
             # its part cache stays the one that gets filled
             new_part = _charon_builder().add_part(
-                object_id, user_data, builder_object=builder
+                Group._model_id(cache_data), user_data,
+                builder_object=builder
             )
             if new_part is None or not hasattr(new_part, "object"):
                 continue
@@ -440,7 +448,8 @@ class Group:
             # Add part via builder - the caller's builder is passed through so
             # its part cache stays the one that gets filled
             new_part = _charon_builder().add_part(
-                object_id, user_data, builder_object=builder
+                Group._model_id(cache_data), user_data,
+                builder_object=builder
             )
             if new_part is None or not hasattr(new_part, "object"):
                 continue
@@ -640,6 +649,30 @@ class Group:
         return json.dumps(new_child_cache), new_origin
 
     @staticmethod
+    def _model_id(cache_data):
+        """Which model a cached child is built from: its ObjectID, or a
+        fossil bone's Message - its ObjectID is only its kind (FOS_SKULL).
+        Placed through add_part, a bone given its full id is split back into
+        the kind and the Message by the base builder's bone class; merged, a
+        bone the high res library lacks falls back to its own fbx model."""
+        from ..builder import placement
+        return placement.model_id_of(cache_data[Group.PROP_OBJECT_ID],
+                                     cache_data.get(Group.PROP_MESSAGE))
+
+    @staticmethod
+    def _is_fossil(cache_data):
+        return str(cache_data.get(Group.PROP_OBJECT_ID, "")).replace("^", "").startswith("FOS_")
+
+    @staticmethod
+    def _has_unknown_fossil(group_obj):
+        """True if the group holds a fossil bone its cache can't say which
+        bone it is - a group made before caches kept a fossil's Message.
+        Rebuilding it would swap its bones for generic ones."""
+        cached_child_data, _origin = Group.extract_cached_data(group_obj)
+        return any(Group._is_fossil(child) and not child.get(Group.PROP_MESSAGE)
+                   for child in (cached_child_data or {}).values())
+
+    @staticmethod
     def _rebuild_group_mesh(group_obj, builder, target_high_res, proxy_cache=None):
         """Build the merged mesh a group would have at the other quality.
 
@@ -683,13 +716,14 @@ class Group:
                 # are all thrown away before anything can read them. See
                 # charon_builder.new_merge_source.
                 new_obj = charon_builder.new_merge_source(
-                    object_id,
+                    Group._model_id(cache_data),
                     user_data,
                     high_res=target_high_res,
                     proxy_cache=proxy_cache,
                 )
                 if new_obj is None:
                     continue
+                new_obj[Group.PROP_OBJECT_ID] = object_id
 
                 new_obj.matrix_world = origin_matrix @ mathutils.Matrix(matrix_local_data)
                 restored_objects.append(new_obj)
@@ -762,7 +796,7 @@ class Group:
     @staticmethod
     def switch_proxy_quality(
         group_obj, builder, target_high_res,
-        mesh_cache=None, proxy_cache=None, dead_meshes=None,
+        mesh_cache=None, proxy_cache=None, dead_meshes=None, force=False,
     ):
         """Rebuild one group's mesh at the requested proxy quality, in place.
 
@@ -792,11 +826,13 @@ class Group:
                 here instead of being removed, so a caller switching a whole
                 scene can clear them all out at the end - see
                 switch_scene_proxy_quality.
+            force (bool): Rebuild it even if it is already at that quality -
+                to pick up library parts that were reimported.
 
         Returns:
             bool: True if the object's mesh was switched.
         """
-        if materials.is_high_res(group_obj) == target_high_res:
+        if not force and materials.is_high_res(group_obj) == target_high_res:
             return False
 
         cache_key = group_obj.get(Group.PROP_CHILD_CACHE)
@@ -831,7 +867,7 @@ class Group:
 
     @staticmethod
     def switch_scene_proxy_quality(context, builder, target_high_res,
-                                   proxy_cache=None):
+                                   proxy_cache=None, force=False):
         """Switch every group in the scene to the requested proxy quality.
 
         Linked duplicates - separate objects still sharing one mesh data
@@ -854,6 +890,8 @@ class Group:
                 part of the same (ObjectID, UserData) want the same proxy mesh,
                 and sharing the cache means the fbx behind it is imported and
                 painted once for both.
+            force (bool): Rebuild every group, even those already at that
+                quality - see switch_proxy_quality.
 
         Returns:
             tuple: (groups switched, groups that could not be rebuilt).
@@ -877,7 +915,13 @@ class Group:
                 forged = getattr(group_obj, "charon_forged", None)
                 if forged is not None and forged.form:
                     continue
-                if materials.is_high_res(group_obj) == target_high_res:
+                if not force and materials.is_high_res(group_obj) == target_high_res:
+                    continue
+                # an unforced switch has no better choice, but a forced
+                # refresh of an already high res group would only break it
+                if force and Group._has_unknown_fossil(group_obj):
+                    print("Charon Forge: left group %s as it is - it holds fossil "
+                          "bones its cache doesn't name" % group_obj.name)
                     continue
 
                 old_data = group_obj.data
@@ -908,6 +952,7 @@ class Group:
                         mesh_cache=mesh_cache,
                         proxy_cache=proxy_cache,
                         dead_meshes=dead_meshes,
+                        force=force,
                     )
                 except Exception as error:
                     # One unrebuildable group must not take the rest of the

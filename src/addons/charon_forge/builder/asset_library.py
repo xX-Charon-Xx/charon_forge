@@ -395,3 +395,94 @@ def transformed_copy(mesh, matrix):
         copied.flip_normals()
 
     return copied
+
+
+def reimport_library_meshes():
+    """Append every library part in the file again from its asset, as it is
+    on disk now, and move everything that used the old mesh onto the new one
+    - placed parts, and the part copies the Forge's objects hold. What the
+    old version brought in (its materials, textures, node groups) is removed
+    once nothing uses it.
+
+    Groups are merged meshes of their own and are rebuilt separately - see
+    Group.switch_scene_proxy_quality(force=True).
+
+    Returns:
+        (int, int): parts reimported, and parts whose asset could not be
+            loaded (left as they were).
+    """
+    old_meshes = [mesh for mesh in bpy.data.meshes
+                  if MESH_TAG in mesh and mesh.library is None
+                  and mesh.name.startswith(MESH_PREFIX)]
+    if not old_meshes:
+        return 0, 0
+
+    # the asset files may have been added, moved or renamed since the index
+    # was read
+    get_asset_index(rebuild=True)
+    old_materials = {mat for mesh in old_meshes for mat in mesh.materials if mat}
+
+    # out of the cache - renamed, load_high_res_mesh no longer finds them and
+    # appends each part afresh (a variant rebuilds from its freshly loaded root)
+    for mesh in old_meshes:
+        mesh.name = "OLD_" + mesh.name
+
+    reimported = failed = 0
+    retired = []
+    with materials.defer_shared_data():
+        for mesh in old_meshes:
+            object_id = mesh[MESH_TAG]
+            try:
+                new_mesh = load_high_res_mesh(object_id)
+            except Exception as error:                     # noqa: BLE001
+                print("Charon Forge: could not reimport %s: %r" % (object_id, error))
+                new_mesh = None
+            if new_mesh is None or new_mesh == mesh:
+                # keep the old one - and put its name back so it's found again
+                mesh.name = MESH_PREFIX + object_id
+                failed += 1
+                continue
+            mesh.user_remap(new_mesh)
+            retired.append(mesh)
+            reimported += 1
+
+    bpy.data.batch_remove([mesh for mesh in retired if mesh.users == 0])
+    _remove_unused(old_materials)
+    return reimported, failed
+
+
+def _remove_unused(old_materials):
+    """Remove old materials nothing uses now, then the textures and node
+    groups only they used - again until nothing more comes free."""
+    candidates = set()
+    for mat in old_materials:
+        if mat.node_tree is not None:
+            candidates |= _tree_blocks(mat.node_tree)
+    unused = [mat for mat in old_materials if mat.users == 0]
+    while unused:
+        bpy.data.batch_remove(unused)
+        unused = [block for block in list(candidates)
+                  if _alive(block) and block.users == 0]
+        candidates = {block for block in candidates if _alive(block) and block not in unused}
+
+
+def _tree_blocks(tree, seen=None):
+    """The images and node groups a node tree uses, nested groups included."""
+    seen = set() if seen is None else seen
+    for node in tree.nodes:
+        image = getattr(node, "image", None)
+        if image is not None:
+            seen.add(image)
+        group = getattr(node, "node_tree", None)
+        if group is not None and group not in seen:
+            seen.add(group)
+            _tree_blocks(group, seen)
+    return seen
+
+
+def _alive(block):
+    try:
+        block.name
+        return True
+    except ReferenceError:
+        return False

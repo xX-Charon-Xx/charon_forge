@@ -23,6 +23,7 @@ recoloured in place, swapped for another kind or taken out again without
 touching anything else in the file.
 """
 
+import math
 import os
 import re
 import time
@@ -33,6 +34,7 @@ from .. import materials
 from ..materials import game_data
 from ..materials.colouring import apply_palette
 from ..materials.properties import PROP_FINISH
+from . import station_colours
 from .paths import MODEL_PATH
 
 STATION_PATH = os.path.join(MODEL_PATH, "space_station")
@@ -94,10 +96,18 @@ def palette_items(self, context):
     global _palette_items
     items = []
     for number, entry in enumerate(station_palettes()):
-        items.append((str(entry["index"]), "Station %d" % (number + 1),
-                      "The game's %s station palette" % entry["id"], number))
+        # named after its colours, with a swatch of all four
+        colours = [entry[slot] for slot in ("p", "s", "t", "q")]
+        items.append((
+            str(entry["index"]),
+            "%d  %s" % (number + 1, station_colours.colours_name(colours)),
+            "The game's %s station palette: %s"
+            % (entry["id"], station_colours.hex_colours(colours)),
+            station_colours.swatch_icon(entry["id"], colours),
+            number,
+        ))
     items.append((str(SAVED_PALETTE), "As Saved",
-                  "Keep the colours the station was saved with", 999))
+                  "Keep the colours the station was saved with", "FILE_REFRESH", 999))
     _palette_items = items
     return items
 
@@ -147,6 +157,24 @@ def show_part(part, shown):
     _set_shown(part_objects(part), shown)
 
 
+def station_objects():
+    """Every object of every part, build zones and modules included."""
+    return [obj for collection in find_stations() for obj in collection.all_objects]
+
+
+def is_selectable():
+    """Whether the station's pieces can be clicked on - off by default, so
+    a base built inside it can be worked on without picking up the station."""
+    return any(not obj.hide_select for obj in station_objects())
+
+
+def set_selectable(selectable, objects=None):
+    for obj in station_objects() if objects is None else objects:
+        obj.hide_select = not selectable
+        if not selectable and obj.select_get():
+            obj.select_set(False)
+
+
 def section_objects(section, roofs=None):
     """The interior's objects that make up one of its SECTIONS - only its
     roof with `roofs` True, everything but with False."""
@@ -184,6 +212,27 @@ def hide_roof(section, hidden):
     collection[PROP_HIDE_ROOF % section.lower()] = bool(hidden)
     if is_section_shown(section):
         _set_shown(section_objects(section, roofs=True), not hidden)
+
+
+def frame_objects(space, objects, margin=1.1):
+    """Point a 3D viewport at `objects`, near enough that they fill it -
+    whether or not they are showing, and without touching the selection."""
+    from mathutils import Vector
+
+    corners = [obj.matrix_world @ Vector(corner) for obj in objects for corner in obj.bound_box]
+    if not corners:
+        return False
+    low = Vector([min(corner[i] for corner in corners) for i in range(3)])
+    high = Vector([max(corner[i] for corner in corners) for i in range(3)])
+    radius = max((high - low).length / 2, 0.01)
+
+    # the viewport's field of view, from its lens on a 36mm sensor
+    angle = 2 * math.atan(36.0 / (2 * space.lens))
+    view = space.region_3d
+    view.view_location = (low + high) / 2
+    view.view_distance = radius / math.sin(angle / 2) * margin
+    extend_view_clip(max(VIEW_CLIP_END, view.view_distance + radius * 2))
+    return True
 
 
 # how far every 3D viewport draws once a station is in - a whole station is
@@ -268,6 +317,8 @@ def import_part(context, part, kind, palette_index=SAVED_PALETTE):
         if obj.name.endswith(_HIDDEN_SUFFIXES):
             obj.hide_set(True)
             obj.hide_render = True
+    # scenery, not something to click on - see is_selectable
+    set_selectable(False, objects)
     recolour(collection, palette_index)
     placed = time.perf_counter()
 
@@ -300,10 +351,31 @@ def recolour(collection, palette_index):
 def remove_station(collection):
     """Take a part out of the file - its objects and collection, and
     whatever its import brought in that nothing else uses now."""
+    remove_objects(list(collection.all_objects), [collection])
+
+
+def remove_section(section):
+    """Take one of the interior's SECTIONS out - its model, floor and roof -
+    or, if nothing else of the interior is left but build zones, the whole
+    interior."""
+    collection = find_station(INTERIOR)
+    if collection is None:
+        return
+    going = section_objects(section)
+    left = [obj for obj in part_objects(INTERIOR) if obj not in going]
+    if not left:
+        remove_station(collection)
+    else:
+        remove_objects(going)
+
+
+def remove_objects(objects, extra=()):
+    """Remove station objects (and `extra` datablocks, like their
+    collection), then whatever the station's imports brought in that
+    nothing uses now."""
     started = time.perf_counter()
-    objects = list(collection.all_objects)
     meshes = {obj.data for obj in objects if obj.data is not None}
-    bpy.data.batch_remove(objects + [collection])
+    bpy.data.batch_remove(list(objects) + list(extra))
     bpy.data.batch_remove([mesh for mesh in meshes if mesh.users == 0])
 
     # removing the materials frees their textures and node groups, and a node

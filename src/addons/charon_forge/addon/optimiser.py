@@ -1,5 +1,6 @@
 import bpy
-from bpy.props import CollectionProperty, IntProperty, PointerProperty, StringProperty
+from bpy.props import (BoolProperty, CollectionProperty, IntProperty, PointerProperty,
+                       StringProperty)
 
 from . import optimiser_operators, optimiser_presentation
 from ..utils import optimiser_utils
@@ -28,6 +29,19 @@ class Optimiser(bpy.types.PropertyGroup):
         name="Optimise Count",
         default=0,
         min=0,
+    )
+
+    # the corvette's main parts, picked by hand
+    use_primary_parts: BoolProperty(
+        name="Select Primary Corvette Parts",
+        description="Choose which parts are the corvette's cockpit and landing bay",
+        default=False,
+    )
+    cockpit: PointerProperty(
+        name="Cockpit", description="The corvette's cockpit", type=bpy.types.Object,
+    )
+    landing_bay: PointerProperty(
+        name="Landing Bay", description="The corvette's landing bay", type=bpy.types.Object,
     )
 
     def optimise(self):

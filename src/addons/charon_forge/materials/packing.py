@@ -16,7 +16,10 @@ import os
 
 import bpy
 
-from .paths import TEXTURES_PATH
+from .paths import ADDON_PATH, TEXTURES_PATH
+
+# the space station's textures, beside its models
+STATION_TEXTURES_PATH = os.path.join(ADDON_PATH, "models", "space_station", "textures")
 
 
 def _library_texture_path(image):
@@ -101,6 +104,46 @@ def relink_library_textures():
         image.reload()
         relinked += 1
     return relinked, missing
+
+
+def reload_library_textures():
+    """Read every texture that comes from this install again, as it is on
+    disk now - the parts' (asset_browser/textures) and the space station's
+    (models/space_station/textures).
+
+    A packed texture holds the pixels it had when it was packed, so one whose
+    file is here is unpacked back onto that file first; saving packs it
+    again, fresh (see pack_library_textures). Anything else in the file - the
+    user's own images, linked ones - is left alone.
+
+    Returns:
+        int: Textures reloaded.
+    """
+    folders = [TEXTURES_PATH, STATION_TEXTURES_PATH]
+    by_name = {}
+    for folder in folders:
+        if os.path.isdir(folder):
+            for name in os.listdir(folder):
+                by_name.setdefault(name.lower(), os.path.join(folder, name))
+
+    reloaded = 0
+    for image in bpy.data.images:
+        if image.source != "FILE" or not image.filepath or image.library is not None:
+            continue
+        name = image.filepath.replace("\\", "/").rsplit("/", 1)[-1].lower()
+        path = by_name.get(name)
+        if path is None:
+            continue
+        try:
+            if bpy.path.abspath(image.filepath) != path:
+                image.filepath = path
+            if image.packed_file is not None:
+                image.unpack(method="USE_ORIGINAL")
+            image.reload()
+            reloaded += 1
+        except RuntimeError as error:
+            print("Charon Forge: could not reload %s: %s" % (image.name, error))
+    return reloaded
 
 
 def _pack_on_save_enabled():

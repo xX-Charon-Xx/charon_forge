@@ -13,7 +13,7 @@ UserData: colour = `UserData & 0xFFFFFF` (palette index below), finish = `(UserD
 | `RUSTED` | 1 Rust | - |
 | `STONE` | 2 Stone | - |
 | `WOOD` | ? MAT_WOOD (undefined) | - |
-| `BIGGS` | 0 Gloss Finish, 1 Inverted Gloss Finish, 2 Weathered Finish, 3 Metallic Finish | BIGGSTRIM (618) |
+| `BIGGS` | 0 Gloss Finish, 1 Inverted Gloss Finish, 2 Weathered Finish, 3 Metallic Finish | BIGGSTRIM (624) |
 | `F_ALL` | 0 Polished Alloy, 1 Rusted Alloy | FIBERGLASSTRIM (90), BASEBUILDINGEXTERIOR (4), WOODTRIM (1) |
 | `T_ALL` | 0 Polished Timber, 1 Weathered Timber | WOODTRIM (90), BASEBUILDINGEXTERIOR (4) |
 | `S_ALL` | 0 Polished Stone, 1 Aged Stone | STONETRIM (87), BASEBUILDINGEXTERIOR (4) |
@@ -23,22 +23,22 @@ UserData: colour = `UserData & 0xFFFFFF` (palette index below), finish = `(UserD
 
 | Set | Slice | Diffuse mean | Roughness | Metallic | Maps that change | Palette slots | vs slice 0 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| BASEBUILDINGEXTERIOR | 0 | #A3A7AD | 0.4596 | 0.8072 | - | - | - |
-| BASEBUILDINGEXTERIOR | 1 | #979292 | 0.4042 | 0.4582 | colourise_mask, diffuse, masks, normal | s->None | {"roughness": -0.0554, "metallic": -0.349, "diffuse_ratio": [0.9277, 0.8784, 0.8423], "diffuse_painted_ratio": [1.0157, 1.0152, 1.0041], "diffuse_unpainted_ratio": [1.117, 0.9493, 0.8399]} |
-| BASEBUILDINGEXTERIOR | 2 | #A29991 | 0.5457 | 0.4455 | colourise_mask, diffuse, masks, normal | s->None | {"roughness": 0.0861, "metallic": -0.3617, "diffuse_ratio": [0.9914, 0.9182, 0.8422], "diffuse_painted_ratio": [0.8805, 0.7526, 0.5849], "diffuse_unpainted_ratio": [1.4136, 1.3957, 1.421]} |
-| BASEBUILDINGEXTERIOR | 3 | #948778 | 0.365 | 0.418 | colourise_mask, diffuse, masks, normal | s->p | {"roughness": -0.0946, "metallic": -0.3892, "diffuse_ratio": [0.9061, 0.8111, 0.6935], "diffuse_painted_ratio": [0.7064, 0.7061, 0.7003], "diffuse_unpainted_ratio": [1.5203, 1.1386, 0.7377]} |
-| BUILDERSTRIM | 0 | #686867 | 0.4895 | 0.8337 | - | - | - |
-| BUILDERSTRIM | 1 | #6A5245 | 0.572 | 0.8337 | colourise_mask, diffuse, masks | t->None | {"roughness": 0.0825, "metallic": 0.0, "diffuse_ratio": [1.0107, 0.7869, 0.6638], "diffuse_painted_ratio": [0.9909, 0.7822, 0.6707], "diffuse_unpainted_ratio": [1.2041, 0.9269, 0.7686]} |
-| FIBERGLASSTRIM | 0 | #645F57 | 0.4452 | 0.5476 | - | - | - |
-| FIBERGLASSTRIM | 1 | #574E43 | 0.6362 | 0.5008 | diffuse, masks, normal | - | {"roughness": 0.191, "metallic": -0.0468, "diffuse_ratio": [0.8756, 0.8285, 0.7692], "diffuse_painted_ratio": [0.8562, 0.7951, 0.7171], "diffuse_unpainted_ratio": [0.8894, 0.8551, 0.8168]} |
-| STONETRIM | 0 | #918B84 | 0.7014 | 0.2766 | - | - | - |
-| STONETRIM | 1 | #6E5F4C | 0.6898 | 0.2769 | diffuse, masks, normal | - | {"roughness": -0.0116, "metallic": 0.0003, "diffuse_ratio": [0.7585, 0.6815, 0.5781], "diffuse_painted_ratio": [0.7352, 0.6558, 0.5665], "diffuse_unpainted_ratio": [0.815, 0.753, 0.6186]} |
-| WOODTRIM | 0 | #7A726B | 0.4483 | 0.3539 | - | - | - |
-| WOODTRIM | 1 | #615A50 | 0.7002 | 0.3264 | colourise_mask, diffuse, masks, normal | q->None | {"roughness": 0.2519, "metallic": -0.0275, "diffuse_ratio": [0.7956, 0.7867, 0.7473], "diffuse_painted_ratio": [0.7658, 0.7707, 0.7185], "diffuse_unpainted_ratio": [0.8314, 0.8192, 0.7959]} |
-| BIGGSTRIM | 0 | #414140 | 0.6037 | 0.3111 | - | - | - |
-| BIGGSTRIM | 1 | #414140 | 0.6037 | 0.3111 | colourise_mask | s->p, p->s | {"roughness": 0.0, "metallic": 0.0, "diffuse_ratio": [1.0, 1.0, 1.0], "diffuse_painted_ratio": [1.0, 1.0, 1.0], "diffuse_unpainted_ratio": [1.0, 1.0, 1.0]} |
-| BIGGSTRIM | 2 | #4F4137 | 0.8259 | 0.6724 | diffuse, masks, normal | - | {"roughness": 0.2222, "metallic": 0.3613, "diffuse_ratio": [1.2043, 1.0126, 0.8627], "diffuse_painted_ratio": [1.1008, 0.9245, 0.7929], "diffuse_unpainted_ratio": [1.2931, 1.0897, 0.9256]} |
-| BIGGSTRIM | 3 | #414140 | 0.6037 | 0.7544 | masks | - | {"roughness": 0.0, "metallic": 0.4433, "diffuse_ratio": [1.0, 1.0, 1.0], "diffuse_painted_ratio": [1.0, 1.0, 1.0], "diffuse_unpainted_ratio": [1.0, 1.0, 1.0]} |
+| BASEBUILDINGEXTERIOR | 0 | #A1A4A9 | 0.4652 | 0.7801 | - | - | - |
+| BASEBUILDINGEXTERIOR | 1 | #928C8B | 0.4333 | 0.4664 | colourise_mask, diffuse, masks, normal | s->None | {"roughness": -0.0319, "metallic": -0.3137, "diffuse_ratio": [0.9062, 0.853, 0.82], "diffuse_painted_ratio": [0.9858, 0.9813, 0.9743], "diffuse_unpainted_ratio": [1.2099, 1.0206, 0.8966]} |
+| BASEBUILDINGEXTERIOR | 2 | #9D938A | 0.554 | 0.3965 | colourise_mask, diffuse, masks, normal | s->None | {"roughness": 0.0888, "metallic": -0.3836, "diffuse_ratio": [0.9797, 0.901, 0.8164], "diffuse_painted_ratio": [0.852, 0.7322, 0.5726], "diffuse_unpainted_ratio": [1.4937, 1.4622, 1.4752]} |
+| BASEBUILDINGEXTERIOR | 3 | #8D8073 | 0.368 | 0.3687 | colourise_mask, diffuse, masks, normal | s->p | {"roughness": -0.0972, "metallic": -0.4114, "diffuse_ratio": [0.8772, 0.7844, 0.6786], "diffuse_painted_ratio": [0.6801, 0.6796, 0.674], "diffuse_unpainted_ratio": [1.5764, 1.1491, 0.7336]} |
+| BUILDERSTRIM | 0 | #696968 | 0.4962 | 0.8377 | - | - | - |
+| BUILDERSTRIM | 1 | #6B5346 | 0.5736 | 0.8366 | colourise_mask, diffuse, masks | t->None | {"roughness": 0.0774, "metallic": -0.0011, "diffuse_ratio": [1.0191, 0.792, 0.6719], "diffuse_painted_ratio": [1.0026, 0.7919, 0.6829], "diffuse_unpainted_ratio": [1.2153, 0.9311, 0.7768]} |
+| FIBERGLASSTRIM | 0 | #6A665E | 0.4185 | 0.5937 | - | - | - |
+| FIBERGLASSTRIM | 1 | #5C5449 | 0.6469 | 0.5664 | diffuse, masks, normal | - | {"roughness": 0.2284, "metallic": -0.0273, "diffuse_ratio": [0.8688, 0.8261, 0.7718], "diffuse_painted_ratio": [0.8458, 0.7913, 0.718], "diffuse_unpainted_ratio": [0.8853, 0.8529, 0.819]} |
+| STONETRIM | 0 | #908B84 | 0.7065 | 0.3057 | - | - | - |
+| STONETRIM | 1 | #6E5E4C | 0.6978 | 0.3083 | diffuse, masks, normal | - | {"roughness": -0.0087, "metallic": 0.0026, "diffuse_ratio": [0.7589, 0.6765, 0.5741], "diffuse_painted_ratio": [0.7343, 0.6533, 0.563], "diffuse_unpainted_ratio": [0.8232, 0.7455, 0.6146]} |
+| WOODTRIM | 0 | #79726B | 0.4507 | 0.3894 | - | - | - |
+| WOODTRIM | 1 | #615A50 | 0.708 | 0.3608 | colourise_mask, diffuse, masks, normal | q->None | {"roughness": 0.2573, "metallic": -0.0286, "diffuse_ratio": [0.7957, 0.7879, 0.7489], "diffuse_painted_ratio": [0.7661, 0.7713, 0.7182], "diffuse_unpainted_ratio": [0.832, 0.8222, 0.8009]} |
+| BIGGSTRIM | 0 | #434240 | 0.5988 | 0.3075 | - | - | - |
+| BIGGSTRIM | 1 | #434240 | 0.5988 | 0.3075 | colourise_mask | s->p, p->s | {"roughness": 0.0, "metallic": 0.0, "diffuse_ratio": [1.0, 1.0, 1.0], "diffuse_painted_ratio": [1.0, 1.0, 1.0], "diffuse_unpainted_ratio": [1.0, 1.0, 1.0]} |
+| BIGGSTRIM | 2 | #504338 | 0.8186 | 0.6649 | diffuse, masks, normal | - | {"roughness": 0.2198, "metallic": 0.3574, "diffuse_ratio": [1.1974, 1.0152, 0.8689], "diffuse_painted_ratio": [1.1087, 0.9398, 0.8145], "diffuse_unpainted_ratio": [1.2727, 1.0808, 0.9184]} |
+| BIGGSTRIM | 3 | #434240 | 0.5982 | 0.7492 | masks | - | {"roughness": -0.0006, "metallic": 0.4417, "diffuse_ratio": [1.0, 1.0, 1.0], "diffuse_painted_ratio": [1.0, 1.0, 1.0], "diffuse_unpainted_ratio": [1.0, 1.0, 1.0]} |
 
 ## Palette groups
 
@@ -212,7 +212,7 @@ UserData: colour = `UserData & 0xFFFFFF` (palette index below), finish = `(UserD
 
 | Palette group | Finish group | Objects | UserData values |
 | --- | --- | --- | --- |
-| BIGGS | BIGGS | 619 | 64 |
+| BIGGS | BIGGS | 625 | 64 |
 | BIGGS | None | 22 | 16 |
 | COLOURS_B | B_ALL | 90 | 16 |
 | COLOURS_F | F_ALL | 90 | 16 |

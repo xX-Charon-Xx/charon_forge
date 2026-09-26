@@ -6222,7 +6222,7 @@
     "BIGGS_D"
    ],
    "texture_sets": {
-    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM": 618
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM": 624
    }
   },
   "F_ALL": {
@@ -6273,74 +6273,74 @@
    "count": 4,
    "maps": {
     "colourise_mask": [
-     "BASEBUILDINGEXTERIOR.COLOURISEMASK.png",
-     "BASEBUILDINGEXTERIOR.COLOURISEMASK.F1.png",
-     "BASEBUILDINGEXTERIOR.COLOURISEMASK.F2.png",
-     "BASEBUILDINGEXTERIOR.COLOURISEMASK.F3.png"
+     "BASEBUILDINGEXTERIOR.COLOURISEMASK.webp",
+     "BASEBUILDINGEXTERIOR.COLOURISEMASK.F1.webp",
+     "BASEBUILDINGEXTERIOR.COLOURISEMASK.F2.webp",
+     "BASEBUILDINGEXTERIOR.COLOURISEMASK.F3.webp"
     ],
     "diffuse": [
-     "BASEBUILDINGEXTERIOR.png",
-     "BASEBUILDINGEXTERIOR.F1.png",
-     "BASEBUILDINGEXTERIOR.F2.png",
-     "BASEBUILDINGEXTERIOR.F3.png"
+     "BASEBUILDINGEXTERIOR.webp",
+     "BASEBUILDINGEXTERIOR.F1.webp",
+     "BASEBUILDINGEXTERIOR.F2.webp",
+     "BASEBUILDINGEXTERIOR.F3.webp"
     ],
     "masks": [
-     "BASEBUILDINGEXTERIOR.MASKS.png",
-     "BASEBUILDINGEXTERIOR.MASKS.F1.png",
-     "BASEBUILDINGEXTERIOR.MASKS.F2.png",
-     "BASEBUILDINGEXTERIOR.MASKS.F3.png"
+     "BASEBUILDINGEXTERIOR.MASKS.webp",
+     "BASEBUILDINGEXTERIOR.MASKS.F1.webp",
+     "BASEBUILDINGEXTERIOR.MASKS.F2.webp",
+     "BASEBUILDINGEXTERIOR.MASKS.F3.webp"
     ],
     "normal": [
-     "BASEBUILDINGEXTERIOR.NORMAL.png",
-     "BASEBUILDINGEXTERIOR.NORMAL.F1.png",
-     "BASEBUILDINGEXTERIOR.NORMAL.F2.png",
-     "BASEBUILDINGEXTERIOR.NORMAL.F3.png"
+     "BASEBUILDINGEXTERIOR.NORMAL.webp",
+     "BASEBUILDINGEXTERIOR.NORMAL.F1.webp",
+     "BASEBUILDINGEXTERIOR.NORMAL.F2.webp",
+     "BASEBUILDINGEXTERIOR.NORMAL.F3.webp"
     ]
    },
    "slices": [
     {
      "index": 0,
      "diffuse_mean": [
-      0.6402,
-      0.6538,
-      0.6774
+      0.6302,
+      0.6416,
+      0.6624
      ],
-     "painted_fraction": 0.6111,
+     "painted_fraction": 0.6133,
      "diffuse_painted_mean": [
-      0.7953,
-      0.7952,
-      0.8014
+      0.8025,
+      0.8017,
+      0.8058
      ],
      "diffuse_unpainted_mean": [
-      0.3965,
-      0.4316,
-      0.4827
+      0.3569,
+      0.3877,
+      0.435
      ],
-     "roughness_mean": 0.4596,
-     "metallic_mean": 0.8072,
-     "metal_fraction": 0.8147
+     "roughness_mean": 0.4652,
+     "metallic_mean": 0.7801,
+     "metal_fraction": 0.7881
     },
     {
      "index": 1,
      "diffuse_mean": [
-      0.5939,
-      0.5743,
-      0.5706
+      0.5711,
+      0.5473,
+      0.5432
      ],
-     "painted_fraction": 0.4138,
+     "painted_fraction": 0.3877,
      "diffuse_painted_mean": [
-      0.8078,
-      0.8073,
-      0.8047
+      0.7911,
+      0.7867,
+      0.7851
      ],
      "diffuse_unpainted_mean": [
-      0.4429,
-      0.4097,
-      0.4054
+      0.4318,
+      0.3957,
+      0.39
      ],
-     "roughness_mean": 0.4042,
-     "metallic_mean": 0.4582,
-     "metal_fraction": 0.4429,
+     "roughness_mean": 0.4333,
+     "metallic_mean": 0.4664,
+     "metal_fraction": 0.4688,
      "changes": [
       "colourise_mask",
       "diffuse",
@@ -6351,46 +6351,46 @@
       "s": null
      },
      "vs_slice0": {
-      "roughness": -0.0554,
-      "metallic": -0.349,
+      "roughness": -0.0319,
+      "metallic": -0.3137,
       "diffuse_ratio": [
-       0.9277,
-       0.8784,
-       0.8423
+       0.9062,
+       0.853,
+       0.82
       ],
       "diffuse_painted_ratio": [
-       1.0157,
-       1.0152,
-       1.0041
+       0.9858,
+       0.9813,
+       0.9743
       ],
       "diffuse_unpainted_ratio": [
-       1.117,
-       0.9493,
-       0.8399
+       1.2099,
+       1.0206,
+       0.8966
       ]
      }
     },
     {
      "index": 2,
      "diffuse_mean": [
-      0.6347,
-      0.6003,
-      0.5705
+      0.6174,
+      0.5781,
+      0.5408
      ],
-     "painted_fraction": 0.531,
+     "painted_fraction": 0.5596,
      "diffuse_painted_mean": [
-      0.7003,
-      0.5985,
-      0.4687
+      0.6837,
+      0.587,
+      0.4614
      ],
      "diffuse_unpainted_mean": [
-      0.5605,
-      0.6024,
-      0.6859
+      0.5331,
+      0.5669,
+      0.6417
      ],
-     "roughness_mean": 0.5457,
-     "metallic_mean": 0.4455,
-     "metal_fraction": 0.4492,
+     "roughness_mean": 0.554,
+     "metallic_mean": 0.3965,
+     "metal_fraction": 0.3848,
      "changes": [
       "colourise_mask",
       "diffuse",
@@ -6401,46 +6401,46 @@
       "s": null
      },
      "vs_slice0": {
-      "roughness": 0.0861,
-      "metallic": -0.3617,
+      "roughness": 0.0888,
+      "metallic": -0.3836,
       "diffuse_ratio": [
-       0.9914,
-       0.9182,
-       0.8422
+       0.9797,
+       0.901,
+       0.8164
       ],
       "diffuse_painted_ratio": [
-       0.8805,
-       0.7526,
-       0.5849
+       0.852,
+       0.7322,
+       0.5726
       ],
       "diffuse_unpainted_ratio": [
-       1.4136,
-       1.3957,
-       1.421
+       1.4937,
+       1.4622,
+       1.4752
       ]
      }
     },
     {
      "index": 3,
      "diffuse_mean": [
-      0.5801,
-      0.5303,
-      0.4698
+      0.5528,
+      0.5033,
+      0.4495
      ],
-     "painted_fraction": 0.5542,
+     "painted_fraction": 0.582,
      "diffuse_painted_mean": [
-      0.5618,
-      0.5615,
-      0.5612
+      0.5458,
+      0.5448,
+      0.5431
      ],
      "diffuse_unpainted_mean": [
-      0.6028,
-      0.4914,
-      0.3561
+      0.5626,
+      0.4455,
+      0.3191
      ],
-     "roughness_mean": 0.365,
-     "metallic_mean": 0.418,
-     "metal_fraction": 0.4268,
+     "roughness_mean": 0.368,
+     "metallic_mean": 0.3687,
+     "metal_fraction": 0.3682,
      "changes": [
       "colourise_mask",
       "diffuse",
@@ -6451,22 +6451,22 @@
       "s": "p"
      },
      "vs_slice0": {
-      "roughness": -0.0946,
-      "metallic": -0.3892,
+      "roughness": -0.0972,
+      "metallic": -0.4114,
       "diffuse_ratio": [
-       0.9061,
-       0.8111,
-       0.6935
+       0.8772,
+       0.7844,
+       0.6786
       ],
       "diffuse_painted_ratio": [
-       0.7064,
-       0.7061,
-       0.7003
+       0.6801,
+       0.6796,
+       0.674
       ],
       "diffuse_unpainted_ratio": [
-       1.5203,
-       1.1386,
-       0.7377
+       1.5764,
+       1.1491,
+       0.7336
       ]
      }
     }
@@ -6477,66 +6477,66 @@
    "count": 2,
    "maps": {
     "colourise_mask": [
-     "BUILDERSTRIM.COLOURISEMASK.png",
-     "BUILDERSTRIM.COLOURISEMASK.F1.png"
+     "BUILDERSTRIM.COLOURISEMASK.webp",
+     "BUILDERSTRIM.COLOURISEMASK.F1.webp"
     ],
     "diffuse": [
-     "BUILDERSTRIM.png",
-     "BUILDERSTRIM.F1.png"
+     "BUILDERSTRIM.webp",
+     "BUILDERSTRIM.F1.webp"
     ],
     "masks": [
-     "BUILDERSTRIM.MASKS.png",
-     "BUILDERSTRIM.MASKS.F1.png"
+     "BUILDERSTRIM.MASKS.webp",
+     "BUILDERSTRIM.MASKS.F1.webp"
     ],
     "normal": [
-     "BUILDERSTRIM.NORMAL.png",
-     "BUILDERSTRIM.NORMAL.F1.png"
+     "BUILDERSTRIM.NORMAL.webp",
+     "BUILDERSTRIM.NORMAL.F1.webp"
     ]
    },
    "slices": [
     {
      "index": 0,
      "diffuse_mean": [
-      0.4098,
-      0.4082,
-      0.4054
+      0.4129,
+      0.4105,
+      0.4072
      ],
-     "painted_fraction": 0.592,
+     "painted_fraction": 0.5896,
      "diffuse_painted_mean": [
-      0.492,
-      0.4923,
-      0.4905
+      0.4985,
+      0.4982,
+      0.496
      ],
      "diffuse_unpainted_mean": [
-      0.2905,
-      0.2861,
-      0.2818
+      0.2898,
+      0.2845,
+      0.2796
      ],
-     "roughness_mean": 0.4895,
-     "metallic_mean": 0.8337,
-     "metal_fraction": 0.8645
+     "roughness_mean": 0.4962,
+     "metallic_mean": 0.8377,
+     "metal_fraction": 0.874
     },
     {
      "index": 1,
      "diffuse_mean": [
-      0.4142,
-      0.3212,
-      0.2691
+      0.4208,
+      0.3251,
+      0.2736
      ],
-     "painted_fraction": 0.4672,
+     "painted_fraction": 0.4646,
      "diffuse_painted_mean": [
-      0.4875,
-      0.3851,
-      0.329
+      0.4998,
+      0.3945,
+      0.3387
      ],
      "diffuse_unpainted_mean": [
-      0.3498,
-      0.2652,
-      0.2166
+      0.3522,
+      0.2649,
+      0.2172
      ],
-     "roughness_mean": 0.572,
-     "metallic_mean": 0.8337,
-     "metal_fraction": 0.8645,
+     "roughness_mean": 0.5736,
+     "metallic_mean": 0.8366,
+     "metal_fraction": 0.8752,
      "changes": [
       "colourise_mask",
       "diffuse",
@@ -6546,22 +6546,22 @@
       "t": null
      },
      "vs_slice0": {
-      "roughness": 0.0825,
-      "metallic": 0.0,
+      "roughness": 0.0774,
+      "metallic": -0.0011,
       "diffuse_ratio": [
-       1.0107,
-       0.7869,
-       0.6638
+       1.0191,
+       0.792,
+       0.6719
       ],
       "diffuse_painted_ratio": [
-       0.9909,
-       0.7822,
-       0.6707
+       1.0026,
+       0.7919,
+       0.6829
       ],
       "diffuse_unpainted_ratio": [
-       1.2041,
-       0.9269,
-       0.7686
+       1.2153,
+       0.9311,
+       0.7768
       ]
      }
     }
@@ -6572,88 +6572,88 @@
    "count": 2,
    "maps": {
     "colourise_mask": [
-     "FIBERGLASSTRIM.COLOURISEMASK.png",
-     "FIBERGLASSTRIM.COLOURISEMASK.F1.png"
+     "FIBERGLASSTRIM.COLOURISEMASK.webp",
+     "FIBERGLASSTRIM.COLOURISEMASK.F1.webp"
     ],
     "diffuse": [
-     "FIBERGLASSTRIM.png",
-     "FIBERGLASSTRIM.F1.png"
+     "FIBERGLASSTRIM.webp",
+     "FIBERGLASSTRIM.F1.webp"
     ],
     "masks": [
-     "FIBERGLASSTRIM.MASKS.png",
-     "FIBERGLASSTRIM.MASKS.F1.png"
+     "FIBERGLASSTRIM.MASKS.webp",
+     "FIBERGLASSTRIM.MASKS.F1.webp"
     ],
     "normal": [
-     "FIBERGLASSTRIM.NORMAL.png",
-     "FIBERGLASSTRIM.NORMAL.F1.png"
+     "FIBERGLASSTRIM.NORMAL.webp",
+     "FIBERGLASSTRIM.NORMAL.F1.webp"
     ]
    },
    "slices": [
     {
      "index": 0,
      "diffuse_mean": [
-      0.3914,
-      0.3715,
-      0.3419
+      0.4161,
+      0.3986,
+      0.3703
      ],
-     "painted_fraction": 0.4272,
+     "painted_fraction": 0.4292,
      "diffuse_painted_mean": [
-      0.3817,
-      0.3817,
-      0.3817
+      0.4034,
+      0.4035,
+      0.4035
      ],
      "diffuse_unpainted_mean": [
-      0.3987,
-      0.3638,
-      0.3122
+      0.4256,
+      0.3949,
+      0.3453
      ],
-     "roughness_mean": 0.4452,
-     "metallic_mean": 0.5476,
-     "metal_fraction": 0.5373
+     "roughness_mean": 0.4185,
+     "metallic_mean": 0.5937,
+     "metal_fraction": 0.6382
     },
     {
      "index": 1,
      "diffuse_mean": [
-      0.3427,
-      0.3078,
-      0.263
+      0.3615,
+      0.3293,
+      0.2858
      ],
-     "painted_fraction": 0.4272,
+     "painted_fraction": 0.4292,
      "diffuse_painted_mean": [
-      0.3268,
-      0.3035,
-      0.2737
+      0.3412,
+      0.3193,
+      0.2897
      ],
      "diffuse_unpainted_mean": [
-      0.3546,
-      0.3111,
-      0.255
+      0.3768,
+      0.3368,
+      0.2828
      ],
-     "roughness_mean": 0.6362,
-     "metallic_mean": 0.5008,
-     "metal_fraction": 0.5128,
+     "roughness_mean": 0.6469,
+     "metallic_mean": 0.5664,
+     "metal_fraction": 0.6091,
      "changes": [
       "diffuse",
       "masks",
       "normal"
      ],
      "vs_slice0": {
-      "roughness": 0.191,
-      "metallic": -0.0468,
+      "roughness": 0.2284,
+      "metallic": -0.0273,
       "diffuse_ratio": [
-       0.8756,
-       0.8285,
-       0.7692
+       0.8688,
+       0.8261,
+       0.7718
       ],
       "diffuse_painted_ratio": [
-       0.8562,
-       0.7951,
-       0.7171
+       0.8458,
+       0.7913,
+       0.718
       ],
       "diffuse_unpainted_ratio": [
-       0.8894,
-       0.8551,
-       0.8168
+       0.8853,
+       0.8529,
+       0.819
       ]
      }
     }
@@ -6664,88 +6664,88 @@
    "count": 2,
    "maps": {
     "colourise_mask": [
-     "STONETRIM.COLOURISEMASK__961399.png",
-     "STONETRIM.COLOURISEMASK__961399.F1.png"
+     "STONETRIM.COLOURISEMASK__961399.webp",
+     "STONETRIM.COLOURISEMASK__961399.F1.webp"
     ],
     "diffuse": [
-     "STONETRIM__961399.png",
-     "STONETRIM__961399.F1.png"
+     "STONETRIM__961399.webp",
+     "STONETRIM__961399.F1.webp"
     ],
     "masks": [
-     "STONETRIM.MASKS__961399.png",
-     "STONETRIM.MASKS__961399.F1.png"
+     "STONETRIM.MASKS__961399.webp",
+     "STONETRIM.MASKS__961399.F1.webp"
     ],
     "normal": [
-     "STONETRIM.NORMAL__961399.png",
-     "STONETRIM.NORMAL__961399.F1.png"
+     "STONETRIM.NORMAL__961399.webp",
+     "STONETRIM.NORMAL__961399.F1.webp"
     ]
    },
    "slices": [
     {
      "index": 0,
      "diffuse_mean": [
-      0.5681,
-      0.5463,
-      0.5177
+      0.5665,
+      0.5469,
+      0.5175
      ],
-     "painted_fraction": 0.5973,
+     "painted_fraction": 0.6169,
      "diffuse_painted_mean": [
-      0.673,
-      0.6722,
-      0.6715
+      0.6647,
+      0.6622,
+      0.6598
      ],
      "diffuse_unpainted_mean": [
-      0.4125,
-      0.3595,
-      0.2897
+      0.4084,
+      0.3611,
+      0.2883
      ],
-     "roughness_mean": 0.7014,
-     "metallic_mean": 0.2766,
-     "metal_fraction": 0.3072
+     "roughness_mean": 0.7065,
+     "metallic_mean": 0.3057,
+     "metal_fraction": 0.3522
     },
     {
      "index": 1,
      "diffuse_mean": [
-      0.4309,
-      0.3723,
-      0.2993
+      0.4299,
+      0.37,
+      0.2971
      ],
-     "painted_fraction": 0.5972,
+     "painted_fraction": 0.6169,
      "diffuse_painted_mean": [
-      0.4948,
-      0.4408,
-      0.3804
+      0.4881,
+      0.4326,
+      0.3715
      ],
      "diffuse_unpainted_mean": [
       0.3362,
-      0.2707,
-      0.1792
+      0.2692,
+      0.1772
      ],
-     "roughness_mean": 0.6898,
-     "metallic_mean": 0.2769,
-     "metal_fraction": 0.308,
+     "roughness_mean": 0.6978,
+     "metallic_mean": 0.3083,
+     "metal_fraction": 0.3541,
      "changes": [
       "diffuse",
       "masks",
       "normal"
      ],
      "vs_slice0": {
-      "roughness": -0.0116,
-      "metallic": 0.0003,
+      "roughness": -0.0087,
+      "metallic": 0.0026,
       "diffuse_ratio": [
-       0.7585,
-       0.6815,
-       0.5781
+       0.7589,
+       0.6765,
+       0.5741
       ],
       "diffuse_painted_ratio": [
-       0.7352,
-       0.6558,
-       0.5665
+       0.7343,
+       0.6533,
+       0.563
       ],
       "diffuse_unpainted_ratio": [
-       0.815,
-       0.753,
-       0.6186
+       0.8232,
+       0.7455,
+       0.6146
       ]
      }
     }
@@ -6756,66 +6756,66 @@
    "count": 2,
    "maps": {
     "colourise_mask": [
-     "WOODTRIM.COLOURISEMASK.png",
-     "WOODTRIM.COLOURISEMASK.F1.png"
+     "WOODTRIM.COLOURISEMASK.webp",
+     "WOODTRIM.COLOURISEMASK.F1.webp"
     ],
     "diffuse": [
-     "WOODTRIM.png",
-     "WOODTRIM.F1.png"
+     "WOODTRIM.webp",
+     "WOODTRIM.F1.webp"
     ],
     "masks": [
-     "WOODTRIM.MASKS.png",
-     "WOODTRIM.MASKS.F1.png"
+     "WOODTRIM.MASKS.webp",
+     "WOODTRIM.MASKS.F1.webp"
     ],
     "normal": [
-     "WOODTRIM.NORMAL.png",
-     "WOODTRIM.NORMAL.F1.png"
+     "WOODTRIM.NORMAL.webp",
+     "WOODTRIM.NORMAL.F1.webp"
     ]
    },
    "slices": [
     {
      "index": 0,
      "diffuse_mean": [
-      0.4771,
-      0.4482,
-      0.419
+      0.4757,
+      0.448,
+      0.4178
      ],
      "painted_fraction": 0.375,
      "diffuse_painted_mean": [
-      0.5556,
-      0.5417,
-      0.5297
+      0.5532,
+      0.5392,
+      0.528
      ],
      "diffuse_unpainted_mean": [
-      0.43,
-      0.3922,
-      0.3527
+      0.4292,
+      0.3932,
+      0.3516
      ],
-     "roughness_mean": 0.4483,
-     "metallic_mean": 0.3539,
-     "metal_fraction": 0.356
+     "roughness_mean": 0.4507,
+     "metallic_mean": 0.3894,
+     "metal_fraction": 0.4094
     },
     {
      "index": 1,
      "diffuse_mean": [
-      0.3796,
-      0.3526,
-      0.3131
+      0.3785,
+      0.353,
+      0.3129
      ],
-     "painted_fraction": 0.3247,
+     "painted_fraction": 0.321,
      "diffuse_painted_mean": [
-      0.4255,
-      0.4175,
-      0.3806
+      0.4238,
+      0.4159,
+      0.3792
      ],
      "diffuse_unpainted_mean": [
-      0.3575,
-      0.3213,
-      0.2807
+      0.3571,
+      0.3233,
+      0.2816
      ],
-     "roughness_mean": 0.7002,
-     "metallic_mean": 0.3264,
-     "metal_fraction": 0.3266,
+     "roughness_mean": 0.708,
+     "metallic_mean": 0.3608,
+     "metal_fraction": 0.3807,
      "changes": [
       "colourise_mask",
       "diffuse",
@@ -6826,22 +6826,22 @@
       "q": null
      },
      "vs_slice0": {
-      "roughness": 0.2519,
-      "metallic": -0.0275,
+      "roughness": 0.2573,
+      "metallic": -0.0286,
       "diffuse_ratio": [
-       0.7956,
-       0.7867,
-       0.7473
+       0.7957,
+       0.7879,
+       0.7489
       ],
       "diffuse_painted_ratio": [
-       0.7658,
-       0.7707,
-       0.7185
+       0.7661,
+       0.7713,
+       0.7182
       ],
       "diffuse_unpainted_ratio": [
-       0.8314,
-       0.8192,
-       0.7959
+       0.832,
+       0.8222,
+       0.8009
       ]
      }
     }
@@ -6852,74 +6852,74 @@
    "count": 4,
    "maps": {
     "colourise_mask": [
-     "BIGGSTRIM.COLOURISEMASK.png",
-     "BIGGSTRIM.COLOURISEMASK.F1.png",
-     "BIGGSTRIM.COLOURISEMASK.F2.png",
-     "BIGGSTRIM.COLOURISEMASK.F3.png"
+     "BIGGSTRIM.COLOURISEMASK.webp",
+     "BIGGSTRIM.COLOURISEMASK.F1.webp",
+     "BIGGSTRIM.COLOURISEMASK.F2.webp",
+     "BIGGSTRIM.COLOURISEMASK.F3.webp"
     ],
     "diffuse": [
-     "BIGGSTRIM.png",
-     "BIGGSTRIM.F1.png",
-     "BIGGSTRIM.F2.png",
-     "BIGGSTRIM.F3.png"
+     "BIGGSTRIM.webp",
+     "BIGGSTRIM.F1.webp",
+     "BIGGSTRIM.F2.webp",
+     "BIGGSTRIM.F3.webp"
     ],
     "masks": [
-     "BIGGSTRIM.MASKS.png",
-     "BIGGSTRIM.MASKS.F1.png",
-     "BIGGSTRIM.MASKS.F2.png",
-     "BIGGSTRIM.MASKS.F3.png"
+     "BIGGSTRIM.MASKS.webp",
+     "BIGGSTRIM.MASKS.F1.webp",
+     "BIGGSTRIM.MASKS.F2.webp",
+     "BIGGSTRIM.MASKS.F3.webp"
     ],
     "normal": [
-     "BIGGSTRIM.NORMAL.png",
-     "BIGGSTRIM.NORMAL.F1.png",
-     "BIGGSTRIM.NORMAL.F2.png",
-     "BIGGSTRIM.NORMAL.F3.png"
+     "BIGGSTRIM.NORMAL.webp",
+     "BIGGSTRIM.NORMAL.F1.webp",
+     "BIGGSTRIM.NORMAL.F2.webp",
+     "BIGGSTRIM.NORMAL.F3.webp"
     ]
    },
    "slices": [
     {
      "index": 0,
      "diffuse_mean": [
-      0.2565,
-      0.2534,
-      0.2499
+      0.2619,
+      0.2571,
+      0.2524
      ],
      "painted_fraction": 0.3594,
      "diffuse_painted_mean": [
-      0.3294,
-      0.3296,
-      0.3288
+      0.3338,
+      0.334,
+      0.3332
      ],
      "diffuse_unpainted_mean": [
-      0.2156,
-      0.2107,
-      0.2056
+      0.2215,
+      0.214,
+      0.207
      ],
-     "roughness_mean": 0.6037,
-     "metallic_mean": 0.3111,
-     "metal_fraction": 0.3134
+     "roughness_mean": 0.5988,
+     "metallic_mean": 0.3075,
+     "metal_fraction": 0.306
     },
     {
      "index": 1,
      "diffuse_mean": [
-      0.2565,
-      0.2534,
-      0.2499
+      0.2619,
+      0.2571,
+      0.2524
      ],
      "painted_fraction": 0.3594,
      "diffuse_painted_mean": [
-      0.3294,
-      0.3296,
-      0.3288
+      0.3338,
+      0.334,
+      0.3332
      ],
      "diffuse_unpainted_mean": [
-      0.2156,
-      0.2107,
-      0.2056
+      0.2215,
+      0.214,
+      0.207
      ],
-     "roughness_mean": 0.6037,
-     "metallic_mean": 0.3111,
-     "metal_fraction": 0.3134,
+     "roughness_mean": 0.5988,
+     "metallic_mean": 0.3075,
+     "metal_fraction": 0.306,
      "changes": [
       "colourise_mask"
      ],
@@ -6950,76 +6950,76 @@
     {
      "index": 2,
      "diffuse_mean": [
-      0.3089,
-      0.2566,
-      0.2156
+      0.3136,
+      0.261,
+      0.2193
      ],
      "painted_fraction": 0.3594,
      "diffuse_painted_mean": [
-      0.3626,
-      0.3047,
-      0.2607
+      0.3701,
+      0.3139,
+      0.2714
      ],
      "diffuse_unpainted_mean": [
-      0.2788,
-      0.2296,
-      0.1903
+      0.2819,
+      0.2313,
+      0.1901
      ],
-     "roughness_mean": 0.8259,
-     "metallic_mean": 0.6724,
-     "metal_fraction": 0.6747,
+     "roughness_mean": 0.8186,
+     "metallic_mean": 0.6649,
+     "metal_fraction": 0.6654,
      "changes": [
       "diffuse",
       "masks",
       "normal"
      ],
      "vs_slice0": {
-      "roughness": 0.2222,
-      "metallic": 0.3613,
+      "roughness": 0.2198,
+      "metallic": 0.3574,
       "diffuse_ratio": [
-       1.2043,
-       1.0126,
-       0.8627
+       1.1974,
+       1.0152,
+       0.8689
       ],
       "diffuse_painted_ratio": [
-       1.1008,
-       0.9245,
-       0.7929
+       1.1087,
+       0.9398,
+       0.8145
       ],
       "diffuse_unpainted_ratio": [
-       1.2931,
-       1.0897,
-       0.9256
+       1.2727,
+       1.0808,
+       0.9184
       ]
      }
     },
     {
      "index": 3,
      "diffuse_mean": [
-      0.2565,
-      0.2534,
-      0.2499
+      0.2619,
+      0.2571,
+      0.2524
      ],
      "painted_fraction": 0.3594,
      "diffuse_painted_mean": [
-      0.3294,
-      0.3296,
-      0.3288
+      0.3338,
+      0.334,
+      0.3332
      ],
      "diffuse_unpainted_mean": [
-      0.2156,
-      0.2107,
-      0.2056
+      0.2215,
+      0.214,
+      0.207
      ],
-     "roughness_mean": 0.6037,
-     "metallic_mean": 0.7544,
-     "metal_fraction": 0.7567,
+     "roughness_mean": 0.5982,
+     "metallic_mean": 0.7492,
+     "metal_fraction": 0.7515,
      "changes": [
       "masks"
      ],
      "vs_slice0": {
-      "roughness": 0.0,
-      "metallic": 0.4433,
+      "roughness": -0.0006,
+      "metallic": 0.4417,
       "diffuse_ratio": [
        1.0,
        1.0,
@@ -7045,7 +7045,7 @@
   {
    "palette_group": "BIGGS",
    "finish_group": "BIGGS",
-   "objects": 619,
+   "objects": 625,
    "values": [
     {
      "userdata": 99,
@@ -21581,7 +21581,927 @@
     }
    ]
   },
+  "B_ALK_A_NORAMP": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "WarningLight_Mat",
+     "colour": [
+      1.0,
+      0.2799,
+      0.0,
+      1.0
+     ],
+     "texture": null
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsAtmosFieldMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/BIGGS/BIGGSSPACEWALKSHIELD.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "WarningLight",
+     "position": [
+      0.0,
+      2.5725,
+      -3.8235
+     ],
+     "matrix": [
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      2.5725,
+      0.0,
+      0.0,
+      -1.0,
+      -3.82346,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.251321,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      -2.3779,
+      2.1545,
+      -5.2512
+     ],
+     "matrix": [
+      -1.0,
+      -0.0,
+      0.0,
+      -2.37787,
+      0.0,
+      -0.5,
+      0.86603,
+      2.15454,
+      -0.0,
+      0.86603,
+      0.5,
+      -5.25118,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      2.308,
+      2.1545,
+      -5.2512
+     ],
+     "matrix": [
+      -1.0,
+      -0.0,
+      0.0,
+      2.30798,
+      0.0,
+      -0.5,
+      0.86603,
+      2.15454,
+      -0.0,
+      0.86603,
+      0.5,
+      -5.25118,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "B_ALK_A_OPEN": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "WarningLight_Mat",
+     "colour": [
+      1.0,
+      0.2799,
+      0.0,
+      1.0
+     ],
+     "texture": null
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsAtmosFieldMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/BIGGS/BIGGSSPACEWALKSHIELD.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "WarningLight",
+     "position": [
+      0.0,
+      2.5725,
+      -3.8235
+     ],
+     "matrix": [
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      2.5725,
+      0.0,
+      0.0,
+      -1.0,
+      -3.82346,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.251321,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      -2.3779,
+      2.1545,
+      -5.2512
+     ],
+     "matrix": [
+      -1.0,
+      -0.0,
+      0.0,
+      -2.37787,
+      0.0,
+      -0.5,
+      0.86603,
+      2.15454,
+      -0.0,
+      0.86603,
+      0.5,
+      -5.25118,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      2.308,
+      2.1545,
+      -5.2512
+     ],
+     "matrix": [
+      -1.0,
+      -0.0,
+      0.0,
+      2.30798,
+      0.0,
+      -0.5,
+      0.86603,
+      2.15454,
+      -0.0,
+      0.86603,
+      0.5,
+      -5.25118,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
   "B_ALK_B": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "WarningLight_Mat",
+     "colour": [
+      1.0,
+      0.2799,
+      0.0,
+      1.0
+     ],
+     "texture": null
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsAtmosFieldMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/BIGGS/BIGGSSPACEWALKSHIELD.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "WarningLight",
+     "position": [
+      0.0,
+      2.7285,
+      -1.8693
+     ],
+     "matrix": [
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      2.72848,
+      0.0,
+      0.0,
+      -1.0,
+      -1.86933,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.251321,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      -0.9897,
+      2.3804,
+      -3.6938
+     ],
+     "matrix": [
+      -1.0,
+      0.0,
+      0.0,
+      -0.98969,
+      0.0,
+      -1.0,
+      -0.0,
+      2.38035,
+      0.0,
+      -0.0,
+      1.0,
+      -3.69375,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      0.9897,
+      2.3804,
+      -3.6938
+     ],
+     "matrix": [
+      -1.0,
+      0.0,
+      0.0,
+      0.98968,
+      0.0,
+      -1.0,
+      -0.0,
+      2.38035,
+      0.0,
+      -0.0,
+      1.0,
+      -3.69375,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      1.9646,
+      0.4687,
+      -1.2191
+     ],
+     "matrix": [
+      -1.0,
+      -0.0,
+      0.0,
+      1.96456,
+      0.0,
+      -0.47766,
+      0.87854,
+      0.46874,
+      -0.0,
+      0.87854,
+      0.47766,
+      -1.21914,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      -1.9646,
+      0.4687,
+      -1.2191
+     ],
+     "matrix": [
+      -1.0,
+      -0.0,
+      0.0,
+      -1.96456,
+      0.0,
+      -0.47766,
+      0.87854,
+      0.46874,
+      -0.0,
+      0.87854,
+      0.47766,
+      -1.21914,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "B_ALK_B_NORAMP": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "WarningLight_Mat",
+     "colour": [
+      1.0,
+      0.2799,
+      0.0,
+      1.0
+     ],
+     "texture": null
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsAtmosFieldMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/BIGGS/BIGGSSPACEWALKSHIELD.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "WarningLight",
+     "position": [
+      0.0,
+      2.7285,
+      -1.8693
+     ],
+     "matrix": [
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      2.72848,
+      0.0,
+      0.0,
+      -1.0,
+      -1.86933,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.251321,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      -0.9897,
+      2.3804,
+      -3.6938
+     ],
+     "matrix": [
+      -1.0,
+      0.0,
+      0.0,
+      -0.98969,
+      0.0,
+      -1.0,
+      -0.0,
+      2.38035,
+      0.0,
+      -0.0,
+      1.0,
+      -3.69375,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      0.9897,
+      2.3804,
+      -3.6938
+     ],
+     "matrix": [
+      -1.0,
+      0.0,
+      0.0,
+      0.98968,
+      0.0,
+      -1.0,
+      -0.0,
+      2.38035,
+      0.0,
+      -0.0,
+      1.0,
+      -3.69375,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      1.9646,
+      0.4687,
+      -1.2191
+     ],
+     "matrix": [
+      -1.0,
+      -0.0,
+      0.0,
+      1.96456,
+      0.0,
+      -0.47766,
+      0.87854,
+      0.46874,
+      -0.0,
+      0.87854,
+      0.47766,
+      -1.21914,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ExteriorLight",
+     "position": [
+      -1.9646,
+      0.4687,
+      -1.2191
+     ],
+     "matrix": [
+      -1.0,
+      -0.0,
+      0.0,
+      -1.96456,
+      0.0,
+      -0.47766,
+      0.87854,
+      0.46874,
+      -0.0,
+      0.87854,
+      0.47766,
+      -1.21914,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1e-06,
+     "radius": 0.537159,
+     "fov": 175.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "B_ALK_B_OPEN": {
    "palette_group": "BIGGS",
    "station_palette_group": null,
    "default_palette": "BIGGS0",
@@ -22062,7 +22982,517 @@
     }
    ]
   },
+  "B_ALK_C_NORAMP": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsAtmosFieldMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/BIGGS/BIGGSSPACEWALKSHIELD.DDS"
+    },
+    {
+     "material": "prossed_object_prossed_object_MAT_lights_Light1_Mat1",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.4.DDS"
+    },
+    {
+     "material": "YellowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsLightsMat85",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsLightsMat57",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "prossed_object_Light1_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.1.DDS"
+    },
+    {
+     "material": "RedLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS2.DDS"
+    },
+    {
+     "material": "YellowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "MainLight",
+     "position": [
+      0.0,
+      2.8149,
+      0.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      2.81487,
+      0.0,
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.5583,
+      0.984,
+      1.0
+     ],
+     "intensity": 4.0,
+     "radius": 6.324555,
+     "fov": 171.499359,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight3",
+     "position": [
+      -1.8372,
+      1.913,
+      0.2441
+     ],
+     "matrix": [
+      1.0,
+      -0.0,
+      0.0,
+      -1.83718,
+      0.0,
+      1.0,
+      -0.0,
+      1.91296,
+      -0.0,
+      0.0,
+      1.0,
+      0.24409,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.3359,
+      0.0
+     ],
+     "intensity": 0.36,
+     "radius": 3.464102,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "B_ALK_C_OPEN": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsAtmosFieldMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/BIGGS/BIGGSSPACEWALKSHIELD.DDS"
+    },
+    {
+     "material": "prossed_object_prossed_object_MAT_lights_Light1_Mat1",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.4.DDS"
+    },
+    {
+     "material": "YellowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    },
+    {
+     "material": "BiggsLightsMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsLightsMat85",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsLightsMat57",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "prossed_object_Light1_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.1.DDS"
+    },
+    {
+     "material": "RedLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS2.DDS"
+    },
+    {
+     "material": "YellowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "MainLight",
+     "position": [
+      0.0,
+      2.8149,
+      0.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      2.81487,
+      0.0,
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.5583,
+      0.984,
+      1.0
+     ],
+     "intensity": 4.0,
+     "radius": 6.324555,
+     "fov": 171.499359,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight3",
+     "position": [
+      -1.8372,
+      1.913,
+      0.2441
+     ],
+     "matrix": [
+      1.0,
+      -0.0,
+      0.0,
+      -1.83718,
+      0.0,
+      1.0,
+      -0.0,
+      1.91296,
+      -0.0,
+      0.0,
+      1.0,
+      0.24409,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.3359,
+      0.0
+     ],
+     "intensity": 0.36,
+     "radius": 3.464102,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
   "B_ALK_D": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "YellowGlowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    },
+    {
+     "material": "BiggsLightsMat11",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    }
+   ],
+   "lights": []
+  },
+  "B_ALK_D_NORAMP": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "YellowGlowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    },
+    {
+     "material": "BiggsLightsMat11",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    }
+   ],
+   "lights": []
+  },
+  "B_ALK_D_OPEN": {
    "palette_group": "BIGGS",
    "station_palette_group": null,
    "default_palette": "BIGGS0",
@@ -27979,6 +29409,217 @@
     }
    ]
   },
+  "B_HAB1_A_OPEN": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "YellowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    },
+    {
+     "material": "prossed_object_prossed_object_MAT_lights_Light1_Mat1",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.4.DDS"
+    },
+    {
+     "material": "prossed_object_MAT_lights_RedGlowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS2.DDS"
+    },
+    {
+     "material": "MAT_lights_YellowGlowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    },
+    {
+     "material": "BiggsLightsMat85",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "Light2_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.2.DDS"
+    },
+    {
+     "material": "YellowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "spotLight5",
+     "position": [
+      -0.2323,
+      2.7511,
+      0.0
+     ],
+     "matrix": [
+      0.0,
+      -10.0,
+      0.0,
+      -0.23226,
+      0.0,
+      0.0,
+      10.0,
+      2.75112,
+      -10.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.5583,
+      0.984,
+      1.0
+     ],
+     "intensity": 4.0,
+     "radius": 6.324555,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight2",
+     "position": [
+      2.7204,
+      1.9867,
+      -1.4123
+     ],
+     "matrix": [
+      0.0,
+      0.0,
+      -1.0,
+      2.72041,
+      -0.0,
+      1.0,
+      0.0,
+      1.98674,
+      1.0,
+      0.0,
+      0.0,
+      -1.41234,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.4728,
+      0.0
+     ],
+     "intensity": 1.0,
+     "radius": 4.472136,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight2",
+     "position": [
+      -2.7204,
+      1.9867,
+      1.4123
+     ],
+     "matrix": [
+      0.0,
+      -0.0,
+      1.0,
+      -2.72041,
+      0.0,
+      1.0,
+      0.0,
+      1.98674,
+      -1.0,
+      0.0,
+      0.0,
+      1.41234,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.4728,
+      0.0
+     ],
+     "intensity": 1.0,
+     "radius": 4.472136,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
   "B_HAB1_B": {
    "palette_group": "BIGGS",
    "station_palette_group": null,
@@ -28455,6 +30096,315 @@
     }
    ]
   },
+  "B_HAB1_B_OPEN": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "saveFile_01_buttons_A2_scrollingLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/BIGGS/CORE_B/ANIMATEDBUTTONS.DDS"
+    },
+    {
+     "material": "Ceiling_B0_Light1_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.1.DDS"
+    },
+    {
+     "material": "Wall_A2_scrollingLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/CORVETTE/BUTTONLIGHTSCROLLING.DDS"
+    },
+    {
+     "material": "BiggsLightsMat85",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "WiteLightMat2",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/CORVETTE/LIGHTWITE.DDS"
+    },
+    {
+     "material": "Light1_Mat1",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.4.DDS"
+    },
+    {
+     "material": "Light1_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.1.DDS"
+    },
+    {
+     "material": "RedLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS2.DDS"
+    },
+    {
+     "material": "WiteLightMat3",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/CORVETTE/LIGHTWITE.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "spotLight5",
+     "position": [
+      -0.2323,
+      2.7897,
+      0.0
+     ],
+     "matrix": [
+      0.0,
+      -10.0,
+      0.0,
+      -0.23226,
+      0.0,
+      0.0,
+      10.0,
+      2.78972,
+      -10.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.5583,
+      0.984,
+      1.0
+     ],
+     "intensity": 4.0,
+     "radius": 6.324555,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight2",
+     "position": [
+      -2.3133,
+      1.3795,
+      2.768
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      -2.31326,
+      0.0,
+      1.0,
+      0.0,
+      1.37951,
+      0.0,
+      0.0,
+      1.0,
+      2.76804,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.0,
+      0.6705,
+      1.0
+     ],
+     "intensity": 0.64,
+     "radius": 4.0,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight3",
+     "position": [
+      2.3134,
+      1.3795,
+      2.768
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      2.31339,
+      0.0,
+      1.0,
+      0.0,
+      1.37951,
+      0.0,
+      0.0,
+      1.0,
+      2.76804,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.0,
+      0.6705,
+      1.0
+     ],
+     "intensity": 0.64,
+     "radius": 4.0,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight4",
+     "position": [
+      2.3134,
+      1.3795,
+      -2.6209
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      2.31339,
+      0.0,
+      1.0,
+      0.0,
+      1.37951,
+      0.0,
+      0.0,
+      1.0,
+      -2.62094,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.0,
+      0.6705,
+      1.0
+     ],
+     "intensity": 0.64,
+     "radius": 4.0,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight5",
+     "position": [
+      -2.3133,
+      1.3795,
+      -2.6209
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      -2.31326,
+      0.0,
+      1.0,
+      0.0,
+      1.37951,
+      0.0,
+      0.0,
+      1.0,
+      -2.62094,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.0,
+      0.6705,
+      1.0
+     ],
+     "intensity": 0.64,
+     "radius": 4.0,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
   "B_HAB1_C": {
    "palette_group": "BIGGS",
    "station_palette_group": null,
@@ -28504,6 +30454,109 @@
       1.0
      ],
      "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "spotLight5",
+     "position": [
+      -0.2323,
+      2.7511,
+      0.0
+     ],
+     "matrix": [
+      0.0,
+      -10.0,
+      0.0,
+      -0.23226,
+      0.0,
+      0.0,
+      10.0,
+      2.75112,
+      -10.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.5583,
+      0.984,
+      1.0
+     ],
+     "intensity": 4.0,
+     "radius": 6.324555,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "B_HAB1_C_OPEN": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "BiggsLightsMat85",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "Ceiling_A1_WiteLightMat3",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/CORVETTE/LIGHTWITE.DDS"
+    },
+    {
+     "material": "prossed_object_Doorway_NS_A_RedLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS2.DDS"
+    },
+    {
+     "material": "WhiteLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/CORVETTE/LIGHTWITE.DDS"
     }
    ],
    "lights": [
@@ -28868,6 +30921,383 @@
      ],
      "intensity": 0.36,
      "radius": 3.464102,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "B_HAB_A_OPEN": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "MAT_lights_RedGlowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS2.DDS"
+    },
+    {
+     "material": "MAT_lights_YellowGlowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    },
+    {
+     "material": "RedLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS2.DDS"
+    },
+    {
+     "material": "YellowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    },
+    {
+     "material": "MAT_lights_Light1_Mat1",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.4.DDS"
+    },
+    {
+     "material": "BiggsLightsMat8",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "Light2_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.2.DDS"
+    },
+    {
+     "material": "YellowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "spotLight3",
+     "position": [
+      -0.2323,
+      2.7511,
+      4.4645
+     ],
+     "matrix": [
+      0.0,
+      -1.0,
+      0.0,
+      -0.23226,
+      0.1583,
+      0.0,
+      0.98739,
+      2.75112,
+      -0.98739,
+      -0.0,
+      0.1583,
+      4.46454,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.725,
+      0.558
+     ],
+     "intensity": 2.25,
+     "radius": 5.477226,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "spotLight4",
+     "position": [
+      -0.2323,
+      2.7511,
+      -4.0156
+     ],
+     "matrix": [
+      0.0,
+      -1.0,
+      0.0,
+      -0.23226,
+      -0.13406,
+      0.0,
+      0.99097,
+      2.75112,
+      -0.99097,
+      -0.0,
+      -0.13406,
+      -4.01562,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.92,
+      0.558
+     ],
+     "intensity": 2.25,
+     "radius": 5.477226,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "spotLight5",
+     "position": [
+      -0.2323,
+      2.7511,
+      0.0
+     ],
+     "matrix": [
+      0.0,
+      -1.0,
+      0.0,
+      -0.23226,
+      0.0,
+      0.0,
+      1.0,
+      2.75112,
+      -1.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.558,
+      0.984,
+      1.0
+     ],
+     "intensity": 2.25,
+     "radius": 5.477226,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight2",
+     "position": [
+      2.7204,
+      1.9867,
+      -4.4123
+     ],
+     "matrix": [
+      0.0,
+      0.0,
+      -1.0,
+      2.72041,
+      -0.0,
+      1.0,
+      0.0,
+      1.98674,
+      1.0,
+      0.0,
+      0.0,
+      -4.41234,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.4728,
+      0.0
+     ],
+     "intensity": 1.0,
+     "radius": 4.472136,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight2",
+     "position": [
+      -2.7204,
+      1.9867,
+      -1.5877
+     ],
+     "matrix": [
+      0.0,
+      -0.0,
+      1.0,
+      -2.72041,
+      0.0,
+      1.0,
+      0.0,
+      1.98674,
+      -1.0,
+      0.0,
+      0.0,
+      -1.58766,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.4728,
+      0.0
+     ],
+     "intensity": 1.0,
+     "radius": 4.472136,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight2",
+     "position": [
+      2.7204,
+      1.9867,
+      1.5877
+     ],
+     "matrix": [
+      0.0,
+      0.0,
+      -1.0,
+      2.72041,
+      -0.0,
+      1.0,
+      0.0,
+      1.98674,
+      1.0,
+      0.0,
+      0.0,
+      1.58766,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.4728,
+      0.0
+     ],
+     "intensity": 1.0,
+     "radius": 4.472136,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight2",
+     "position": [
+      -2.7204,
+      1.9867,
+      4.4123
+     ],
+     "matrix": [
+      0.0,
+      -0.0,
+      1.0,
+      -2.72041,
+      0.0,
+      1.0,
+      0.0,
+      1.98674,
+      -1.0,
+      0.0,
+      0.0,
+      4.41234,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.4728,
+      0.0
+     ],
+     "intensity": 1.0,
+     "radius": 4.472136,
      "fov": 360.0,
      "falloff": 2.0,
      "volumetric": 0.0,
@@ -29578,6 +32008,423 @@
     }
    ]
   },
+  "B_HAB_B_OPEN": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "buttons_A2_scrollingLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/BIGGS/CORE_B/ANIMATEDBUTTONS.DDS"
+    },
+    {
+     "material": "Ceiling_B0_Light1_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.1.DDS"
+    },
+    {
+     "material": "MAT_lights_Light1_Mat1",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.4.DDS"
+    },
+    {
+     "material": "MAT_lights_RedGlowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS2.DDS"
+    },
+    {
+     "material": "MAT_lights_YellowGlowLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS3.DDS"
+    },
+    {
+     "material": "Wall_A2_scrollingLightMat1",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/CORVETTE/BUTTONLIGHTSCROLLING.DDS"
+    },
+    {
+     "material": "BiggsLightsMat8",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "WiteLightMat2",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/CORVETTE/LIGHTWITE.DDS"
+    },
+    {
+     "material": "Light1_Mat1",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.4.DDS"
+    },
+    {
+     "material": "Light1_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/WEAPONS/MULTITOOL/LIGHT1.1.DDS"
+    },
+    {
+     "material": "RedLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS2.DDS"
+    },
+    {
+     "material": "WiteLightMat3",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/CORVETTE/LIGHTWITE.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "spotLight3",
+     "position": [
+      -0.2323,
+      2.7511,
+      4.4645
+     ],
+     "matrix": [
+      0.0,
+      -10.0,
+      0.0,
+      -0.23226,
+      1.583,
+      0.0,
+      9.87391,
+      2.75112,
+      -9.87391,
+      -0.0,
+      1.583,
+      4.46454,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.8034,
+      0.5584
+     ],
+     "intensity": 4.0,
+     "radius": 6.324555,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "spotLight4",
+     "position": [
+      -0.2323,
+      2.7511,
+      -4.0156
+     ],
+     "matrix": [
+      0.0,
+      -10.0,
+      0.0,
+      -0.23226,
+      -1.34057,
+      0.0,
+      9.90974,
+      2.75112,
+      -9.90974,
+      -0.0,
+      -1.34057,
+      -4.01562,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.852,
+      0.5583
+     ],
+     "intensity": 4.0,
+     "radius": 6.324555,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "spotLight5",
+     "position": [
+      -0.2323,
+      2.5571,
+      0.0
+     ],
+     "matrix": [
+      0.0,
+      -10.0,
+      0.0,
+      -0.23226,
+      0.0,
+      0.0,
+      10.0,
+      2.5571,
+      -10.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.5583,
+      0.984,
+      1.0
+     ],
+     "intensity": 4.0,
+     "radius": 6.324555,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight2",
+     "position": [
+      -2.3133,
+      1.3795,
+      5.337
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      -2.31326,
+      0.0,
+      1.0,
+      0.0,
+      1.37951,
+      0.0,
+      0.0,
+      1.0,
+      5.33698,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.0,
+      0.6705,
+      1.0
+     ],
+     "intensity": 0.64,
+     "radius": 4.0,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight3",
+     "position": [
+      2.3134,
+      1.3795,
+      5.337
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      2.31339,
+      0.0,
+      1.0,
+      0.0,
+      1.37951,
+      0.0,
+      0.0,
+      1.0,
+      5.33698,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.0,
+      0.6705,
+      1.0
+     ],
+     "intensity": 0.64,
+     "radius": 4.0,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight4",
+     "position": [
+      2.3134,
+      1.3795,
+      -5.3439
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      2.31339,
+      0.0,
+      1.0,
+      0.0,
+      1.37951,
+      0.0,
+      0.0,
+      1.0,
+      -5.34393,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.0,
+      0.6705,
+      1.0
+     ],
+     "intensity": 0.64,
+     "radius": 4.0,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "pointLight5",
+     "position": [
+      -2.3133,
+      1.3795,
+      -5.3439
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      -2.31326,
+      0.0,
+      1.0,
+      0.0,
+      1.37951,
+      0.0,
+      0.0,
+      1.0,
+      -5.34393,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.0,
+      0.6705,
+      1.0
+     ],
+     "intensity": 0.64,
+     "radius": 4.0,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
   "B_HAB_C": {
    "palette_group": "BIGGS",
    "station_palette_group": null,
@@ -29637,6 +32484,197 @@
       1.0
      ],
      "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "spotLight3",
+     "position": [
+      -0.2323,
+      2.7511,
+      4.4645
+     ],
+     "matrix": [
+      0.0,
+      -10.0,
+      0.0,
+      -0.23226,
+      1.583,
+      0.0,
+      9.87391,
+      2.75112,
+      -9.87391,
+      -0.0,
+      1.583,
+      4.46454,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.8034,
+      0.5584
+     ],
+     "intensity": 4.0,
+     "radius": 6.324555,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "spotLight4",
+     "position": [
+      -0.2323,
+      2.7511,
+      -4.0156
+     ],
+     "matrix": [
+      0.0,
+      -10.0,
+      0.0,
+      -0.23226,
+      -1.34057,
+      0.0,
+      9.90974,
+      2.75112,
+      -9.90974,
+      -0.0,
+      -1.34057,
+      -4.01562,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.852,
+      0.5583
+     ],
+     "intensity": 4.0,
+     "radius": 6.324555,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "spotLight5",
+     "position": [
+      -0.2323,
+      2.7511,
+      0.0
+     ],
+     "matrix": [
+      0.0,
+      -10.0,
+      0.0,
+      -0.23226,
+      0.0,
+      0.0,
+      10.0,
+      2.75112,
+      -10.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.5583,
+      0.984,
+      1.0
+     ],
+     "intensity": 4.0,
+     "radius": 6.324555,
+     "fov": 140.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "B_HAB_C_OPEN": {
+   "palette_group": "BIGGS",
+   "station_palette_group": null,
+   "default_palette": "BIGGS0",
+   "default_palette_index": 99,
+   "finish_group": "BIGGS",
+   "can_change_finish": true,
+   "default_finish": "BIGGS_A",
+   "default_finish_index": 0,
+   "finishes": [
+    "BIGGS_A",
+    "BIGGS_B",
+    "BIGGS_C",
+    "BIGGS_D"
+   ],
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "Ceiling_A1_WiteLightMat3",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/CORVETTE/LIGHTWITE.DDS"
+    },
+    {
+     "material": "BiggsLightsMat8",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "Ceiling_A1_WiteLightMat3",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/CORVETTE/LIGHTWITE.DDS"
+    },
+    {
+     "material": "prossed_object_Doorway_NS_A_RedLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/SPOOKSHIP/LIGHTS2.DDS"
+    },
+    {
+     "material": "WhiteLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/CORVETTE/LIGHTWITE.DDS"
     }
    ],
    "lights": [

@@ -11,7 +11,7 @@ from bpy.props import (
     StringProperty,
 )
 
-from ..builder import station_library
+from ..builder import station_colours, station_design, station_library
 from ..objects.circle import Circle  # noqa: F401 - registers the kind
 from ..objects.cuboid import Cuboid  # noqa: F401 - registers the kind
 from ..objects.forged import Forged
@@ -392,6 +392,13 @@ class CharonForged(bpy.types.PropertyGroup):
 # The station switches keep nothing themselves - they read and set whether
 # the station's objects are hidden, so they always match the viewport.
 class TheForge(bpy.types.PropertyGroup):
+    station_selectable: BoolProperty(
+        name="Selectable",
+        description="Let the station's pieces be clicked on and selected - off keeps "
+                    "them out of the way while building inside it",
+        get=lambda self: station_library.is_selectable(),
+        set=lambda self, value: station_library.set_selectable(value),
+    )
     show_station_exterior: BoolProperty(
         name="Exterior", description="Show the station's exterior",
         get=lambda self: station_library.is_part_shown(station_library.EXTERIOR),
@@ -426,6 +433,8 @@ classes = (
 
 
 def register():
+    station_colours.register()
+    station_design.register()
     for _class in classes:
         bpy.utils.register_class(_class)
     bpy.types.Scene.charon_the_forge = PointerProperty(type=TheForge)
@@ -437,3 +446,5 @@ def unregister():
     del bpy.types.Scene.charon_the_forge
     for _class in reversed(classes):
         bpy.utils.unregister_class(_class)
+    station_design.unregister()
+    station_colours.unregister()

@@ -15,7 +15,7 @@ addon through its set_builder() hook - that hook only accepts subclasses of
 its own Builder class.
 """
 
-from . import asset_library, importer, placement
+from . import asset_library, importer, placement, station_prompt
 from ..objects import circle, cuboid, polygon, rectangle, shape, sphere  # noqa: F401 - registers the forged kinds
 from ..objects.forged import Forged
 from ..utils import optimiser_utils
@@ -131,6 +131,13 @@ class HighResBuilderMixin(object):
 
     # Loading ---
     def deserialise_from_data(self, data):
+        """Given NMS data, reconstruct the base - and if it is a base inside a
+        space station, offer to build that station (see station_prompt)."""
+        result = self._deserialise_base(data)
+        station_prompt.offer_station(data)
+        return result
+
+    def _deserialise_base(self, data):
         """Given NMS data, reconstruct the base.
 
         The parts are built here, from the high res library. Presets, rigs and
