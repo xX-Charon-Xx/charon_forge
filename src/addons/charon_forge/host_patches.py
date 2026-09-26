@@ -1,7 +1,7 @@
 """The few places the base builder addon colours parts around its material hook.
 
 Its Colour panel goes through the material provider for single parts, which
-hooks.py already covers. Three paths don't, and each assumes colour lives in
+hooks.py already covers. Four paths don't, and each assumes colour lives in
 a flat material on the mesh, which is not how a high res part is coloured
 (its colour is on the object, see materials/colouring.py):
 
@@ -10,6 +10,10 @@ a flat material on the mesh, which is not how a high res part is coloured
     it recolours in place, so the group lost all of its materials.
   - NMSSettings.apply_default_colour does the same with
     assign_default_material for groups.
+  - Group.group_objects merges the parts, which strips the palette
+    properties the colourise node group reads, so a high res group came out
+    blacked out until it was ungrouped. The wrapper puts the parts' colour
+    back on, the way Charon Forge's own grouping does.
   - Curves paint only their first follower and expect the others to follow
     through the shared mesh. High res followers do share a mesh, but that
     mesh doesn't hold their colour, so only the first follower changed.
@@ -25,6 +29,7 @@ import bpy
 
 from . import materials
 from .objects.group import Group as CharonGroup
+from .objects.part import Part
 from .utils import base_builder_utils
 
 # (owner, attribute name, the original as it sat in owner.__dict__)
@@ -79,6 +84,22 @@ def _wrap_group_apply_colour(original):
             return
         return original(group_obj, colour_index, material_index)
     return apply_colour
+
+
+def _wrap_group_objects(original):
+    def group_objects(objects_to_group, target_matrix=None):
+        # read before the original deletes the parts
+        parts = [
+            obj for obj in (objects_to_group or [])
+            if obj is not None and Part.PROP_OBJECT_ID in obj
+            and CharonGroup.PROP_GROUP_ID not in obj
+        ]
+        colour_info = CharonGroup.get_colour_info(parts)
+        merged_object = original(objects_to_group, target_matrix)
+        if merged_object is not None:
+            CharonGroup.carry_colour(merged_object, colour_info)
+        return merged_object
+    return group_objects
 
 
 def _wrap_apply_default_colour(original):
@@ -156,6 +177,8 @@ def install():
     if group_module is not None and hasattr(group_module, "Group"):
         done &= _patch(group_module.Group, "apply_colour",
                        _wrap_group_apply_colour, static=True)
+        done &= _patch(group_module.Group, "group_objects",
+                       _wrap_group_objects, static=True)
     else:
         done = False
 

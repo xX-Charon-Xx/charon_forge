@@ -26,6 +26,9 @@ import bpy
 # linked into extensions/user_default/official_nms_builder
 PREFERRED_ADDON_MODULE = "bl_ext.user_default.official_nms_builder"
 
+# how the addon is named to the user, in messages about features that need it
+HOST_ADDON_NAME = "No Man's Sky Base Builder"
+
 # the hooks live here, relative to the addon module
 HOOKS_SUBMODULE = "builder"
 HOOK_NAMES = ("set_builder", "get_builder", "set_material_provider", "get_material_provider")
@@ -79,6 +82,15 @@ def get_hooks_module():
 
 def is_available():
     return get_hooks_module() is not None
+
+
+def missing_host_message(feature):
+    """What to tell the user when `feature` needs the base builder addon and
+    it isn't enabled."""
+    return (
+        f"{feature} needs the {HOST_ADDON_NAME} addon - install and enable it "
+        "in Preferences > Add-ons to use this"
+    )
 
 
 # --- other submodules --------------------------------------------------------
@@ -137,7 +149,9 @@ class _HostModuleProxy:
 
 
 # The host addon's utils.blend_utils - add_to_scene, select, and so on.
-blend_utils = _HostModuleProxy("utils.blend_utils")
+# Every part placed goes through add_to_scene, so without a fallback nothing
+# could be placed - the asset browser included - while the addon is missing.
+blend_utils = _HostModuleProxy("utils.blend_utils", fallback="blend_utils")
 
 # The host addon's builder.overrides - which Part subclass builds which id.
 # Exposes get_part_class(object_id)/get_override_class(object_id) to look one

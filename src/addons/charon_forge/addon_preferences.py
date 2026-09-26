@@ -28,6 +28,18 @@ def on_theme_update(self, context):
     themes_util.apply_named_theme(self.theme)
 
 
+def on_watchtower_update(self, context):
+    # imported here: the overlay reads these preferences, so it imports this
+    from .utils import viewport_overlay
+    viewport_overlay.redraw_viewports()
+
+
+WATCHTOWER_POSITIONS = [
+    ("Bottom", "Bottom", "Bottom left corner of the viewport"),
+    ("Top", "Top", "Top left corner of the viewport"),
+]
+
+
 class CharonAddonPreferences(bpy.types.AddonPreferences):
     bl_idname = ADDON_ID
 
@@ -123,6 +135,41 @@ class CharonAddonPreferences(bpy.types.AddonPreferences):
         name="Auto Optimise",
         description="Optimise automatically as parts are placed",
         default=False,
+    )
+
+    # The Watchtower's viewport overlay - see utils/viewport_overlay.py. Per
+    # user rather than per file, like the base builder addon kept them.
+    # The master switch leaves the two below as they are, so showing the
+    # overlay again brings back whatever was picked.
+    watchtower_show_overlay: BoolProperty(
+        name="Show Overlay",
+        description="Show or hide everything the Watchtower draws over the viewport",
+        default=True,
+        update=on_watchtower_update,
+    )
+    watchtower_show_part_count: BoolProperty(
+        name="Show Part Count",
+        description="Show the scene's part count, and the base it was imported from, over the viewport",
+        default=True,
+        update=on_watchtower_update,
+    )
+    watchtower_part_count_position: EnumProperty(
+        name="Part Count Position",
+        items=WATCHTOWER_POSITIONS,
+        default="Bottom",
+        update=on_watchtower_update,
+    )
+    watchtower_show_active_object: BoolProperty(
+        name="Show Active Part",
+        description="Show the active part's id, name, colour and material over the viewport",
+        default=True,
+        update=on_watchtower_update,
+    )
+    watchtower_active_object_position: EnumProperty(
+        name="Active Part Position",
+        items=WATCHTOWER_POSITIONS,
+        default="Bottom",
+        update=on_watchtower_update,
     )
 
     # Left blank by default rather than filled in with the host's folder at

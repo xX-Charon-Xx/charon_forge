@@ -1,7 +1,6 @@
 {
   "base_path": "images",
   "icons": {
-    "plugin_icon": "plugin_icon.png",
     "online": "T_Icon_Online.png",
     "discord": "T_Icon_Discord.png",
     "app_icon": "app_icon.png",
@@ -11,6 +10,7 @@
     "optimisation":"optimisation_logo.png",
     "helmsman":"helmsman.png",
     "crossing":"crossing.png",
-    "the_forge":"the_forge.png"
+    "the_forge":"the_forge.png",
+    "the_watchtower":"the_watchtower.png"
   }
 }

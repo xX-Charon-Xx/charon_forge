@@ -405,7 +405,18 @@ class AssetBrowserObjectSelected(bpy.types.Operator):
 
             blend_utils.select(bpy_obj)
             asset_browser.add_to_recents_list(self.object_id)
-            self.report({'INFO'}, f"Added {self.object_id} to scene")
+
+            # an id the high res library has no model for falls back to the
+            # base builder addon's fbx, and to a plain cube without it
+            from .. import materials
+            if not materials.is_high_res(bpy_obj) and not base_builder_utils.is_available():
+                self.report(
+                    {'WARNING'},
+                    f"No high-res model for {self.object_id}, placed a stand-in cube - "
+                    + base_builder_utils.missing_host_message("Its low-res model"),
+                )
+            else:
+                self.report({'INFO'}, f"Added {self.object_id} to scene")
         return {'FINISHED'}
     
 class AssetBrowserObjectMoreOptions(bpy.types.Operator):
@@ -439,9 +450,14 @@ class AssetBrowserObjectMoreOptions(bpy.types.Operator):
             fav_button = layout.operator("object.nms_asset_browser_object_favourite", text = fav_button_label, icon = fav_button_icon)
             fav_button.object_id = object_id
             
+            # batch replacing is the base builder addon's tool
+            replace_row = layout.row()
+            replace_row.enabled = base_builder_utils.get_batch_tool() is not None
             replace_button_label = f"Replace Selected Objects"
-            replace_button = layout.operator("object.nms_asset_browser_batch_replace", text = replace_button_label, icon = "GROUP_VERTEX")
+            replace_button = replace_row.operator("object.nms_asset_browser_batch_replace", text = replace_button_label, icon = "GROUP_VERTEX")
             replace_button.object_id = object_id
+            if not replace_row.enabled:
+                layout.label(text=f"Needs the {base_builder_utils.HOST_ADDON_NAME} addon", icon="INFO")
         context.window_manager.popup_menu(draw_popup)
         return {'FINISHED'}
     
@@ -660,7 +676,7 @@ class AssetBrowserBatchReplace(bpy.types.Operator):
     def execute(self, context):
         batch_tool = base_builder_utils.get_batch_tool()
         if batch_tool is None:
-            self.report({'ERROR'}, "Base builder addon not found, cannot batch replace")
+            self.report({'ERROR'}, base_builder_utils.missing_host_message("Batch Replace"))
             return {'CANCELLED'}
 
         selected_objects = list(context.selected_objects)

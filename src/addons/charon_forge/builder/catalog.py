@@ -156,8 +156,11 @@ class Catalog(object):
         return get_host_obj_path(part)
 
     def get_obj_parent_folder(self, part):
-        """Get the category folder a part's fbx file sits in."""
+        """Get the category folder a part's fbx file sits in, or "" when it
+        has none - every part, while the base builder addon isn't there."""
         path = self.get_obj_path(part)
+        if not path:
+            return ""
         return os.path.dirname(path).split(os.sep)[-1]
 
     def get_model_path_from_pack(self, pack_request):

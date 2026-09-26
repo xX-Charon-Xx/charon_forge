@@ -3,7 +3,8 @@ than duplicated - see base_builder_utils's module docstring.
 
 set_collection_visibility() is the one function the host addon does not have,
 so it stays implemented here; everything else (get_collection,
-move_object_into_collection, and so on) is a straight passthrough.
+move_object_into_collection, and so on) is a straight passthrough - to
+utils/fallbacks/collection_utils.py while the host addon isn't loaded.
 """
 
 import bpy
@@ -44,5 +45,7 @@ def set_collection_visibility(collection_name="Collection", visible=True):
 def __getattr__(name):
     module = get_module(_RELATIVE_PATH)
     if module is None or not hasattr(module, name):
+        from .fallbacks import collection_utils as module
+    if not hasattr(module, name):
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     return getattr(module, name)

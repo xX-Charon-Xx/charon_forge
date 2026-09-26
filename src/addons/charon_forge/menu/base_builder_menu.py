@@ -31,11 +31,25 @@ def apply_default_proxy_quality(_dummy):
     if scene is None or not hasattr(scene, "enum_proxy_quality"):
         return
 
+    target_high_res = prefs.default_proxy_quality == "high"
+
+    # nothing to switch down to without the base builder addon's models; the
+    # file stays as it is rather than every part failing to switch
+    if not target_high_res and not base_builder_menu_operators.simple_proxies_available():
+        print("Charon Forge: auto switch skipped - "
+              + base_builder_menu_operators.simple_proxies_message())
+        return
+
+    # Low res can't keep The Forge's shapes. The switch waits for a popup
+    # offering to split them first - declining leaves the file as it is -
+    # since nothing can be asked from inside a file load.
+    if not target_high_res and base_builder_menu_operators.get_scene_shapes(scene):
+        base_builder_menu_operators.offer_switch_to_low()
+        return
+
     # set_proxy_quality records the result on the scene itself, so the
     # dropdown comes up showing what the file was just switched to.
-    base_builder_menu_operators.set_proxy_quality(
-        context, prefs.default_proxy_quality == "high"
-    )
+    base_builder_menu_operators.set_proxy_quality(context, target_high_res)
 
 
 def draw_header_menu(self, context):

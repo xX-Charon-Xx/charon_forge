@@ -45,9 +45,24 @@ def get_icons_pcoll():
     return preview_collections["ui_icons"]
 
 
+# icons already reported missing, so the console isn't flooded from draw code
+_missing_icons = set()
+
+
 def get_icon_id(name):
-    """Return the icon_id for a registered icon, for use with icon_value."""
-    return get_icons_pcoll()[name].icon_id
+    """Return the icon_id for a registered icon, for use with icon_value.
+
+    0 - no icon - when it isn't there: its image is missing from images/ or
+    the icons aren't loaded. Panels call this from draw code, where raising
+    would leave the whole panel blank.
+    """
+    pcoll = preview_collections.get("ui_icons")
+    if pcoll is not None and name in pcoll:
+        return pcoll[name].icon_id
+    if name not in _missing_icons:
+        _missing_icons.add(name)
+        print(f"Charon Forge: icon {name!r} is not loaded - check resources/icon_definitions.json")
+    return 0
 
 
 def load_asset_icons():

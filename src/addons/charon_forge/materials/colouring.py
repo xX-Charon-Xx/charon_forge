@@ -22,6 +22,8 @@ lets you use them all. A finish index the part's textures have no slice for
 shows its last slice.
 """
 
+import json
+
 import bpy
 
 from . import game_data
@@ -185,6 +187,40 @@ def apply_many(pairs, tag=False, update=False):
     return applied, unresolved
 
 
+# A group's parts, as the group code caches them - see objects/group.py. Named
+# here rather than imported: the group module imports this package.
+GROUP_ID_PROP = "GroupID"
+GROUP_CHILD_CACHE_PROP = "child_cache"
+
+
+def sync_group_children(bpy_object):
+    """Write a group's UserData - its master colour - into every part it
+    holds, so each part's own colour agrees with the group's wherever the
+    cache is read (ungrouping, rebuilding, exporting, the part count's
+    neighbours). Anything that isn't a group is left alone.
+
+    Returns:
+        int: How many parts were updated.
+    """
+    if GROUP_ID_PROP not in bpy_object or GROUP_CHILD_CACHE_PROP not in bpy_object:
+        return 0
+    master = bpy_object.get(PROP_USER_DATA)
+    if master is None:
+        return 0
+    try:
+        children = json.loads(bpy_object[GROUP_CHILD_CACHE_PROP])
+    except (TypeError, ValueError):
+        return 0
+    if not isinstance(children, dict):
+        return 0
+
+    for cache_data in children.values():
+        if isinstance(cache_data, dict):
+            cache_data[PROP_USER_DATA] = master
+    bpy_object[GROUP_CHILD_CACHE_PROP] = json.dumps(children)
+    return len(children)
+
+
 def recolour(objects, colour_index=None, material_index=None, tag=True):
     """Set a palette and/or finish on objects, writing it into their UserData.
 
@@ -197,6 +233,7 @@ def recolour(objects, colour_index=None, material_index=None, tag=True):
     for bpy_object in objects:
         value = encode(bpy_object.get(PROP_USER_DATA, 0), colour_index, material_index)
         bpy_object[PROP_USER_DATA] = str(value)
+        sync_group_children(bpy_object)
         pairs.append((bpy_object, value))
     return apply_many(pairs, tag=tag)
 
@@ -220,6 +257,7 @@ def recolour_from_user_data(objects, user_data_value, tag=True):
             failed += 1
             continue
         bpy_object[PROP_USER_DATA] = value
+        sync_group_children(bpy_object)
         done += 1
     return done, failed
 

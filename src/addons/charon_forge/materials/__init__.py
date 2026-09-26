@@ -29,7 +29,8 @@ from . import colourise, emission, game_data, host, packing, samplers
 from .colouring import (apply, apply_many, apply_palette, clear, decode,
                         default_user_data, encode, is_colourable, is_high_res,
                         object_id_of, recolour, recolour_from_user_data,
-                        resolve, use_object_colour_in_viewport)
+                        resolve, sync_group_children,
+                        use_object_colour_in_viewport)
 from .dedupe import dedupe_appended_data, dedupe_images, dedupe_node_groups
 from .deferral import defer_shared_data, note_appended_data, should_defer
 from .finish_nodes import strip_legacy_finish_nodes
@@ -154,6 +155,12 @@ def _on_load(_filepath=None):
         for mesh in bpy.data.meshes:
             if MESH_TAG in mesh and emission.GLOW_LAMP_PROP not in mesh:
                 emission.stamp_glow(mesh, mesh[MESH_TAG])
+
+        # imported here: the group module imports this package
+        from ..objects.group import Group
+        repaired = Group.repair_scene_colours()
+        if repaired:
+            print("Charon Forge: gave %d group(s) their colour back" % repaired)
     except Exception as exc:                              # noqa: BLE001
         print("Charon Forge: could not update materials on load: %r" % exc)
 

@@ -6,7 +6,7 @@ import bpy
 
 from .. import addon_preferences
 from ..addon import asset_browser_presentation
-from ..utils import icon_utils
+from ..utils import base_builder_utils, icon_utils
 
 # The clipboard import/export and the save editor are features of the addon
 # this menu was ported from that Charon Forge doesn't have yet. The I/O
@@ -81,7 +81,12 @@ class VIEW3D_PT_nms_io_panel(bpy.types.Panel):
             drew_anything = True
 
         if not drew_anything:
-            layout.label(text="Import/export isn't available yet", icon="INFO")
+            if base_builder_utils.is_available():
+                layout.label(text="Import/export isn't available yet", icon="INFO")
+            else:
+                column = layout.column(align=True)
+                column.label(text="Clipboard import/export needs the", icon="INFO")
+                column.label(text=f"{base_builder_utils.HOST_ADDON_NAME} addon", icon="BLANK1")
        
         
 
@@ -124,6 +129,14 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
         )
         proxy_row.separator()
         proxy_row.operator("object.nms_fix_broken_textures", text="", icon="FILE_REFRESH")
+
+        # the low res models are the base builder addon's
+        from .base_builder_menu_operators import simple_proxies_available
+        if not simple_proxies_available():
+            note = proxy_box.column(align=True)
+            note.scale_y = 0.8
+            note.label(text="Simple Proxies need the", icon="INFO")
+            note.label(text=f"{base_builder_utils.HOST_ADDON_NAME} addon", icon="BLANK1")
 
         # Drawn straight off the preferences rather than mirrored onto the
         # scene: whether opening a file re-switches it is a per-user choice

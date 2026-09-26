@@ -14,7 +14,8 @@ import bpy
 
 from .. import builder as charon_builder
 from .. import materials
-from ..builder import placement
+from ..builder import paths, placement
+from ..objects.forged import Forged
 from ..objects.group import Group
 from ..objects.part import Part
 from ..utils import base_builder_utils
@@ -266,6 +267,90 @@ def set_proxy_quality(context, target_high_res):
     return parts, groups, skipped
 
 
+# Availability ---
+SIMPLE_PROXIES = "Simple Proxies"
+
+
+def simple_proxies_available():
+    """True when there are fbx proxies to switch down to. Charon Forge ships
+    none of its own - they are the base builder addon's (see
+    paths.get_host_model_path)."""
+    return paths.get_host_model_path() is not None
+
+
+def simple_proxies_message():
+    return base_builder_utils.missing_host_message(SIMPLE_PROXIES)
+
+
+# Shapes ---
+#
+# Simple proxies hand the base builder addon its own builder back (see
+# _switch_builder_hook), and that builder knows nothing of The Forge's shapes:
+# it takes them for groups with no parts, so a save exported at low res would
+# lose them without a word. Switching to low res therefore offers to split
+# every shape into its parts first, and doesn't switch if that is declined.
+
+
+def get_scene_shapes(scene):
+    """Every shape made in The Forge in the scene."""
+    return [obj for obj in scene.objects if Forged.is_forged(obj)]
+
+
+def split_shapes(context, shapes):
+    """Split shapes into their parts, each shape's parts gathered into a
+    collection of their own - named after the shape, where the shape was - so
+    they can still be picked out, moved or hidden as one later.
+
+    Returns:
+        tuple: (parts made, collections made).
+    """
+    builder_object = charon_builder.get_builder()
+    part_count = 0
+    collections = []
+    # one texture and node group tidy for the lot, not one per shape
+    with materials.defer_shared_data():
+        for shape in shapes:
+            # read before the split, which deletes the shape
+            name = shape.name
+            parent = shape.users_collection[0] if shape.users_collection else context.scene.collection
+
+            parts = Forged.split(shape, builder_object)
+            part_count += len(parts)
+            if not parts:
+                continue
+
+            # Blender adds a .001 when the name is taken
+            collection = bpy.data.collections.new(name)
+            parent.children.link(collection)
+            for part in parts:
+                for old in list(part.users_collection):
+                    old.objects.unlink(part)
+                collection.objects.link(part)
+            collections.append(collection)
+    return part_count, collections
+
+
+def offer_switch_to_low(delay=0.2):
+    """Ask, in a popup, whether to split the scene's shapes and switch to
+    low res - for switches that start without a window to ask in, like the
+    one run when a file is opened."""
+    def open_popup():
+        window_manager = bpy.context.window_manager
+        for window in window_manager.windows:
+            for area in window.screen.areas:
+                if area.type != "VIEW_3D":
+                    continue
+                region = next((r for r in area.regions if r.type == "WINDOW"), None)
+                if region is None:
+                    continue
+                with bpy.context.temp_override(window=window, area=area, region=region):
+                    bpy.ops.object.nms_switch_proxies_to_low("INVOKE_DEFAULT")
+                return None
+        return None
+
+    bpy.app.timers.register(open_popup, first_interval=delay)
+
+
 class NMS_OT_switch_proxies_to_low(bpy.types.Operator):
     """Switch every high res part and group in the scene to the old fbx proxy."""
 
@@ -274,9 +359,51 @@ class NMS_OT_switch_proxies_to_low(bpy.types.Operator):
     bl_description = "Switch every high-res part and group in the scene to the old fbx proxy from the models folder"
     bl_options = {"REGISTER", "UNDO"}
 
+    def invoke(self, context, event):
+        if not simple_proxies_available():
+            self.report({"ERROR"}, simple_proxies_message())
+            return {"CANCELLED"}
+        # nothing to ask about without shapes
+        if not get_scene_shapes(context.scene):
+            return self.execute(context)
+        return context.window_manager.invoke_props_dialog(
+            self, width=340, title="Switch to Simple Proxies",
+            confirm_text="Split and Switch",
+        )
+
+    def draw(self, context):
+        shape_count = len(get_scene_shapes(context.scene))
+        layout = self.layout
+        column = layout.column(align=True)
+        column.label(
+            text=f"This scene has {shape_count} shape(s) made in The Forge.",
+            icon="ERROR",
+        )
+        column.separator()
+        column.label(text="Simple proxies can't keep shapes - they would be", icon="BLANK1")
+        column.label(text="left out when the base is exported.", icon="BLANK1")
+        column.separator()
+        column.label(text="Split them into individual parts and switch?", icon="BLANK1")
+        column.label(text="Each shape's parts go in a collection of their own.", icon="BLANK1")
+        column.label(text="Cancel leaves the scene as it is.", icon="BLANK1")
+
     def execute(self, context):
+        if not simple_proxies_available():
+            self.report({"ERROR"}, simple_proxies_message())
+            return {"CANCELLED"}
+
+        # Split and Switch; also what a script calling this directly gets
+        shapes = get_scene_shapes(context.scene)
+        split_parts, collections = split_shapes(context, shapes) if shapes else (0, [])
+
         parts, groups, skipped = set_proxy_quality(context, target_high_res=False)
         _report_switch(self, parts, groups, skipped, "low-res")
+        if shapes:
+            self.report(
+                {"INFO"},
+                "Split %d shape(s) into %d part(s), each in its own collection, "
+                "then switched to low-res" % (len(collections), split_parts),
+            )
         return {"FINISHED"}
 
 
@@ -315,7 +442,13 @@ class NMS_OT_fix_broken_textures(bpy.types.Operator):
         # already point at this install, and relinking afterwards then only
         # has the file's own broken images left to fix
         target_high_res = context.scene.enum_proxy_quality == "high"
-        parts, groups, skipped = set_proxy_quality(context, target_high_res)
+        low_res_unavailable = not target_high_res and not simple_proxies_available()
+        if low_res_unavailable:
+            # the scene is marked low res but there is nothing to switch
+            # down to - fix the textures and leave the parts as they are
+            parts = groups = skipped = 0
+        else:
+            parts, groups, skipped = set_proxy_quality(context, target_high_res)
 
         # then everything from the library again, as it is on disk now: the
         # parts' shared meshes, and the groups merged out of them
@@ -354,6 +487,8 @@ class NMS_OT_fix_broken_textures(bpy.types.Operator):
                             "(see the console)" % (skipped, quality))
         if missing:
             problems.append("%d texture(s) have no match in the library" % missing)
+        if low_res_unavailable:
+            problems.append("parts left as they are: " + simple_proxies_message())
 
         if not done and not problems:
             self.report({"INFO"}, "Nothing to fix")

@@ -346,6 +346,9 @@ class Forged:
 
         settings.message = ""
         settings.part_count = len(positions)
+        # on the object too, where a group keeps its size - what the
+        # Watchtower's part count adds up
+        forged_obj[Group.PROP_PART_COUNT] = len(positions)
         scale = Forged.copy_scale(settings)
         with Forged.suspended():
             settings.applied_scale = scale

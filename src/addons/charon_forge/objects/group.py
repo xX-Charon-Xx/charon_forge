@@ -158,6 +158,9 @@ class Group:
                 total_location += obj.matrix_world.translation
             clean_matrix.translation = total_location / len(objects_list)
 
+        # read before the merge, which deletes nothing but strips the colour
+        colour_info = Group.get_colour_info(objects_list)
+
         # Merge objects
         merged_object = blend_utils.merge_objects(objects_list, "Grouped_Objects")
 
@@ -202,18 +205,7 @@ class Group:
         merged_object[Group.PROP_PART_COUNT] = number_of_objects_grouped
         merged_object[Group.PROP_IS_MIRROR] = False
 
-        # Carry a colour onto the group.
-        # merge_objects strips every custom property off the merged object, and
-        # an absent palette slot reads as black in the colourise node group, so
-        # a group of high res parts would otherwise come out with all of its
-        # paintable regions blacked out.
-        group_user_data = Group.get_representative_user_data(objects_list)
-        if group_user_data is not None:
-            # Only the palette properties, never UserData - ungroup treats a
-            # UserData on the group as a master colour to force onto every
-            # child, and that should only happen when the user has actually
-            # recoloured the group, not just because they grouped it.
-            materials.apply(merged_object, group_user_data)
+        Group.carry_colour(merged_object, colour_info)
 
         # Delete original objects - in one batch, because a remove() per object
         # re-syncs the whole scene each time and costs about 4 ms a piece on a
@@ -221,6 +213,81 @@ class Group:
         bpy.data.batch_remove([obj for obj in objects_to_group if obj is not None])
 
         return merged_object
+
+    @staticmethod
+    def get_colour_info(objects_list):
+        """What carry_colour needs to know about the parts, read before they
+        are merged: (the colour the group shows, a high res part id), either
+        None when no part is high res."""
+        user_data = Group.get_representative_user_data(objects_list)
+        high_res_id = next(
+            (materials.object_id_of(obj) for obj in objects_list if materials.is_high_res(obj)),
+            None,
+        )
+        return user_data, high_res_id
+
+    @staticmethod
+    def carry_colour(merged_object, colour_info):
+        """Put the parts' look back onto the object they were merged into.
+
+        A merge strips every custom property off the merged object, and an
+        absent palette slot reads as black in the colourise node group, so a
+        group of high res parts came out with all of its paintable regions
+        blacked out until it was ungrouped again.
+
+        The mesh is tagged high res too. One merge path kept the first
+        part's tag and the other lost it, and without it colouring the group
+        painted a flat material over every slot instead of recolouring it.
+        """
+        user_data, high_res_id = colour_info
+        mesh = merged_object.data
+        if high_res_id and mesh is not None and materials.MESH_TAG not in mesh:
+            mesh[materials.MESH_TAG] = high_res_id
+
+        if user_data is not None:
+            # Only the palette properties, never UserData - ungroup treats a
+            # UserData on the group as a master colour to force onto every
+            # child, and that should only happen when the user has actually
+            # recoloured the group, not just because they grouped it.
+            materials.apply(merged_object, user_data)
+
+    @staticmethod
+    def repair_scene_colours():
+        """Give back their colour to groups that lost it to a merge.
+
+        Groups made before carry_colour existed - by the base builder addon's
+        Group button in particular - have high res materials but no palette,
+        and show black until ungrouped. Their colour is still in their cache:
+        the master colour if they were recoloured, else what most of their
+        parts had.
+
+        Returns:
+            int: How many groups were repaired.
+        """
+        repaired = 0
+        for obj in bpy.data.objects:
+            if Group.PROP_GROUP_ID not in obj or obj.type != "MESH":
+                continue
+            if "nms_p" in obj or not materials.is_colourable(obj):
+                continue
+
+            children, _origin = Group.extract_cached_data(obj)
+            children = children or {}
+            user_data = obj.get(Group.PROP_USER_DATA)
+            if user_data is None:
+                counts = {}
+                for cache_data in children.values():
+                    value = cache_data.get(Group.PROP_USER_DATA)
+                    if value is not None:
+                        counts[str(value)] = counts.get(str(value), 0) + 1
+                user_data = max(counts, key=counts.get) if counts else None
+            high_res_id = next(
+                (Group._model_id(cache_data) for cache_data in children.values()), None
+            )
+
+            Group.carry_colour(obj, (user_data, high_res_id))
+            repaired += 1
+        return repaired
 
     @staticmethod
     def get_representative_user_data(objects_list):

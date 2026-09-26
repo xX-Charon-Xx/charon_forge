@@ -344,9 +344,12 @@ class CharonSaveManager(bpy.types.PropertyGroup):
         if nms_base_json is None:
             return "Error Importing base, base data is None"
 
-        # Import json into scene
-        nms_tools = context.scene.nms_base_tool
-        nms_tools.deserialise_from_data(nms_base_json)
+        # Import json into scene. The base's own properties (name, address)
+        # live on the base builder addon's scene.nms_base_tool; without it
+        # only the parts come in.
+        nms_tools = getattr(context.scene, "nms_base_tool", None)
+        if nms_tools is not None:
+            nms_tools.deserialise_from_data(nms_base_json)
         get_builder().deserialise_from_data(nms_base_json)
         #return a string for operators for status message
         return "Base/Corvette imported sucessfully"
@@ -371,11 +374,14 @@ class CharonSaveManager(bpy.types.PropertyGroup):
     # collect data from scene and export it to save file
     # returns (success, message)
     def export_base(self,context,  base_identifiers, save_links):
-        # convert scene to json representing base data
-        nms_tools = context.scene.nms_base_tool
+        # convert scene to json representing base data - the base builder
+        # addon's scene.nms_base_tool does that, with the base's properties
+        nms_tools = getattr(context.scene, "nms_base_tool", None)
+        if nms_tools is None:
+            from ..utils import base_builder_utils
+            return False, base_builder_utils.missing_host_message("Exporting a base to a save")
         serialised_base_objects_data  = nms_tools.serialise(objects_only = True)
-        prefs = context.scene.nms_base_tool
-        new_base_name = prefs.string_base
+        new_base_name = nms_tools.string_base
         if not new_base_name or len(new_base_name) > 0:
             new_base_name = None
         
