@@ -13,6 +13,9 @@ Charon Forge's high res parts:
     puts the high res model there where the library has one.
   - Colour paths that go around the material hook (groups, curve followers)
     are wrapped in host_patches.py, so they colour high res parts too.
+  - Fossils: its override table builds every FOS_ id with its own classes,
+    which import the fbx. Ours go into that table ahead of them, so fossils
+    come out of the high res library - see objects/fossil.py.
 
 Blender doesn't promise which addon registers first, so when the base builder
 addon isn't loaded yet the install is retried on a timer for a few seconds.
@@ -28,12 +31,14 @@ import time
 import bpy
 
 from . import builder, host_patches, materials
+from .objects import fossil
 from .utils import base_builder_utils
 
 # Turn either half off here if it ever needs to be taken back out.
 INSTALL_BUILDER = True
 INSTALL_MATERIALS = True
 INSTALL_PATCHES = True
+INSTALL_FOSSILS = True
 
 # How long to keep looking for the other addon while blender starts up.
 RETRY_SECONDS = 1.0
@@ -73,12 +78,16 @@ def install(retry=True):
     _wanted = True
     base_builder_utils.set_on_addon_found(ensure_installed)
 
+    # our own override table is the one read while the addon isn't there, so
+    # the fossil classes go into it whether or not the addon is found
+    fossils_installed = fossil.install() if INSTALL_FOSSILS else True
+
     if not base_builder_utils.is_available():
         if retry:
             _schedule_retry()
         return False
 
-    installed = True
+    installed = fossils_installed
 
     if INSTALL_MATERIALS:
         provider = materials.create_host_material_provider()
@@ -146,6 +155,8 @@ def _hooks_still_ours():
         return False
     if INSTALL_MATERIALS and base_builder_utils.get_material_provider() is not _host_provider:
         return False
+    if INSTALL_FOSSILS and not fossil.is_installed():
+        return False
     return True
 
 
@@ -157,6 +168,7 @@ def remove():
     base_builder_utils.set_on_addon_found(None)
 
     host_patches.remove()
+    fossil.remove()
     if _installed and base_builder_utils.is_available():
         base_builder_utils.reset_all()
     _installed = False
