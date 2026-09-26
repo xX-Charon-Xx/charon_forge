@@ -379,8 +379,8 @@ def get_grid_settings(context, icon_size_prop, columns_prop):
 def build_category_tree(favourite_ids=None, nice_names=None):
     """Turn the parts definition into categories, sub categories and parts.
 
-    Variants (a part marked as a variant of another) are folded into their
-    parent's entry rather than getting one of their own.
+    Variants are folded into their family's entry rather than getting one of
+    their own - see dictionary.get_variant_roots for how a family is found.
 
     Args:
         favourite_ids (list): Part ids to mark as favourites. Read from the
@@ -398,14 +398,12 @@ def build_category_tree(favourite_ids=None, nice_names=None):
 
     categories_list = {}
     part_definition = dictionary.get_parts_definition()
+    roots = dictionary.get_variant_roots()
 
     for _, part in part_definition.items():
 
         object_id = part[0].replace("^", "")
-        category = part[2]
-        sub_category = part[4]
         nice_name = part[7]
-        varaint_of = part[9].replace("^", "")
 
         if not object_id or not nice_name:
             continue
@@ -413,18 +411,19 @@ def build_category_tree(favourite_ids=None, nice_names=None):
         if object_id not in nice_names:
             continue
 
-        nice_name = dictionary.to_title_case(nice_name)
+        # a family sits under its root's category, with the root's name
+        root = roots.get(object_id, object_id)
+        root_part = part_definition.get("^" + root) or part_definition.get(root) or part
+        category = root_part[2]
+        sub_category = root_part[4]
 
         sub_cat = categories_list.setdefault(category, {}).setdefault(sub_category, {})
+        entry = sub_cat.setdefault(root, {})
+        entry["name"] = dictionary.to_title_case(root_part[7] or nice_name)
+        entry["is_fav"] = root in favourite_ids
 
-        if varaint_of == "None":
-            entry = sub_cat.setdefault(object_id, {})
-            entry["name"] = nice_name
-            entry["is_fav"] = object_id in favourite_ids
-        else:
-            parent = sub_cat.setdefault(varaint_of, {"name": nice_name})
-            parent.setdefault("is_fav", varaint_of in favourite_ids)
-            parent.setdefault("variants", []).append(object_id)
+        if object_id != root:
+            entry.setdefault("variants", []).append(object_id)
 
     return categories_list
 

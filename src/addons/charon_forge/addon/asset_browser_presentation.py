@@ -52,8 +52,6 @@ def draw_grid_element(
     
     asset_name = part_data["name"]
     variants = part_data.get("variants",None)
-    
-    has_variants = variants is not None
     is_fav = part_data.get("is_fav",False)
     is_preset = part_data.get("is_preset",False)
     
@@ -76,24 +74,29 @@ def draw_grid_element(
     add_button.is_preset = is_preset
     
     if not is_preset:
-        more_options_button = action_butons_column.operator( OP_MORE_OPTIONS, text = "",  emboss = False,  icon = "COLLAPSEMENU" )
-        more_options_button.object_id = object_id
-        more_options_button.is_fav = is_fav
-        
-    if has_variants:
-        variants_copy = variants.copy()
-        variants_copy.insert(0,object_id)
-    else:
-        variants_copy = None
-    
+        draw_more_options_button(action_butons_column, object_id, is_fav, variants)
+
+    # the name adds the part itself too - its variants are in the options
+    # popup, under the button below the +
     asset_column_text_row = asset_column.row(align = False)
     button = asset_column_text_row.operator(OP_OBJECT_SELECTED, text = asset_name, emboss = False)
     button.object_id = object_id
-    button.has_variants = has_variants
-    add_button.is_preset = is_preset
-    if has_variants:
-        variants_json = json.dumps(variants_copy)
-        button.variants = variants_json
+    button.is_preset = is_preset
+
+
+def draw_more_options_button(layout, object_id, is_fav, variants, emboss=False):
+    """The button that opens a part's options popup - favourite, replace,
+    and its variants when it has any."""
+    more_options_button = layout.operator(
+        OP_MORE_OPTIONS, text = "", emboss = emboss, icon = "COLLAPSEMENU"
+    )
+    more_options_button.object_id = object_id
+    more_options_button.is_fav = is_fav
+    # the whole family, the main part first, so the popup lists every form
+    more_options_button.variants = (
+        json.dumps([object_id] + [v for v in variants if v != object_id])
+        if variants else ""
+    )
     
     
 def draw_list_element( 
@@ -107,8 +110,6 @@ def draw_list_element(
     
     asset_name = part_data["name"]
     variants = part_data.get("variants",None)
-    
-    has_variants = variants is not None
     is_fav = part_data.get("is_fav",False)
     is_preset = part_data.get("is_preset",False)
     
@@ -125,7 +126,7 @@ def draw_list_element(
         element_row_right = element_row.row(align = True)
         element_row_right.label(text = asset_name)
         add_button_row = element_row_right.row(align = True)
-        add_button_2 = add_button_row.operator(OP_OBJECT_SELECTED, text = "", emboss = True, icon = "COLOR" if has_variants else "ADD")
+        add_button_2 = add_button_row.operator(OP_OBJECT_SELECTED, text = "", emboss = True, icon = "ADD")
         
     else:
         element_row_right = element_row.column(align = True)
@@ -137,12 +138,10 @@ def draw_list_element(
         add_button_2 = add_button_row.operator(OP_OBJECT_SELECTED, text = "", emboss = True, icon = "ADD")
         
     add_button_2.object_id = object_id
-    add_button_2.has_variants = has_variants
-    if has_variants:
-        # the part itself first, as the grid view does - without it the
-        # popup offered only the variants and the base could not be placed
-        variants_json = json.dumps([object_id] + list(variants))
-        add_button_2.variants = variants_json
+    add_button_2.is_preset = is_preset
+    # variants, favourite and replace are in the options popup, as in the grid
+    if not is_preset:
+        draw_more_options_button(add_button_row, object_id, is_fav, variants, emboss=True)
     
 
 

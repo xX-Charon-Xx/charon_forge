@@ -15,7 +15,8 @@ addon through its set_builder() hook - that hook only accepts subclasses of
 its own Builder class.
 """
 
-from . import asset_library, importer, placement, station_prompt
+from . import asset_library, importer, mirror_twins, placement, station_prompt
+from .. import materials
 from ..objects import circle, cuboid, polygon, rectangle, shape, sphere  # noqa: F401 - registers the forged kinds
 from ..objects.forged import Forged
 from ..utils import optimiser_utils
@@ -45,7 +46,7 @@ class HighResBuilderMixin(object):
         twin_id = placement.get_default_part_class(self).get_mirror_part_id(
             part_object["ObjectID"]
         )
-        if self._swap_to_high_res_twin(part_object, twin_id):
+        if self._swap_to_high_res_twin(part_object, twin_id, mirror_twins.MIRROR):
             return part_object
         return super(HighResBuilderMixin, self).mirror_part(part_object)
 
@@ -53,11 +54,11 @@ class HighResBuilderMixin(object):
         twin_id = placement.get_default_part_class(self).get_flip_part_id(
             part_object["ObjectID"]
         )
-        if self._swap_to_high_res_twin(part_object, twin_id):
+        if self._swap_to_high_res_twin(part_object, twin_id, mirror_twins.FLIP):
             return part_object
         return super(HighResBuilderMixin, self).flip_part(part_object)
 
-    def _swap_to_high_res_twin(self, part_object, twin_id):
+    def _swap_to_high_res_twin(self, part_object, twin_id, kind=mirror_twins.MIRROR):
         """Point a part at its mirrored/flipped twin's library mesh.
 
         High res parts share one mesh per ObjectID, so scaling that mesh by -1
@@ -74,11 +75,20 @@ class HighResBuilderMixin(object):
             return False
 
         old_id = part_object["ObjectID"]
+        was_high_res = materials.is_high_res(part_object)
         part_object.data = twin_mesh
         part_object["ObjectID"] = twin_id
         part_object.name = twin_id
         self._forget_cached(old_id)
         self.add_to_part_cache(twin_id, part_object)
+
+        # The twin's own mesh is often not the current one flipped the way the
+        # addon assumes when it places the twin (B_STR_B_S is B_STR_B_N flipped
+        # on Z, not X). Noted here, applied once the addon has placed it.
+        if was_high_res:
+            correction = mirror_twins.twin_correction(old_id, twin_id, kind)
+            if correction is not None:
+                mirror_twins.note_swap(part_object, correction)
         return True
 
     def _forget_cached(self, object_id):

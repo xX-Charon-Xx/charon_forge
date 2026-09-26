@@ -713,7 +713,10 @@ class Group:
             ]
             new_child_cache[child_name] = new_cache_data
 
-        return json.dumps(new_child_cache), new_origin
+        # twins whose mesh isn't the part flipped the way the maths above
+        # assumes - see builder/mirror_twins.py
+        from ..builder import mirror_twins
+        return mirror_twins.correct_mirrored_cache(cached_child_data, new_child_cache), new_origin
 
     @staticmethod
     def _model_id(cache_data):

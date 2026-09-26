@@ -2,6 +2,7 @@ import bpy
 import json
 import os
 from ..utils import dictionary
+from ..utils import icon_utils
 from ..utils import base_builder_utils
 from ..utils.base_builder_utils import blend_utils
 from .. import builder as charon_builder
@@ -419,6 +420,39 @@ class AssetBrowserObjectSelected(bpy.types.Operator):
                 self.report({'INFO'}, f"Added {self.object_id} to scene")
         return {'FINISHED'}
     
+def draw_variants(layout, variants, column_length):
+    """A part's family as buttons that add them, each with its icon - the
+    main part first, marked as such."""
+    nice_names = dictionary.get_nice_names_diictionary()
+    try:
+        pcoll = icon_utils.get_asset_icons_pcoll()
+    except KeyError:
+        pcoll = None
+
+    layout.separator()
+    layout.label(text=f"Variants ({len(variants)})", icon="PRESET")
+    main_id = variants[0]
+
+    columns = max(1, -(-len(variants) // column_length))
+    grid = layout.grid_flow(row_major=True, columns=columns, even_columns=True, align=True)
+    for variant_id in variants:
+        name = nice_names.get(variant_id)
+        text = dictionary.to_title_case(name) if name else variant_id
+        if variant_id == main_id:
+            text += "  (Main)"
+        if pcoll is not None and variant_id in pcoll:
+            button = grid.operator(
+                "object.nms_asset_browser_object_selected", text=text,
+                icon_value=pcoll[variant_id].icon_id,
+            )
+        else:
+            button = grid.operator(
+                "object.nms_asset_browser_object_selected", text=text, icon="ADD",
+            )
+        button.object_id = variant_id
+        button.has_variants = False
+
+
 class AssetBrowserObjectMoreOptions(bpy.types.Operator):
     bl_idname = "object.nms_asset_browser_more_options"
     bl_label = "Add Object"
@@ -426,10 +460,18 @@ class AssetBrowserObjectMoreOptions(bpy.types.Operator):
 
     object_id: bpy.props.StringProperty()
     is_fav : bpy.props.BoolProperty(default = False)
-    
+    # json list of the part's whole family, the main part first, "" when it
+    # has no variants
+    variants : bpy.props.StringProperty(default = "")
+
+    # variants laid out in this many columns once there are more than a column's worth
+    VARIANT_COLUMN_LENGTH = 8
+
     @classmethod
     def description(cls, context, properties):
-        return f"Show more optiosn for {properties.object_id}"
+        if properties.variants:
+            return f"Variants and more options for {properties.object_id}"
+        return f"Show more options for {properties.object_id}"
     
     
     def execute(self, context):
@@ -438,6 +480,11 @@ class AssetBrowserObjectMoreOptions(bpy.types.Operator):
         
         is_fav = self.is_fav
         object_id = self.object_id
+        try:
+            variants = json.loads(self.variants) if self.variants else []
+        except ValueError:
+            variants = []
+        column_length = self.VARIANT_COLUMN_LENGTH
         
         def draw_popup(self, context):
             layout = self.layout
@@ -458,6 +505,9 @@ class AssetBrowserObjectMoreOptions(bpy.types.Operator):
             replace_button.object_id = object_id
             if not replace_row.enabled:
                 layout.label(text=f"Needs the {base_builder_utils.HOST_ADDON_NAME} addon", icon="INFO")
+
+            if variants:
+                draw_variants(layout, variants, column_length)
         context.window_manager.popup_menu(draw_popup)
         return {'FINISHED'}
     

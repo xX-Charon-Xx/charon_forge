@@ -76,6 +76,75 @@ def export_object_id(row_id):
     return row_id
 
 
+# A nice name's trailing "(NE)", "(Y_NW3)"... - what sets the members of one
+# family apart
+_NAME_SUFFIX = re.compile(r"\s*\([^)]*\)\s*$")
+
+_variant_roots = None
+
+
+def _base_name(nice_name):
+    return _NAME_SUFFIX.sub("", nice_name or "").strip().upper()
+
+
+def get_variant_roots():
+    """{object id: the id of the family it belongs to}, one entry per part.
+
+    What the asset browser groups variants by. The parts definition's
+    VariantOf column is not always one step to a root:
+
+      - B_STR_V_NWTB2 names B_STR_V_NWTB, itself a variant of B_STR_V_NETB,
+        so the chain is followed to the end.
+      - B_STR_W_NETB and B_STR_W_NWTB each name themselves, leaving the
+        family with two roots. A root whose mirror twin is also a root of
+        the same name is folded into it (NE takes NW) - the rest of the
+        corvette families already have their NW parts under the NE one.
+
+    Without this the browser showed a family twice, once per root.
+    """
+    global _variant_roots
+    if _variant_roots is not None:
+        return _variant_roots
+
+    part_definition = get_parts_definition()
+    variant_of = {}
+    names = {}
+    for part in part_definition.values():
+        object_id = part[0].replace("^", "")
+        if not object_id:
+            continue
+        parent = part[9].replace("^", "")
+        variant_of[object_id] = None if parent in ("None", "", object_id) else parent
+        names[object_id] = part[7]
+
+    def follow(object_id):
+        seen = set()
+        while variant_of.get(object_id) and object_id not in seen:
+            seen.add(object_id)
+            parent = variant_of[object_id]
+            if parent not in variant_of:
+                break               # names a part that isn't defined
+            object_id = parent
+        return object_id
+
+    roots = {object_id: follow(object_id) for object_id in variant_of}
+
+    # imported here: the part module is heavy, and this runs once
+    from ..objects.part import Part
+    merged = {}
+    for root in set(roots.values()):
+        twin = Part.get_mirror_part_id(root)
+        if (twin and twin != root and roots.get(twin) == twin
+                and _base_name(names.get(root)) == _base_name(names.get(twin))):
+            keep, fold = sorted((root, twin))
+            merged[fold] = keep
+
+    _variant_roots = {
+        object_id: merged.get(root, root) for object_id, root in roots.items()
+    }
+    return _variant_roots
+
+
 def get_category_vise_objects():
     """Object ids grouped by category/sub-category, variants nested under
     the object id they are a variant of."""
@@ -83,12 +152,11 @@ def get_category_vise_objects():
     part_definition = get_parts_definition()
     nice_names = get_nice_names_diictionary()
 
+    roots = get_variant_roots()
+
     for _, part in part_definition.items():
         object_id = part[0].replace("^", "")
-        category = part[2]
-        sub_category = part[4]
         nice_name = part[7]
-        variant_of = part[9].replace("^", "")
 
         if not object_id or not nice_name:
             continue
@@ -96,29 +164,17 @@ def get_category_vise_objects():
         if object_id not in nice_names:
             continue
 
-        nice_name = to_title_case(nice_name)
+        # a family sits under its root's category, with the root's name
+        root = roots.get(object_id, object_id)
+        root_part = part_definition.get("^" + root) or part_definition.get(root) or part
+        category = root_part[2]
+        sub_category = root_part[4]
 
-        if category not in categories_list:
-            categories_list[category] = {}
-        if sub_category not in categories_list[category]:
-            categories_list[category][sub_category] = {}
+        sub_cat = categories_list.setdefault(category, {}).setdefault(sub_category, {})
+        entry = sub_cat.setdefault(root, {})
+        entry["name"] = to_title_case(root_part[7] or nice_name)
 
-        sub_cat = categories_list[category][sub_category]
-
-        if variant_of == "None":
-            if object_id not in sub_cat:
-                sub_cat[object_id] = {}
-
-            sub_cat[object_id]["name"] = nice_name
-
-        else:
-            if variant_of not in sub_cat:
-                sub_cat[variant_of] = {
-                    "name": nice_name
-                }
-
-            if "variants" not in sub_cat[variant_of]:
-                sub_cat[variant_of]["variants"] = []
-            sub_cat[variant_of]["variants"].append(object_id)
+        if object_id != root:
+            entry.setdefault("variants", []).append(object_id)
 
     return categories_list

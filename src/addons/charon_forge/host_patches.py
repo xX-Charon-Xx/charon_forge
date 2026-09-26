@@ -1,7 +1,7 @@
 """The few places the base builder addon colours parts around its material hook.
 
 Its Colour panel goes through the material provider for single parts, which
-hooks.py already covers. Four paths don't, and each assumes colour lives in
+hooks.py already covers. The paths below don't, and most assume colour lives in
 a flat material on the mesh, which is not how a high res part is coloured
 (its colour is on the object, see materials/colouring.py):
 
@@ -14,6 +14,11 @@ a flat material on the mesh, which is not how a high res part is coloured
     properties the colourise node group reads, so a high res group came out
     blacked out until it was ungrouped. The wrapper puts the parts' colour
     back on, the way Charon Forge's own grouping does.
+  - BuildTool.mirror and Group.mirror_cache_data place a part's twin as if
+    it were the part's mesh flipped on local X. The high
+    res twin is the game's own model, which often isn't (B_STR_B_S is
+    B_STR_B_N flipped on Z), so it came out pointing the wrong way. The
+    wrappers apply the correction from builder/mirror_twins.py.
   - Curves paint only their first follower and expect the others to follow
     through the shared mesh. High res followers do share a mesh, but that
     mesh doesn't hold their colour, so only the first follower changed.
@@ -23,11 +28,13 @@ everything else goes to the addon's own code, unchanged. remove() puts the
 originals back.
 """
 
+import json
 import sys
 
 import bpy
 
 from . import materials
+from .builder import mirror_twins
 from .objects.group import Group as CharonGroup
 from .objects.part import Part
 from .utils import base_builder_utils
@@ -100,6 +107,32 @@ def _wrap_group_objects(original):
             CharonGroup.carry_colour(merged_object, colour_info)
         return merged_object
     return group_objects
+
+
+# Mirroring ---
+def _wrap_twin_tool(original):
+    """BuildTool.mirror: correct the high res twins it swapped in, once it has
+    placed them."""
+    def tool(self, *args, **kwargs):
+        mirror_twins.discard_pending()
+        try:
+            return original(self, *args, **kwargs)
+        finally:
+            mirror_twins.apply_pending()
+    return tool
+
+
+def _wrap_mirror_cache_data(original):
+    def mirror_cache_data(child_cache, origin_matrix, axis, center):
+        new_cache, new_origin = original(child_cache, origin_matrix, axis, center)
+        if new_cache is None:
+            return new_cache, new_origin
+        try:
+            old_children = json.loads(child_cache)
+        except (TypeError, ValueError):
+            return new_cache, new_origin
+        return mirror_twins.correct_mirrored_cache(old_children, new_cache), new_origin
+    return mirror_cache_data
 
 
 def _wrap_apply_default_colour(original):
@@ -179,12 +212,21 @@ def install():
                        _wrap_group_apply_colour, static=True)
         done &= _patch(group_module.Group, "group_objects",
                        _wrap_group_objects, static=True)
+        done &= _patch(group_module.Group, "mirror_cache_data",
+                       _wrap_mirror_cache_data, static=True)
     else:
         done = False
 
     if curve_module is not None:
         done &= _patch(curve_module, "apply_color",
                        lambda f: _wrap_curve_apply_color(f, curve_module))
+    else:
+        done = False
+
+    build_tool_module = base_builder_utils.get_module("tools.build_tool")
+    build_tool_class = getattr(build_tool_module, "BuildTool", None)
+    if build_tool_class is not None:
+        done &= _patch(build_tool_class, "mirror", _wrap_twin_tool)
     else:
         done = False
 
@@ -197,8 +239,9 @@ def install():
         done = False
 
     if not done:
-        print("Charon Forge: some of the base builder addon's colour tools "
-              "could not be hooked, they may not colour high res groups or curves")
+        print("Charon Forge: some of the base builder addon's colour and mirror "
+              "tools could not be hooked, they may not colour high res groups or "
+              "curves, or mirror every high res part the right way round")
     return done
 
 
