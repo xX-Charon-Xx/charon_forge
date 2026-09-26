@@ -22,9 +22,13 @@ import sys
 
 import bpy
 
-# the extension module the addon is installed as on this machine - it is
-# linked into extensions/user_default/official_nms_builder
-PREFERRED_ADDON_MODULE = "bl_ext.user_default.official_nms_builder"
+# The names the addon is installed under, most wanted first. Blender names an
+# extension's module after where it came from as well as its folder -
+# bl_ext.user_default.<folder> installed from disk, bl_ext.blender_org.<folder>
+# from the online platform, the bare folder for a legacy addon - so only the
+# last part is matched. The release is installed as its extension id; the
+# development copy was linked in as official_nms_builder.
+PREFERRED_ADDON_NAMES = ("no_mans_sky_base_builder", "official_nms_builder")
 
 # how the addon is named to the user, in messages about features that need it
 HOST_ADDON_NAME = "No Man's Sky Base Builder"
@@ -41,22 +45,40 @@ def _hooks_module_for(addon_module):
     return None
 
 
+# what the last lookup found, checked again before it is trusted
+_found_module = None
+
+
+def _find_addon_module(enabled):
+    """The enabled addon to hook into: one installed under a known name
+    first, then any other exposing the same hooks - so a reinstall under a
+    different folder, or from a different repository, still works."""
+    for name in PREFERRED_ADDON_NAMES:
+        for addon_module in enabled:
+            if addon_module.rsplit(".", 1)[-1] == name and _hooks_module_for(addon_module):
+                return addon_module
+    for addon_module in enabled:
+        if _hooks_module_for(addon_module):
+            return addon_module
+    return None
+
+
 def get_addon_module_name():
     """Module name of the enabled base builder addon that has the hooks, or None.
 
-    Tries PREFERRED_ADDON_MODULE first, then any other enabled addon exposing
-    the same hooks, so a reinstall under a different folder name still works.
+    Called for every part placed, so the last answer is reused for as long
+    as that addon is still enabled and loaded, and only a miss scans the
+    enabled addons again.
     """
+    global _found_module
     enabled = bpy.context.preferences.addons.keys()
 
-    found = None
-    if PREFERRED_ADDON_MODULE in enabled and _hooks_module_for(PREFERRED_ADDON_MODULE):
-        found = PREFERRED_ADDON_MODULE
-    else:
-        for addon_module in enabled:
-            if _hooks_module_for(addon_module):
-                found = addon_module
-                break
+    found = _found_module
+    if found is None or found not in enabled or _hooks_module_for(found) is None:
+        found = _find_addon_module(enabled)
+        if found != _found_module and found is not None:
+            print(f"Charon Forge: using the base builder addon installed as {found}")
+        _found_module = found
 
     if found is not None and _on_addon_found is not None:
         _on_addon_found()

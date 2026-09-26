@@ -2,8 +2,8 @@
   "base_path": "themes",
   "themes": {
     "charon": "Charon.xml",
-    "purple_dream_2": "Purple_Dream_2.xml",
-    "sw_jedi_interface": "SW Jedi Interface.xml",
-    "sw_sith_interface": "SW Sith Interface.xml"
+    "purple_dream": "Purple_Dream_2.xml",
+    "jedi_interface": "Jedi Interface (Star Wars).xml",
+    "sith_interface": "Sith Interface (Star Wars).xml"
   }
 }
