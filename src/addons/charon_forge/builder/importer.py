@@ -1,9 +1,10 @@
 """Fast bulk import of the parts in NMS base data.
 
 An import runs in batches, each a single pass over the whole base: every
-asset the base needs is appended first, then every object is made, then every
-part is coloured, then the materials the appends brought in are deduped and
-prepared once - see import_objects. The import collection is excluded from
+asset the base needs is appended first, then one coloured template object is
+made per distinct (ObjectID, UserData), then every placement is a copy of its
+template, then the materials the appends brought in are deduped and prepared
+once - see import_objects. The import collection is excluded from
 the view layer throughout, and as much data as possible is shared between the
 objects made:
 
@@ -102,8 +103,6 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
     # Fbx fallback objects and their per (object id, user data) mesh copies.
     unique_objects = {}
     unique_materials = {}
-    # (object, user data) pairs to colour in one pass at the end.
-    to_colour = []
 
     timing = {"start": time.perf_counter()}
     asset_library.reset_load_stats()
@@ -143,43 +142,69 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
                 )
                 timing["assets"] = time.perf_counter()
 
-                # 2. every object, a plain new one over its id's shared mesh -
-                # no copy, no ops, every placement of an id on the one mesh
-                link_object = import_collection.objects.link
+                # 2. one template per distinct (id, UserData), carrying
+                # everything its placements have in common - the shared mesh,
+                # the part properties and the colour - coloured in one pass.
+                # The templates are in no collection and removed at the end.
+                templates = {}
                 new_object = bpy.data.objects.new
-                for order, part_data, object_id, user_data, override_class in parts:
+                for _, _, object_id, user_data, override_class in parts:
                     if override_class is not None:
-                        override_class.deserialise_from_data(
-                            part_data, builder_object, compensate_normal=compensate_normal
-                        )
                         continue
+                    key = (object_id, str(user_data))
+                    mesh = unique_meshes.get(object_id)
+                    if mesh is None or key in templates:
+                        continue
+                    template = new_object(object_id, mesh)
+                    _write_part_props(template, object_id, user_data)
+                    templates[key] = template
+                materials.apply_many(
+                    [(template, key[1]) for key, template in templates.items()], fresh=True
+                )
+                timing["templates"] = time.perf_counter()
 
-                    high_res_mesh = unique_meshes.get(object_id)
-                    if high_res_mesh is not None:
-                        bpy_object = new_object(object_id, high_res_mesh)
-                        link_object(bpy_object)
-                        to_colour.append((bpy_object, user_data))
-                    else:
-                        bpy_object = build_fbx_part(
-                            builder_object,
-                            object_id,
-                            user_data,
-                            import_collection,
-                            unique_objects,
-                            unique_materials,
-                        )
-                        if bpy_object is None:
+                # 3. every placement a copy of its template: one call copies
+                # every property in C, leaving only what differs per part -
+                # where it is, when it was placed, its message and order
+                link_object = import_collection.objects.link
+                now = str(int(time.time()))
+                try:
+                    for order, part_data, object_id, user_data, override_class in parts:
+                        if override_class is not None:
+                            override_class.deserialise_from_data(
+                                part_data, builder_object, compensate_normal=compensate_normal
+                            )
                             continue
 
-                    restore_params(bpy_object, part_data, object_id)
-                    bpy_object.matrix_world = deserialise_matrix_world(part_data)
-                    bpy_object[Part.PROP_ORDER] = order
-                timing["build"] = time.perf_counter()
+                        template = templates.get((object_id, str(user_data)))
+                        if template is not None:
+                            bpy_object = template.copy()
+                            link_object(bpy_object)
+                            bpy_object[Part.PROP_TIMESTAMP] = str(
+                                part_data.get(Part.PROP_TIMESTAMP, now)
+                            )
+                            message = part_data.get(Part.PROP_MESSAGE, None)
+                            if message:
+                                bpy_object[Part.PROP_MESSAGE] = message
+                        else:
+                            bpy_object = build_fbx_part(
+                                builder_object,
+                                object_id,
+                                user_data,
+                                import_collection,
+                                unique_objects,
+                                unique_materials,
+                            )
+                            if bpy_object is None:
+                                continue
+                            restore_params(bpy_object, part_data, object_id)
 
-                # 3. every high res part coloured in one pass - properties on
-                # the objects, so the materials stay shared
-                materials.apply_many(to_colour, fresh=True)
-                timing["colour"] = time.perf_counter()
+                        bpy_object.matrix_world = deserialise_matrix_world(part_data)
+                        bpy_object[Part.PROP_ORDER] = order
+                finally:
+                    if templates:
+                        bpy.data.batch_remove(list(templates.values()))
+                timing["build"] = time.perf_counter()
 
                 # asked for here, so they run on leaving even when every
                 # asset was already in the file
@@ -213,13 +238,13 @@ def _report_timing(part_count, timing):
 
     print(
         "Charon Forge: imported %d parts in %.2fs - assets %s (%d new: "
-        "append %.2fs, merge %.2fs, clean %.2fs, glow %.2fs), build %s, "
-        "colour %s, materials %s, scene update %s"
+        "append %.2fs, merge %.2fs, clean %.2fs, glow %.2fs), templates %s, "
+        "build %s, materials %s, scene update %s"
         % (
             part_count, timing["end"] - start, span("start", "assets"),
             stats["assets"], stats["append"], stats["merge"], stats["clean"], stats["glow"],
-            span("assets", "build"), span("build", "colour"),
-            span("colour", "materials"), span("materials", "end"),
+            span("assets", "templates"), span("templates", "build"),
+            span("build", "materials"), span("materials", "end"),
         )
     )
 
@@ -296,17 +321,22 @@ def import_fbx_from_disk(builder_object, object_id):
     return bpy_object
 
 
+def _write_part_props(bpy_object, object_id, user_data):
+    """The part properties every placement of an (id, UserData) shares."""
+    bpy_object[Part.PROP_OBJECT_ID] = object_id
+    bpy_object[Part.PROP_SNAP_ID] = object_id
+    bpy_object[Part.PROP_USER_DATA] = str(user_data)
+    bpy_object[Part.PROP_BELONGS_TO_PRESET] = False
+
+
 def restore_params(bpy_object, part_data, object_id):
     """Copy the part properties out of its save data onto the object."""
     user_data = part_data.get(Part.PROP_USER_DATA, "")
     time_stamp = str(part_data.get(Part.PROP_TIMESTAMP, int(time.time())))
     message = part_data.get(Part.PROP_MESSAGE, None)
 
-    bpy_object[Part.PROP_OBJECT_ID] = object_id
-    bpy_object[Part.PROP_SNAP_ID] = object_id
-    bpy_object[Part.PROP_USER_DATA] = str(user_data)
+    _write_part_props(bpy_object, object_id, user_data)
     bpy_object[Part.PROP_TIMESTAMP] = time_stamp
-    bpy_object[Part.PROP_BELONGS_TO_PRESET] = False
 
     # copies carry the source's message, so clear it when this part has none
     if message:
