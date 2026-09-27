@@ -17,11 +17,18 @@ its own Builder class.
 
 import bpy
 
-from . import asset_library, importer, mirror_twins, placement, station_prompt
+from . import importer, placement, proxy_library, station_prompt
 from .. import materials
 from ..objects import circle, cuboid, polygon, rectangle, shape, sphere  # noqa: F401 - registers the forged kinds
 from ..objects.forged import Forged
 from ..utils import optimiser_utils
+
+# what the libraries mark the meshes they cache and hand out again with
+_CACHE_TAGS = (
+    materials.MESH_TAG,
+    proxy_library.PROXY_MESH_TAG,
+    proxy_library.PROXY_PLACEMENT_TAG,
+)
 
 
 class HighResBuilderMixin(object):
@@ -44,63 +51,28 @@ class HighResBuilderMixin(object):
         )
 
     # Mirroring ---
-    def mirror_part(self, part_object):
-        twin_id = placement.get_default_part_class(self).get_mirror_part_id(
-            part_object["ObjectID"]
-        )
-        if self._swap_to_high_res_twin(part_object, twin_id, mirror_twins.MIRROR):
-            return part_object
-        return super(HighResBuilderMixin, self).mirror_part(part_object)
+    def _swap_to_twin(self, part_object, new_object_id, flip_axis):
+        """The base builder addon's mirror and flip, with the faces of the
+        flipped mesh turned back the right way out.
 
-    def flip_part(self, part_object):
-        twin_id = placement.get_default_part_class(self).get_flip_part_id(
-            part_object["ObjectID"]
-        )
-        if self._swap_to_high_res_twin(part_object, twin_id, mirror_twins.FLIP):
-            return part_object
-        return super(HighResBuilderMixin, self).flip_part(part_object)
-
-    def _swap_to_high_res_twin(self, part_object, twin_id, kind=mirror_twins.MIRROR):
-        """Point a part at its mirrored/flipped twin's library mesh.
-
-        High res parts share one mesh per ObjectID, so scaling that mesh by -1
-        the way the base class does would turn every other copy of the part
-        inside out. The twin is usually its own model in the library, in which
-        case pointing at it is the whole job and nothing is flipped. When it
-        isn't, this returns False and the base class flips a copy instead.
+        Mirroring is entirely the addon's: mirror_part / flip_part scale the
+        part's mesh by -1 on one axis and give it the twin's id. Blender's
+        Mesh.transform doesn't reverse the faces' winding for a negative
+        scale, so they end up facing inwards and a material with backface
+        culling shows the part from inside (B_STR_AA_N, B_DECO_Q_0).
         """
-        if not self.use_high_res:
-            return False
+        # The addon only copies a mesh that has other users. A part that is
+        # the sole user of a library's cached mesh would have that cache
+        # flipped in place, and every later placement of the id with it.
+        mesh = part_object.data
+        if mesh.users == 1 and any(tag in mesh for tag in _CACHE_TAGS):
+            part_object.data = mesh.copy()
 
-        twin_mesh = asset_library.load_high_res_mesh(twin_id)
-        if twin_mesh is None:
-            return False
-
-        old_id = part_object["ObjectID"]
-        was_high_res = materials.is_high_res(part_object)
-        part_object.data = twin_mesh
-        part_object["ObjectID"] = twin_id
-        part_object.name = twin_id
-        self._forget_cached(old_id)
-        self.add_to_part_cache(twin_id, part_object)
-
-        # The twin's own mesh is often not the current one flipped the way the
-        # addon assumes when it places the twin (B_STR_B_S is B_STR_B_N flipped
-        # on Z, not X). Noted here, applied once the addon has placed it.
-        if was_high_res:
-            correction = mirror_twins.twin_correction(old_id, twin_id, kind)
-            if correction is not None:
-                mirror_twins.note_swap(part_object, correction)
-        return True
-
-    def _forget_cached(self, object_id):
-        # Both builders keep their part cache in a private self.__part_cache,
-        # which Python stores as _Builder__part_cache since both classes are
-        # named Builder. Without this the old id would keep pointing at the
-        # renamed object.
-        cache = getattr(self, "_Builder__part_cache", None)
-        if isinstance(cache, dict):
-            cache.pop(object_id, None)
+        result = super(HighResBuilderMixin, self)._swap_to_twin(
+            part_object, new_object_id, flip_axis
+        )
+        part_object.data.flip_normals()
+        return result
 
     # Lookups ---
     def get_all_groups(self):

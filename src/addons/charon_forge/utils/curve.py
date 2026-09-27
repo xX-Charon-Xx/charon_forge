@@ -1,4 +1,3 @@
-import json
 import math
 import os
 import uuid
@@ -8,10 +7,9 @@ import bpy
 
 from .. import builder as charon_builder
 from .. import materials
-from ..objects import part
 from ..objects.group import Group
 from ..objects.part import Part
-from . import collection_utils, curve_utils, dictionary, mirror_utils
+from . import collection_utils, curve_utils
 from .base_builder_utils import blend_utils
 
 
@@ -563,62 +561,11 @@ def duplicate_curve(curve_obj):
     return new_curve_obj
     
 
-# mirror a curve and objects dupicated along it
-def mirror_curve(build_tool,curve_obj, axis = "Z", center = None, auto_duplicate = False):
-    if not is_bezier_or_nurbs_path(curve_obj):
-        return None
-    
-    # Duplicate the object and its data block so they don't share identical vertices
-    if auto_duplicate:
-        new_curve_obj = curve_obj.copy()
-        new_curve_obj.data = curve_obj.data.copy()
-        new_curve_obj[Curve.PROP_CURVE_ID] = str(uuid.uuid4())
-        parent_collection = collection_utils.get_parent_collection(curve_obj)
-        parent_collection.objects.link(new_curve_obj)
-    else:
-        new_curve_obj = curve_obj
-                    
-    #Apply the mathematical mirror to curve objects
-    curve_utils.mirror_curve(new_curve_obj, axis, center)
-    
-    if new_curve_obj[Curve.PROP_DUP_IS_GROUP]:
-        # All this needs out of the group is two strings - the mirrored child
-        # cache and the mirrored origin. It used to get them by building every
-        # child as a real object, mirroring those, merging them into a mesh and
-        # then deleting the mesh, which is about 60 ms of work thrown away.
-        # mirror_cache_data does the same arithmetic straight on the cache.
-        child_cache = new_curve_obj[Curve.PROP_GROUP_CHILD_CACHE]
-        origin_matrix = Group.str_to_matrix(new_curve_obj[Curve.PROP_ORIGIN_MATRIX])
-
-        new_child_cache, new_origin_matrix = Group.mirror_cache_data(
-            child_cache, origin_matrix, axis, center
-        )
-        if new_child_cache is not None:
-            new_curve_obj[Curve.PROP_GROUP_CHILD_CACHE] = new_child_cache
-            new_curve_obj[Curve.PROP_ORIGIN_MATRIX] = json.dumps(
-                [list(row) for row in new_origin_matrix]
-            )
-
-    else:
-        # update objectID if mirror part of that object exist
-        obj_id = new_curve_obj[Curve.PROP_DUP_OBJECT_ID]
-        mirror_obj_id = part.Part.get_mirror_part_id(obj_id)
-        mirror_part_exist =  mirror_obj_id in dictionary.get_nice_names_diictionary()
-        if mirror_part_exist:
-            new_curve_obj[Curve.PROP_DUP_OBJECT_ID] = mirror_obj_id
-    
-    # syncing curves will make objects duplicating on them have identical transformations
-    sync_curves(new_curve_obj, curve_obj, True, axis, from_mirror= True)
-    return new_curve_obj
-
-
 # this function takes two curves as argument
 # iterage over objects of source curve and copy transformations of those objects to their alternatives in target curve
 # this in a way creates eact copy of these curves no matter how much obects have been manupulated by user
-# do_mirror: this argument dictates if child objects need to be mirrored
-# asix: this dictates which direction objects need to be mirrored
-# last two objects dictate which function is calling them, 
-def sync_curves(target_curve, source_curve, do_mirror = False, axis = None, from_mirror = False, duping_object_source = None):
+# duping_object_source: the object to duplicate along target_curve, if not the source curve's first
+def sync_curves(target_curve, source_curve, duping_object_source = None):
 
     target_curve[Curve.PROP_CURVE_ID] = str(uuid.uuid4())
     target_is_group =  target_curve.get(Curve.PROP_DUP_IS_GROUP,False)
@@ -632,7 +579,7 @@ def sync_curves(target_curve, source_curve, do_mirror = False, axis = None, from
     
     if duping_object_source is not None:
         duping_obejct = duping_object_source
-    elif len(source_dupe_objects) > 0 and not from_mirror:
+    elif len(source_dupe_objects) > 0:
         duping_obejct = source_dupe_objects[0]
     else:
         duping_obejct = None
@@ -661,15 +608,6 @@ def sync_curves(target_curve, source_curve, do_mirror = False, axis = None, from
         target.scale = source.scale.copy()
         target.location = source.location.copy()
         target[Curve.PROP_BASE_SCALE] = source[Curve.PROP_BASE_SCALE]
-            
-        if do_mirror:
-            target.location.x = -target.location.x
-            target.rotation_euler.y = -target.rotation_euler.y
-            target.rotation_euler.z = -target.rotation_euler.z
-            
-            if axis is not None and axis == "Z" and target_is_group:
-                target.rotation_euler.x += math.pi
-                target.rotation_euler.z += math.pi
                 
     
 

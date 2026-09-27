@@ -4,7 +4,6 @@ import math
 
 from mathutils import Vector
 from mathutils.geometry import interpolate_bezier
-from . import mirror_utils
 
 
 # The density integral below gets walked twice on every curve update - once to
@@ -245,65 +244,6 @@ def update_object_factor(obj , curve_obj, factor, constraint = None):
         constraint.offset_factor = factor
     if obj.get("curve_factor") != factor:
         obj["curve_factor"] = factor
-
-def mirror_curve(curve_obj, axis='X', center = Vector((0,0,0))):
-    """
-    Optimized mirroring with single-pass handle type operations
-    and pre-computed axis index.
-    """
-    if not curve_obj or curve_obj.type != 'CURVE':
-        raise TypeError("Please provide a valid curve object.")
-    
-    axis = axis.upper()
-    if axis not in {'X', 'Y', 'Z'}:
-        raise ValueError("Axis parameter must be 'X', 'Y', or 'Z'.")
-    
-    axis_idx = {'X': 0, 'Y': 1, 'Z': 2}[axis]
-    curve_data = curve_obj.data
-    
-    for spline in curve_data.splines:
-        if spline.type == 'BEZIER':
-            # Store and change handle types in single pass
-            points = spline.bezier_points
-            stored_types = [
-                {'left': bp.handle_left_type, 'right': bp.handle_right_type}
-                for bp in points
-            ]
-            
-            # Set all to FREE in one pass
-            for bp in points:
-                bp.handle_left_type = 'FREE'
-                bp.handle_right_type = 'FREE'
-            
-            # Mirror all coordinates in one pass
-            for bp in points:
-                bp.co[axis_idx] *= -1.0
-                bp.handle_left[axis_idx] *= -1.0
-                bp.handle_right[axis_idx] *= -1.0
-                bp.tilt *= -1.0
-            
-            # Restore handle types in one pass
-            for bp, orig_type in zip(points, stored_types):
-                bp.handle_left_type = orig_type['left']
-                bp.handle_right_type = orig_type['right']
-        
-        else:  # NURBS or POLY
-            for pt in spline.points:
-                pt.co[axis_idx] *= -1.0
-                pt.tilt *= -1.0
-    
-    # Mirror positin of curve according to center of reflection
-    curve_obj.location = mirror_utils.reflect_point(curve_obj.location, center, axis)
-    if axis == "X":
-        curve_obj.rotation_euler.y *= -1
-        curve_obj.rotation_euler.z *= -1
-    elif axis == "Y":
-        curve_obj.rotation_euler.x *= -1
-        curve_obj.rotation_euler.z *= -1
-    elif axis == "Z":
-        curve_obj.rotation_euler.x *= -1
-        curve_obj.rotation_euler.y *= -1
-
 
 def normalise_curve_scale(curve_obj):
     """

@@ -37,7 +37,6 @@ Charon Forge is a Blender extension for designing No Man's Sky bases and corvett
 - **The Watchtower:** part count, base type and the selected part shown over the viewport.
 - **The Forge:** spheres, cuboids, circles, polygons and more, made from copies of any part. QR codes. Full space stations to build inside.
 - **Helmsman:** review a batch of ships and write the approved ones into your save's ship slots.
-- **Correct mirroring:** mirrored parts face the right way in Blender and in game.
 
 ![The Charon Forge sidebar](images/panels-overview.png)
 
@@ -213,7 +212,7 @@ Charon Forge works on its own. The asset browser, importing and exporting, the F
 
 With the **No Man's Sky Base Builder** addon also installed, Charon Forge connects to it automatically:
 - The Base Builder's own tools (snapping, mirroring, grouping, its colour panel) place and colour Charon's high-resolution parts.
-- Mirroring fixes the parts whose mirrored form in the game isn't a simple mirror image, so they come out facing the right way in game.
+- Mirroring and flipping are the Base Builder's own. Charon only turns the flipped part's faces the right way out, so none show inside out.
 - Fossils, groups and colours behave the same with either set of tools.
 - **Simple Proxies** and **Replace Selected Objects** use the Base Builder's models and tools, so they need it installed. Charon says so where that applies.
 

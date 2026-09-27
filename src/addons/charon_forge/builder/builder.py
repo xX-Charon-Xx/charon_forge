@@ -11,7 +11,6 @@ import time
 from collections import defaultdict
 
 import bpy
-from mathutils import Matrix
 
 from ..objects import group, part, preset
 from ..utils.base_builder_utils import blend_utils, overrides
@@ -164,27 +163,6 @@ class Builder(Catalog):
     def add_preset(self, preset_id):
         """Add an item based on it's preset ID."""
         return preset.Preset(preset_id=preset_id, builder_object=self)
-
-    def mirror_part(self, part_object):
-        new_object_id = part.Part.get_mirror_part_id(part_object["ObjectID"])
-        return self._swap_to_twin(part_object, new_object_id, (1, 0, 0))
-
-    def flip_part(self, part_object):
-        new_object_id = part.Part.get_flip_part_id(part_object["ObjectID"])
-        return self._swap_to_twin(part_object, new_object_id, (0, 1, 0))
-
-    def _swap_to_twin(self, part_object, new_object_id, flip_axis):
-        # meshes are shared between parts, so never transform a shared one in place
-        if part_object.data.users > 1:
-            part_object.data = part_object.data.copy()
-        part_object.data.transform(Matrix.Scale(-1, 4, flip_axis))
-
-        # Update ObjectID, name and cache
-        self.__part_cache.pop(part_object["ObjectID"], None)
-        part_object["ObjectID"] = new_object_id
-        part_object.name = new_object_id
-        self.__part_cache[new_object_id] = part_object.name
-        return part_object
 
     def build_rigs(self):
         """Get all items that require a rig and build them."""

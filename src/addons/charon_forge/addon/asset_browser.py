@@ -2,7 +2,7 @@
 import bpy
 from . import asset_browser_operators, asset_browser_presentation
 from ..utils import asset_browser_utils
-from ..utils.mirror_utils import ShowMessageBox
+from ..utils.fallbacks.blend_utils import ShowMessageBox
 
 
 ADDON_ID = asset_browser_utils.ADDON_ID
