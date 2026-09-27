@@ -7,6 +7,7 @@ from . import base_builder_menu_operators
 from .base_builder_menu_presentation import (EXPORT_PINNED_BASE_OP,
                                              VIEW3D_PT_nms_base_builder,
                                              VIEW3D_PT_nms_io_panel,
+                                             get_pinned_base,
                                              get_save_editor_presentation,
                                              operator_exists)
 
@@ -60,6 +61,12 @@ def draw_header_menu(self, context):
     menu_row = layout.box().row(align = True)
     menu_row.popover(panel=VIEW3D_PT_nms_base_builder.bl_idname, text="Charon",  icon_value = icon_utils.get_icon_id("app_icon"))
 
+    # a pinned base goes back to its save in one click, as in the base
+    # builder addon's header
+    if get_pinned_base(context) is not None and operator_exists(EXPORT_PINNED_BASE_OP):
+        layout.separator()
+        layout.operator(EXPORT_PINNED_BASE_OP, icon="EXPORT", text="Export to Save")
+
 
 
 classes = (
@@ -77,7 +84,8 @@ def register_menu():
         description="Asset QA View Mode",
         items = [
             ("fav", "Favourites", "fav","HEART", 0),
-            ("recent", "Recent", "recent","MOD_TIME",1)
+            ("recent", "Recent", "recent","MOD_TIME",1),
+            ("preset", "Presets", "Your saved presets", "PRESET", 2),
         ],
         default = "fav"
     )

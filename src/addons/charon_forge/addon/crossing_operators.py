@@ -5,7 +5,7 @@ import bpy
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 from ..builder import importer
-from ..utils import nmsship
+from ..utils import loading_overlay, nmsship
 
 EXPORT_FORMATS = [
     (nmsship.FORMAT_NMSSHIP, ".nmsship", "A corvette with its ship record and customisation (zip)"),
@@ -24,6 +24,7 @@ class ImportShipFile(bpy.types.Operator, ImportHelper):
         default="*.nmsship;*.json;*.txt", options={"HIDDEN", "SKIP_SAVE"}
     )
 
+    @loading_overlay.while_running("Importing ship")
     def execute(self, context):
         from ..builder import get_builder
 
@@ -103,6 +104,7 @@ class ExportShipFile(bpy.types.Operator, ExportHelper):
         else:
             layout.label(text="No ship imported, empty inventories", icon="INFO")
 
+    @loading_overlay.while_running("Exporting ship")
     def execute(self, context):
         from ..builder import get_builder
 
@@ -144,6 +146,7 @@ class ImportShipClipboard(bpy.types.Operator):
     bl_label = "Import from Clipboard"
     bl_options = {"REGISTER", "UNDO"}
 
+    @loading_overlay.while_running("Importing from the clipboard")
     def execute(self, context):
         from ..builder import get_builder
 
@@ -170,6 +173,7 @@ class ExportShipClipboard(bpy.types.Operator):
     bl_idname = "object.charon_export_clipboard"
     bl_label = "Export to Clipboard"
 
+    @loading_overlay.while_running("Copying to the clipboard")
     def execute(self, context):
         from ..builder import get_builder
 

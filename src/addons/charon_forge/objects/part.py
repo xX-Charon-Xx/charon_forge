@@ -8,6 +8,7 @@ import mathutils
 
 from .. import materials
 from ..utils.base_builder_utils import blend_utils
+from ..utils import selection
 from ..utils.base_builder_utils import python_utils
 
 z_compensate = mathutils.Matrix.Rotation(math.radians(-90.0), 4, "X")
@@ -270,7 +271,7 @@ class Part(object):
         return new_object
 
     def select(self, value=True, add=False):
-        blend_utils.select(self.object)
+        selection.select_only(self.object)
 
     @property
     def parent(self):

@@ -9,6 +9,7 @@ from mathutils import Matrix, Vector
 import uuid
 
 from .. import materials
+from ..utils import loading_overlay
 from ..utils.base_builder_utils import blend_utils
 from .part import Part
 
@@ -866,6 +867,7 @@ class Group:
             for group_obj in list(context.scene.objects):
                 if Group.PROP_GROUP_ID not in group_obj:
                     continue
+                loading_overlay.step("Switching groups")
                 # a Forge sphere's or shape's mesh is the points its node
                 # tree places the part on, not a merged mesh - see
                 # objects/forged.py

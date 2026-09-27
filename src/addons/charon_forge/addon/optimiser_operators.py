@@ -2,7 +2,7 @@ import bpy
 from bpy.props import EnumProperty, IntProperty, StringProperty
 
 from .. import materials
-from ..utils import icon_utils, optimiser_utils
+from ..utils import icon_utils, loading_overlay, optimiser_utils
 from . import asset_browser_presentation
 
 
@@ -27,6 +27,7 @@ class OptimiseMaterials(bpy.types.Operator):
     bl_label = "Optimise Materials"
     bl_options = {"REGISTER", "UNDO"}
 
+    @loading_overlay.while_running("Optimising materials")
     def execute(self, context):
         materials.optimise_materials()
         optimiser = context.scene.charon_optimiser
@@ -42,6 +43,7 @@ class OptimiseNow(bpy.types.Operator):
     bl_idname = "object.charon_optimise_now"
     bl_label = "Optimise Now"
 
+    @loading_overlay.while_running("Reordering parts")
     def execute(self, context):
         from ..builder import get_builder
 

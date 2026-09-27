@@ -10,6 +10,7 @@
     emission.py      making what glows in game glow in Blender
     packing.py       packing the library's textures into a saved .blend
     samplers.py      keeping materials under EEVEE's 32 texture limit
+    shaders.py       how many shaders EEVEE compiles for a set of materials
     finish_nodes.py  tearing the old hand-tuned finish preview out of old files
     palettes.py      DT_Palettes.csv, for the flat proxy materials only
     dedupe.py        collapsing the textures and node groups appends duplicate
@@ -25,7 +26,8 @@ docs/MATERIALS.md at the top of the repository explains the whole system.
 
 import bpy
 
-from . import colourise, emission, game_data, host, merge, packing, samplers
+from . import (colourise, emission, game_data, host, merge, packing, samplers,
+               shaders)
 from .colouring import (apply, apply_many, apply_palette, clear, decode,
                         default_user_data, encode, is_colourable, is_high_res,
                         object_id_of, recolour, recolour_from_user_data,

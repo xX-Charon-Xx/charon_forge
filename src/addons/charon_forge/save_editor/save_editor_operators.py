@@ -2,6 +2,7 @@ import bpy
 
 from . import save_editor_utils
 from .. import addon_preferences
+from ..utils import loading_overlay
 
 # Operator for button to select save folder directory
 class SelectSaveFolder(bpy.types.Operator):
@@ -43,6 +44,7 @@ class ImportBaseFromSave(bpy.types.Operator):
     bl_label = "Import data from selected file"
     bl_description = "Import base from save file while also pinning it on top"
 
+    @loading_overlay.while_running("Importing base from save")
     def execute(self, context):
         scene = context.scene
         save_data = scene.nms_save_data
@@ -59,6 +61,7 @@ class ExportBaseToSave(bpy.types.Operator):
     bl_label = "Export data to save file"
     bl_description = "Export base to save_file"
 
+    @loading_overlay.while_running("Exporting base to save")
     def execute(self, context):
         scene = context.scene
         save_data = scene.nms_save_data
@@ -75,6 +78,7 @@ class PinBase(bpy.types.Operator):
     bl_label = "Pin"
     bl_description = "Pin this base at top of Save Editor for easy access to updating functionality and persistence"
     
+    @loading_overlay.while_running("Pinning base")
     def execute(self, context):
         scene = context.scene
         save_data = scene.nms_save_data
@@ -113,6 +117,7 @@ class ImportPinnedBase(bpy.types.Operator):
         "replace all objects in scene with data imported"
     )
     
+    @loading_overlay.while_running("Importing pinned base")
     def execute(self, context):
         scene = context.scene
         save_data = scene.nms_save_data
@@ -132,6 +137,7 @@ class ExoprtPinnedBase(bpy.types.Operator):
     )
     
         
+    @loading_overlay.while_running("Exporting pinned base")
     def execute(self, context):
         scene = context.scene
         save_data = scene.nms_save_data
@@ -153,6 +159,7 @@ class MakeBackupPinned(bpy.types.Operator):
         "To restore, rename the files by remove everything before '.hg.' and pasting them into their parent folder"
     )
         
+    @loading_overlay.while_running("Backing up save files")
     def execute(self, context):
         scene = context.scene
         save_data = scene.nms_save_data
@@ -171,6 +178,7 @@ class MakeBackup(bpy.types.Operator):
         "To restore, rename the files by remove everything before '.hg.' and pasting them into their parent folder"
     )
         
+    @loading_overlay.while_running("Backing up save files")
     def execute(self, context):
         scene = context.scene
         save_data = scene.nms_save_data

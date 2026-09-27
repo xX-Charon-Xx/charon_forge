@@ -2,8 +2,11 @@
   "base_path": "themes",
   "themes": {
     "charon": "Charon.xml",
-    "purple_dream": "Purple_Dream_2.xml",
     "jedi_interface": "Jedi Interface (Star Wars).xml",
-    "sith_interface": "Sith Interface (Star Wars).xml"
+    "sith_interface": "Sith Interface (Star Wars).xml",
+    "atlas_interface": "NMS Atlas Interface.xml",
+    "Ziggy Green": "Ziggy Green.xml",
+    "Seliya": "Seliya.xml",
+    "purple_dream": "Purple_Dream_2.xml"
   }
 }

@@ -21,7 +21,12 @@ MODEL_PATH = os.path.join(ADDON_PATH, "models")
 
 USER_PATH = os.path.join(os.path.expanduser("~"), "CharonForge")
 MODS_PATH = os.path.join(USER_PATH, "mods")
-PRESET_PATH = os.path.join(USER_PATH, "presets")
+
+# Presets are shared with the base builder addon: its folder, where it saves
+# them (its builder/paths.py), so each addon lists, adds and saves the same
+# presets rather than keeping two apart.
+HOST_USER_PATH = os.path.join(os.path.expanduser("~"), "NoMansSkyBaseBuilder")
+PRESET_PATH = os.path.join(HOST_USER_PATH, "presets")
 
 
 def get_host_model_path():

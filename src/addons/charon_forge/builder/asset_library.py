@@ -13,7 +13,7 @@ import bpy
 import numpy as np
 
 from .. import materials
-from ..utils import variant_map
+from ..utils import loading_overlay, variant_map
 from ..utils.base_builder_utils import blend_utils
 from . import paths
 
@@ -337,7 +337,9 @@ def load_high_res_meshes(object_ids, asset_index=None):
     asset_index = asset_index if asset_index is not None else get_asset_index()
     leftovers = []
     meshes = {}
-    for object_id in dict.fromkeys(object_ids):
+    unique_ids = list(dict.fromkeys(object_ids))
+    for index, object_id in enumerate(unique_ids):
+        loading_overlay.step("Loading assets", index / len(unique_ids))
         meshes[object_id] = load_high_res_mesh(object_id, asset_index, leftovers)
     if leftovers:
         bpy.data.batch_remove(leftovers)

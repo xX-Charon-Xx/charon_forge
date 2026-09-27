@@ -18,7 +18,7 @@ from ..builder import importer, paths, placement
 from ..objects.forged import Forged
 from ..objects.group import Group
 from ..objects.part import Part
-from ..utils import base_builder_utils, collection_utils
+from ..utils import base_builder_utils, collection_utils, loading_overlay
 
 
 def _addon_module():
@@ -132,7 +132,8 @@ def _switch_scene_parts(context, target_high_res, proxy_cache):
         if target_high_res and candidates else {}
     )
 
-    for source_object, model_id, user_data in candidates:
+    for index, (source_object, model_id, user_data) in enumerate(candidates):
+        loading_overlay.step("Switching parts", index / len(candidates))
         if target_high_res:
             new_mesh = high_res_meshes.get(model_id)
             # An id the high res library does not cover - one of the ones it
@@ -409,6 +410,7 @@ class NMS_OT_switch_proxies_to_low(bpy.types.Operator):
         column.label(text="Each shape's parts go in a collection of their own.", icon="BLANK1")
         column.label(text="Cancel leaves the scene as it is.", icon="BLANK1")
 
+    @loading_overlay.while_running("Switching to low-res proxies")
     def execute(self, context):
         if not simple_proxies_available():
             self.report({"ERROR"}, simple_proxies_message())
@@ -437,6 +439,7 @@ class NMS_OT_switch_proxies_to_high(bpy.types.Operator):
     bl_description = "Switch every low-res proxy part and group in the scene to its the high res library part, where one exists"
     bl_options = {"REGISTER", "UNDO"}
 
+    @loading_overlay.while_running("Switching to high-res proxies")
     def execute(self, context):
         parts, groups, skipped = set_proxy_quality(context, target_high_res=True)
         _report_switch(self, parts, groups, skipped, "high-res")
@@ -456,6 +459,7 @@ class NMS_OT_fix_broken_textures(bpy.types.Operator):
     )
     bl_options = {"REGISTER", "UNDO"}
 
+    @loading_overlay.while_running("Fixing scene")
     def execute(self, context):
         from ..builder import asset_library
         from ..materials import packing

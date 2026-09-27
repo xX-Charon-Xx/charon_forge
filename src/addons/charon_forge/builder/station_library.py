@@ -23,17 +23,20 @@ recoloured in place, swapped for another kind or taken out again without
 touching anything else in the file.
 """
 
+import json
 import math
 import os
 import re
 import time
 
 import bpy
+from mathutils import Vector
 
 from .. import materials
+from ..utils import collection_utils
 from ..materials import game_data
 from ..materials.colouring import apply_palette
-from ..materials.properties import PROP_FINISH
+from ..materials.properties import PROP_FINISH, SLOT_PROPS
 from . import station_colours
 from .paths import MODEL_PATH
 
@@ -66,6 +69,12 @@ KINDS = {INTERIOR: INTERIORS, EXTERIOR: EXTERIORS}
 PROP_PART = "charon_station_part"
 PROP_KIND = "charon_station"
 PROP_PALETTE = "charon_station_palette"
+# on each part's collection: where the station stands (the 3D cursor it was
+# first imported at), so a part brought in later lines up with the rest
+PROP_ORIGIN = "charon_station_origin"
+# on an object once a palette has gone over it: the colours it was saved
+# with, to go back to (see recolour)
+PROP_SAVED_COLOURS = "charon_station_saved_colours"
 # on every datablock an import brought in
 PROP_TAG = "charon_station_data"
 SAVED_PALETTE = -1
@@ -217,8 +226,6 @@ def hide_roof(section, hidden):
 def frame_objects(space, objects, margin=1.1):
     """Point a 3D viewport at `objects`, near enough that they fill it -
     whether or not they are showing, and without touching the selection."""
-    from mathutils import Vector
-
     corners = [obj.matrix_world @ Vector(corner) for obj in objects for corner in obj.bound_box]
     if not corners:
         return False
@@ -276,9 +283,22 @@ def _new(collection, before):
     return [block for block in collection if block.as_pointer() not in before]
 
 
-def import_part(context, part, kind, palette_index=SAVED_PALETTE):
-    """Append one part of a station into its own collection at the 3D
-    cursor, its textures found and its colours set.
+def origin(context):
+    """Where the station in the file stands - the 3D cursor with none."""
+    for collection in find_stations():
+        if PROP_ORIGIN in collection:
+            return tuple(collection[PROP_ORIGIN])
+    # imported before the origin was kept: a file's objects sit at its origin
+    for collection in find_stations():
+        for obj in collection.objects:
+            if obj.parent is None and "charon_station_slot" not in obj:    # not a module
+                return tuple(obj.location)
+    return tuple(context.scene.cursor.location)
+
+
+def import_part(context, part, kind, palette_index=SAVED_PALETTE, cursor=None):
+    """Append one part of a station into its own collection at `cursor` (the
+    3D cursor by default), its textures found and its colours set.
 
     Returns:
         (collection, objects, textures with no file)
@@ -309,17 +329,25 @@ def import_part(context, part, kind, palette_index=SAVED_PALETTE):
     collection[PROP_PART] = part
     collection[PROP_KIND] = kind
     context.scene.collection.children.link(collection)
-    cursor = context.scene.cursor.location.copy()
+    cursor = (context.scene.cursor.location if cursor is None else Vector(cursor)).copy()
+    collection[PROP_ORIGIN] = tuple(cursor)
+    # filled while out of the view layer, so it is synced once rather than
+    # per object
+    with collection_utils.excluded_from_view_layer(collection):
+        for obj in objects:
+            collection.objects.link(obj)
+            if obj.parent is None:
+                obj.location = obj.location + cursor
+            if obj.name.endswith(_HIDDEN_SUFFIXES):
+                obj.hide_render = True
+        # scenery, not something to click on - see is_selectable
+        set_selectable(False, objects)
+        recolour(collection, palette_index)
+    # hiding in the viewport is per view layer, so it waits until the
+    # collection is back in it
     for obj in objects:
-        collection.objects.link(obj)
-        if obj.parent is None:
-            obj.location = obj.location + cursor
         if obj.name.endswith(_HIDDEN_SUFFIXES):
             obj.hide_set(True)
-            obj.hide_render = True
-    # scenery, not something to click on - see is_selectable
-    set_selectable(False, objects)
-    recolour(collection, palette_index)
     placed = time.perf_counter()
 
     # the same passes an appended part gets, over only what came in: glow,
@@ -340,12 +368,42 @@ def recolour(collection, palette_index):
     colourise node group reads the colours off the objects."""
     palette = game_data.palette(palette_index) if palette_index != SAVED_PALETTE else None
     collection[PROP_PALETTE] = int(palette_index)
-    if palette is None:
-        return
     for obj in collection.all_objects:
-        if obj.type == "MESH":
+        if obj.type != "MESH":
+            continue
+        if palette is None:
+            _restore_colours(obj)
+        else:
+            _keep_colours(obj)
             # the finish it was saved with stays
             apply_palette(obj, palette, obj.get(PROP_FINISH, 0))
+            obj.update_tag()
+
+
+def _keep_colours(obj):
+    """Note an object's saved colours before a palette first goes over them."""
+    if PROP_SAVED_COLOURS in obj:
+        return
+    saved = {prop: (list(obj[prop]) if hasattr(obj[prop], "__len__") else obj[prop])
+             if prop in obj else None
+             for prop in SLOT_PROPS + (PROP_FINISH,)}
+    saved["color"] = list(obj.color)
+    obj[PROP_SAVED_COLOURS] = json.dumps(saved)
+
+
+def _restore_colours(obj):
+    """Put back the colours _keep_colours noted, if a palette went over them."""
+    if PROP_SAVED_COLOURS not in obj:
+        return
+    saved = json.loads(obj[PROP_SAVED_COLOURS])
+    obj.color = saved.pop("color")
+    for prop, value in saved.items():
+        if value is None:
+            obj.pop(prop, None)
+        else:
+            obj[prop] = value
+    del obj[PROP_SAVED_COLOURS]
+    obj.update_tag()
 
 
 def remove_station(collection):

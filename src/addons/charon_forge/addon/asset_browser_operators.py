@@ -5,6 +5,8 @@ from ..utils import dictionary
 from ..utils import icon_utils
 from ..utils import base_builder_utils
 from ..utils.base_builder_utils import blend_utils
+from ..utils import selection
+from ..utils import loading_overlay
 from .. import builder as charon_builder
 from ..utils import asset_browser_utils
 from ..utils.asset_browser_utils import get_preferences
@@ -358,6 +360,7 @@ class AssetBrowserObjectSelected(bpy.types.Operator):
         return f"ObjectID : {properties.object_id}"
     
     
+    @loading_overlay.while_running("Adding part")
     def execute(self, context):
         variants = self.variants
         scene = context.scene
@@ -404,7 +407,7 @@ class AssetBrowserObjectSelected(bpy.types.Operator):
                 self.report({'ERROR'}, f"Could not add {self.object_id} to scene")
                 return {'CANCELLED'}
 
-            blend_utils.select(bpy_obj)
+            selection.select_only(bpy_obj)
             asset_browser.add_to_recents_list(self.object_id)
 
             # the ship's first cockpit or landing bay is its primary one
@@ -727,6 +730,7 @@ class AssetBrowserBatchReplace(bpy.types.Operator):
     
     object_id: bpy.props.StringProperty()
     
+    @loading_overlay.while_running("Replacing parts")
     def execute(self, context):
         batch_tool = base_builder_utils.get_batch_tool()
         if batch_tool is None:

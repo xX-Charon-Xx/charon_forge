@@ -1,7 +1,7 @@
 import bpy
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
-from ..utils import helmsman_utils
+from ..utils import helmsman_utils, loading_overlay
 
 
 def _load_batch_text(operator, context, text, source):
@@ -146,6 +146,7 @@ class ExportToSave(bpy.types.Operator):
         # is worth a look before it happens rather than on one stray click
         return context.window_manager.invoke_confirm(self, event)
 
+    @loading_overlay.while_running("Writing ships to the save")
     def execute(self, context):
         from ..utils import base_builder_utils, helmsman_utils
 
@@ -237,6 +238,7 @@ class ImportReviewShip(bpy.types.Operator):
 
     row_index: bpy.props.IntProperty()
 
+    @loading_overlay.while_running("Importing ship")
     def execute(self, context):
         from ..builder import get_builder
         from ..utils import nmsship

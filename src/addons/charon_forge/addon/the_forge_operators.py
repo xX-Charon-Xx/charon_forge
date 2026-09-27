@@ -1,7 +1,7 @@
 import bpy
 
 from ..builder import station_design, station_library, station_prompt
-from ..utils import qr_code, qr_forge, seed_utils
+from ..utils import loading_overlay, qr_code, qr_forge, seed_utils
 from ..objects.circle import Circle
 from ..objects.cuboid import Cuboid
 from ..objects.forged import Forged
@@ -47,6 +47,7 @@ class _CreateForged:
             return False
         return True
 
+    @loading_overlay.while_running("Forging shape")
     def execute(self, context):
         forged_obj = self.kind.create(context.active_object)
         _select_only(context, [forged_obj])
@@ -91,6 +92,7 @@ class SplitForged(bpy.types.Operator):
     def poll(cls, context):
         return Forged.is_forged(context.active_object)
 
+    @loading_overlay.while_running("Splitting into parts")
     def execute(self, context):
         from ..builder import get_builder
 
@@ -119,6 +121,7 @@ class ResetForged(bpy.types.Operator):
     def poll(cls, context):
         return Forged.is_forged(context.active_object)
 
+    @loading_overlay.while_running("Resetting shape")
     def execute(self, context):
         forged_obj = context.active_object
         settings = forged_obj.charon_forged
@@ -143,23 +146,16 @@ class EditStation(bpy.types.Operator):
         name="Interior", description="Have the station's interior - its core and runway",
         default=True,
     )
-    interior: bpy.props.EnumProperty(
-        name="Interior", description="Which space station interior",
-        items=station_library.INTERIORS,
-    )
     use_exterior: bpy.props.BoolProperty(
         name="Exterior", description="Have the station's exterior - its outer body",
         default=True,
-    )
-    colours: bpy.props.EnumProperty(
-        name="Colours", description="The station palette to colour it with",
-        items=station_library.palette_items,
     )
     mode: bpy.props.EnumProperty(
         name="Mode",
         items=[
             ("DESIGN", "Design",
-             "Build your own station, choosing its interior and every part of its exterior"),
+             "Build your own station, choosing its interior and every part of its exterior - "
+             "or change the one built from a galactic address"),
             ("ADDRESS", "Galactic Address",
              "Build the station a system has in game, from its galactic address"),
         ],
@@ -194,37 +190,40 @@ class EditStation(bpy.types.Operator):
         return self.address
 
     def invoke(self, context, event):
-        # start from the station that's there: its parts ticked, their kinds
-        # and colours chosen - and its address, if it was built from one
+        design = context.scene.charon_station_design
         stations = station_library.find_stations()
-        if stations:
+        if not stations:
+            # a new station is designed from scratch
+            station_design.clear_address(design)
+        else:
+            # start from the station that's there: its parts ticked, and the
+            # design set to it - as designed, or as its address builds it
             interior = station_library.find_station(station_library.INTERIOR)
             exterior = station_library.find_station(station_library.EXTERIOR)
             self.use_interior = interior is not None
             self.use_exterior = exterior is not None
-            if interior is not None:
-                self.interior = interior[station_library.PROP_KIND]
-            # a station that wasn't designed starts the design from its body
-            if exterior is not None and not exterior.get(station_design.PROP_DESIGNED):
-                try:
-                    context.scene.charon_station_design.body = (
+            address = station_design.station_address()
+            key = next((c[station_design.PROP_DESIGN_KEY] for c in stations
+                        if station_design.PROP_DESIGN_KEY in c), None)
+            if key is not None:
+                station_design.load_key(design, key)
+            elif address is not None:
+                station_design.load_address(design, seed_utils.station_config(address))
+            else:
+                station_design.clear_address(design)
+                if exterior is not None:
+                    station_design.set_choice(
+                        design, "body",
                         station_design.TYPE_GROUP + exterior[station_library.PROP_KIND])
-                except TypeError:
-                    pass
-            try:
-                self.colours = str(stations[0].get(station_library.PROP_PALETTE,
-                                                   station_library.SAVED_PALETTE))
-            except TypeError:
-                pass
-            seed = next((c[seed_utils.PROP_SEED] for c in stations
-                         if seed_utils.PROP_SEED in c), None)
-            designed = any(c.get(station_design.PROP_DESIGNED) for c in stations)
-            if designed and not self.from_base:
-                self.mode = "DESIGN"
-            elif seed is not None and not self.from_base:
-                self.mode = "ADDRESS"
-                self.address = seed
+            if interior is not None:
+                station_design.set_choice(design, "interior", interior[station_library.PROP_KIND])
+            station_design.set_choice(design, "interior_colours", str(stations[0].get(
+                station_library.PROP_PALETTE, station_library.SAVED_PALETTE)))
+            if address is not None:
+                self.address = "0x%X" % address
                 self.address_source = "CUSTOM"
+            if key is not None or address is not None:
+                self.mode = "DESIGN"
         if self.from_base:
             # a base's own station, whole
             self.mode = "ADDRESS"
@@ -252,8 +251,15 @@ class EditStation(bpy.types.Operator):
         layout.separator()
         if self.mode == "ADDRESS":
             self._draw_address(context, layout)
-            return
-        self._draw_design(context, layout)
+        else:
+            self._draw_design(context, layout)
+
+        # a station changed from what its address builds can go back to it
+        if station_design.station_modified():
+            layout.separator()
+            row = layout.row()
+            row.scale_y = 1.2
+            row.operator(ResetStation.bl_idname, icon="LOOP_BACK")
 
     def _draw_address(self, context, layout):
         # the imported space station base's address, or one typed in
@@ -289,11 +295,14 @@ class EditStation(bpy.types.Operator):
 
     def _draw_design(self, context, layout):
         design = context.scene.charon_station_design
+        if design.address:
+            layout.label(text="Changing the station of system %s" % design.address,
+                         icon="WORLD")
         split = layout.split(factor=0.35, align=True)
         split.prop(self, "use_interior")
         interior = split.row(align=True)
         interior.enabled = self.use_interior
-        interior.prop(self, "interior", text="")
+        interior.prop(design, "interior", text="")
 
         # the body, then each choice it has - indented under what opens it
         split = layout.split(factor=0.35, align=True)
@@ -325,12 +334,35 @@ class EditStation(bpy.types.Operator):
         interior_colours = layout.split(factor=0.35, align=True)
         interior_colours.enabled = self.use_interior
         interior_colours.label(text="Interior Colours")
-        interior_colours.prop(self, "colours", text="")
+        interior_colours.prop(design, "interior_colours", text="")
 
     def execute(self, context):
         if self.mode == "ADDRESS":
             return _build_from_address(self, context)
-        return _build_from_design(self, context)
+        return _build_from_design(self, context, self.use_interior, self.use_exterior)
+
+
+class ResetStation(bpy.types.Operator):
+    """Put the space station back to the one its galactic address builds - its shape and colours. Only the parts that differ are loaded again"""
+
+    bl_idname = "object.charon_forge_reset_station"
+    bl_label = "Reset to Galactic Address"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        return station_design.station_address() is not None
+
+    def execute(self, context):
+        design = context.scene.charon_station_design
+        station_design.load_address(
+            design, seed_utils.station_config(station_design.station_address()))
+        design.interior_colours = str(station_library.SAVED_PALETTE)
+        # the parts there stay the parts there
+        return _build_from_design(
+            self, context,
+            station_library.find_station(station_library.INTERIOR) is not None,
+            station_library.find_station(station_library.EXTERIOR) is not None)
 
 
 def _station_preview(text, _cache={}):
@@ -351,61 +383,72 @@ def _station_preview(text, _cache={}):
     return _cache[text]
 
 
-def _build_from_design(self, context):
-    """EditStation's Design tab: a station built as designed, in place of
-    whatever station is there."""
+def _report_build(operator, summary, changed, loaded, missing):
+    """Say what a build did - for a station changed in place, what had to
+    be loaded again for it."""
+    if changed:
+        summary = "Changed the station - %s" % (
+            "loaded " + ", ".join(loaded) if loaded else "nothing loaded again")
+    if missing:
+        summary += " - %d textures not found" % missing
+    operator.report({"WARNING"} if missing else {"INFO"}, summary)
+
+
+def _build_from_design(operator, context, use_interior, use_exterior):
+    """EditStation's Design tab: the station there changed into the design -
+    only what differs is loaded - or, with none there, built at the 3D
+    cursor. A design changing an address's station keeps its seed."""
     design = context.scene.charon_station_design
-    if not self.use_interior and not self.use_exterior:
-        self.report({"WARNING"}, "Tick the interior, the exterior or both")
+    if not use_interior and not use_exterior:
+        operator.report({"WARNING"}, "Tick the interior, the exterior or both")
         return {"CANCELLED"}
     if context.mode != "OBJECT":
         bpy.ops.object.mode_set(mode="OBJECT")
-    palette = int(self.colours)
-
-    # the station there is already this design - only its colours change,
-    # nothing is loaded again
-    key = station_design.design_key(design, self.use_interior, self.use_exterior,
-                                    self.interior)
-    stations = station_library.find_stations()
-    if stations and all(c.get(station_design.PROP_DESIGN_KEY) == key for c in stations):
-        for collection in stations:
-            station_library.recolour(collection, palette)
-        self.report({"INFO"}, "Recoloured the station")
-        return {"FINISHED"}
+    palette = int(design.interior_colours)
+    changed = bool(station_library.find_stations())
 
     try:
-        config, collections, missing = seed_utils.build_station(
-            context, seed=station_design.hull_seed(design.hull_colours),
-            interior=self.use_interior, exterior=self.use_exterior,
-            modules=design.use_modules,
-            interior_kind=self.interior if self.use_interior else None,
+        config = seed_utils.station_config(
+            station_design.shape_seed(design),
+            interior=design.interior if use_interior else None,
             palette_index=None if palette == station_library.SAVED_PALETTE else palette,
-            layers=station_design.hull_layers(design),
             force=station_design.force(design),
         )
+        collections, missing, loaded = seed_utils.update_station(
+            context, config, interior=use_interior, exterior=use_exterior,
+            modules=design.use_modules, layers=station_design.hull_layers(design),
+            palette_seed=station_design.palette_seed(design),
+        )
     except FileNotFoundError as error:
-        self.report({"ERROR"}, "Station file not found: %s" % error)
+        operator.report({"ERROR"}, "Station file not found: %s" % error)
         return {"CANCELLED"}
+
+    key = station_design.design_key(design, use_interior, use_exterior)
+    modified = bool(design.address) and station_design.is_modified(
+        design, config, palette, use_exterior)
     for collection in collections:
         collection[station_design.PROP_DESIGNED] = True
         collection[station_design.PROP_DESIGN_KEY] = key
+        collection[station_design.PROP_MODIFIED] = modified
+        if design.address:
+            collection[station_design.PROP_ADDRESS] = design.address
+        else:
+            collection.pop(station_design.PROP_ADDRESS, None)
     station_library.set_selectable(False)
-    if self.use_exterior:
+    if use_exterior:
         summary = "Built a %s station with %d modules" % (
             station_library.kind_label(station_library.EXTERIOR, config["exterior"]),
             len(config["modules"]) if design.use_modules else 0)
     else:
         summary = "Built a %s station interior" % station_library.kind_label(
             station_library.INTERIOR, config["interior"])
-    if missing:
-        summary += " - %d textures not found" % missing
-    self.report({"WARNING"} if missing else {"INFO"}, summary)
+    _report_build(operator, summary, changed, loaded, missing)
     return {"FINISHED"}
 
 
 def _build_from_address(self, context):
-    """EditStation's Galactic Address tab: the system's own station, built by
-    seed_utils in place of whatever station is there."""
+    """EditStation's Galactic Address tab: the system's own station - the
+    one there changed into it, only what differs loaded, or built whole."""
     config = _station_preview(self._address(context))
     if not isinstance(config, dict):
         self.report({"ERROR"}, config or "Enter a galactic address")
@@ -415,29 +458,35 @@ def _build_from_address(self, context):
         return {"CANCELLED"}
     if context.mode != "OBJECT":
         bpy.ops.object.mode_set(mode="OBJECT")
+    changed = bool(station_library.find_stations())
 
     # the system's own colours: its palettes on the hull, and the interior's
-    # base-building pieces as they were saved
+    # base-building pieces as they were saved - on a config of its own, since
+    # update_station adds to it and the preview's is kept
     try:
-        config, collections, missing = seed_utils.build_station(
-            context, seed=config["seed"],
-            interior=self.use_interior, exterior=self.use_exterior,
+        config = seed_utils.station_config(config["seed"])
+        collections, missing, loaded = seed_utils.update_station(
+            context, config, interior=self.use_interior, exterior=self.use_exterior,
             modules=self.use_modules,
         )
     except FileNotFoundError as error:
         self.report({"ERROR"}, "Station file not found: %s" % error)
         return {"CANCELLED"}
 
+    # the address's station as it builds it - nothing designed about it, bar
+    # leaving its modules off
+    for collection in collections:
+        collection[station_design.PROP_ADDRESS] = "0x%X" % config["seed"]
+        collection[station_design.PROP_MODIFIED] = self.use_exterior and not self.use_modules
+        for prop in (station_design.PROP_DESIGNED, station_design.PROP_DESIGN_KEY):
+            collection.pop(prop, None)
     # the modules seed_utils places too - every piece is scenery
     station_library.set_selectable(False)
     summary = "Built the station of system 0x%X" % config["seed"]
     if config.get("baked"):
         summary += " - %d choices differ from the game's (see the console)" % len(config["baked"])
-    if missing:
-        summary += " - %d textures not found" % missing
-    self.report({"WARNING"} if missing else {"INFO"}, summary)
+    _report_build(self, summary, changed, loaded, missing)
     return {"FINISHED"}
-
 
 
 class FrameStation(bpy.types.Operator):
@@ -643,6 +692,7 @@ class ForgeQRCode(bpy.types.Operator):
         summary.label(text=f"{squares * self.module_size:.1f} m across", icon="DRIVER_DISTANCE")
         summary.label(text=f"About {panels} panels", icon="MOD_ARRAY")
 
+    @loading_overlay.while_running("Forging QR code")
     def execute(self, context):
         text = self.text.strip()
         if not text:
@@ -677,6 +727,7 @@ classes = (
     SplitForged,
     ResetForged,
     EditStation,
+    ResetStation,
     FrameStation,
     RemoveStation,
     CreateCircle,

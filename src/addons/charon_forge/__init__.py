@@ -2,7 +2,7 @@ import os
 
 import bpy
 
-from . import addon_preferences, hooks, materials
+from . import hooks, materials
 from .addon import asset_browser
 from .addon import crossing
 from .addon import header
@@ -14,7 +14,7 @@ from .addon_preferences import CharonAddonPreferences
 from .menu import base_builder_menu, base_builder_menu_operators
 from .objects import preset
 from . import save_editor
-from .utils import icon_utils, themes_util
+from .utils import icon_utils
 
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -36,7 +36,31 @@ classes = (
 )
 
 
+def _register_class(_class):
+    # A class of ours can still be registered from an earlier enable that
+    # failed partway, or from the version this one replaced without a
+    # restart. Registering again then fails with "already registered as a
+    # subclass", hiding whatever went wrong the first time.
+    stale = getattr(bpy.types, _class.__name__, None)
+    if stale is not None and getattr(stale, "bl_idname", None) == getattr(_class, "bl_idname", None):
+        try:
+            bpy.utils.unregister_class(stale)
+        except RuntimeError:
+            pass
+    bpy.utils.register_class(_class)
+
+
 def register():
+    try:
+        _register()
+    except Exception:
+        # leave nothing half registered, so enabling again shows this error
+        # rather than one about classes that are still registered
+        _unregister(ignore_errors=True)
+        raise
+
+
+def _register():
     icon_utils.register_icons()
 
     # builder.py/preset.py assume ~/CharonForge/(mods|presets) exist
@@ -44,16 +68,11 @@ def register():
 
     # Register Plugin
     for _class in classes:
-        bpy.utils.register_class(_class)
+        _register_class(_class)
 
-    # blender's interface theme is an application setting, not saved with a
-    # .blend, so unlike the rest of what's registered above it needs actively
-    # putting back: the preferences page remembers which one was chosen, but
-    # only re-applying it here makes the colours agree with that on a plain
-    # restart where the theme itself did not carry over.
-    prefs = addon_preferences.get_addon_preferences()
-    if prefs is not None:
-        themes_util.apply_named_theme(prefs.theme)
+    # the chosen theme is only applied when it is picked from the list (see
+    # addon_preferences.on_theme_update), never re-applied on startup, so a
+    # theme changed elsewhere in Preferences is left alone on restart
 
     save_editor.register()
     header.register()
@@ -75,24 +94,36 @@ def register():
 
 
 def unregister():
-    hooks.remove()
+    _unregister()
 
-    base_builder_menu.unregister_menu()
 
-    asset_browser.unregister()
-    materials.unregister()
-    the_watchtower.unregister()
-    the_forge.unregister()
-    crossing.unregister()
-    helmsman.unregister()
-    optimiser.unregister()
-    header.unregister()
-    save_editor.unregister()
+def _unregister(ignore_errors=False):
+    steps = [
+        hooks.remove,
+        base_builder_menu.unregister_menu,
+        asset_browser.unregister,
+        materials.unregister,
+        the_watchtower.unregister,
+        the_forge.unregister,
+        crossing.unregister,
+        helmsman.unregister,
+        optimiser.unregister,
+        header.unregister,
+        save_editor.unregister,
+    ]
+    steps += [
+        (lambda _class=_class: bpy.utils.unregister_class(_class))
+        for _class in reversed(classes)
+    ]
+    steps.append(icon_utils.unregister_icons)
 
-    for _class in reversed(classes):
-        bpy.utils.unregister_class(_class)
-
-    icon_utils.unregister_icons()
+    for step in steps:
+        try:
+            step()
+        except Exception:
+            # after a failed register some of these were never registered
+            if not ignore_errors:
+                raise
 
 
 if __name__ == "__main__":

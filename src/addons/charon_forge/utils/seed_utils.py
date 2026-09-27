@@ -75,6 +75,7 @@ import mathutils
 
 from .. import materials
 from ..builder import station_library
+from ..utils import collection_utils
 
 # the game data this runs on: the station's descriptor tree, its palettes, the
 # module slots and the hull's layers (see _Data)
@@ -89,8 +90,9 @@ TYPE_GROUP = "_TYPE_"
 # on each part's collection: the system seed and what it picked
 PROP_SEED = "charon_station_seed"
 PROP_CHOICES = "charon_station_choices"
-# on each module object: which slot it fills
+# on each module object: which slot it fills, and the module file it is
 PROP_SLOT = "charon_station_slot"
+PROP_MODULE = "charon_station_module"
 # on every station object: each hull layer's colour, linear RGB + 1 (see
 # tint_materials)
 PROP_COLOUR = "nms_sta_%s"
@@ -495,6 +497,25 @@ def station_config(seed=None, interior=None, exterior=None, palette_index=None, 
     choices = station_choices(seed, force)
     chosen = set(choices)
 
+    def kind(scene, group):
+        return next(o for g, o, _ in _picked(data.tree[scene], chosen)
+                    if g == group).rsplit("_", 1)[-1]
+
+    return {
+        "seed": seed,
+        "interior": kind(data.root, TUBE_GROUP),
+        "exterior": kind(data.exterior, TYPE_GROUP),
+        "choices": choices,
+        "palettes": station_palettes(seed),
+        "palette": station_library.SAVED_PALETTE if palette_index is None else int(palette_index),
+        "modules": station_modules(chosen),
+    }
+
+
+def station_modules(chosen):
+    """[{"slot", "file", "scene", "matrix"}] of the module slots a set of
+    picked options fills - see station_config."""
+    data = _load()
     modules = []
     for slot, (index, owners, rows) in enumerate(data.slots):
         if not all(owner in chosen for owner in owners):
@@ -507,20 +528,7 @@ def station_config(seed=None, interior=None, exterior=None, palette_index=None, 
             "matrix": [list(rows[0:4]), list(rows[4:8]), list(rows[8:12]),
                        [0.0, 0.0, 0.0, 1.0]],
         })
-
-    def kind(scene, group):
-        return next(o for g, o, _ in _picked(data.tree[scene], chosen)
-                    if g == group).rsplit("_", 1)[-1]
-
-    return {
-        "seed": seed,
-        "interior": kind(data.root, TUBE_GROUP),
-        "exterior": kind(data.exterior, TYPE_GROUP),
-        "choices": choices,
-        "palettes": station_palettes(seed),
-        "palette": station_library.SAVED_PALETTE if palette_index is None else int(palette_index),
-        "modules": modules,
-    }
+    return modules
 
 
 def describe(config):
@@ -692,8 +700,18 @@ def place_modules(context, collection, config, cursor=None):
         cursor = context.scene.cursor.location.copy()
     place = mathutils.Matrix.Translation(cursor) @ TURN
     loaded, placed, new_materials = {}, [], []
+    with collection_utils.excluded_from_view_layer(collection):
+        missing = _place_modules(collection, config["modules"], place, loaded, placed,
+                                 new_materials)
+    materials.prepare_materials(new_materials)
+    return placed, missing
+
+
+def _place_modules(collection, modules, place, loaded, placed, new_materials):
+    """Put `modules` into the collection: a file in `loaded` ({file: object})
+    is copied, anything else appended once and added to it."""
     missing = 0
-    for module in config["modules"]:
+    for module in modules:
         name = module["file"]
         if name not in loaded:
             obj, made, lost = _append_module(name)
@@ -710,9 +728,9 @@ def place_modules(context, collection, config, cursor=None):
         collection.objects.link(obj)
         obj.matrix_world = place @ mathutils.Matrix(module["matrix"])
         obj[PROP_SLOT] = module["slot"]
+        obj[PROP_MODULE] = name
         placed.append(obj)
-    materials.prepare_materials(new_materials)
-    return placed, missing
+    return missing
 
 
 def _baked(objects, chosen):
@@ -780,50 +798,141 @@ def build_station(context, seed=None, interior=True, exterior=True, modules=True
     force           {group: option id} for any other choices, as
                     station_config()
 
+    With `replace` False, the station there is changed into this one rather
+    than built again - see update_station.
+
+    Returns:
+        (config, [collections], textures with no file)
+    """
+    config = station_config(seed, interior_kind, exterior_kind, palette_index, force)
+    if replace:
+        for collection in station_library.find_stations():
+            station_library.remove_station(collection)
+    collections, missing, _loaded = update_station(
+        context, config, interior, exterior, modules, layers, colours)
+    return config, collections, missing
+
+
+def update_station(context, config, interior=True, exterior=True, modules=True,
+                   layers=None, colours=None, palette_seed=None):
+    """Make the station in the file the one a station_config() describes,
+    loading only what it lacks: a part is imported again only if it is new
+    or its kind changed, and a module only where its slot is new or takes
+    another module - one already in the file is copied rather than loaded.
+    Colours are properties on the objects, so they change in place. With no
+    station in the file, it is built whole at the 3D cursor.
+
+    interior, exterior, modules, layers, colours   as build_station()
+    palette_seed    colour the hull with this system's palettes instead of
+                    the config's own - a station changed by hand keeps its
+                    address's seed for its shape but can take other colours
+
     Each part is its own collection, as station_library.import_part makes
     it (the modules go in the exterior's), so the Forge's station switches,
     recolouring and removal work on it unchanged.
 
     Returns:
-        (config, [collections], textures with no file)
+        ([collections], textures with no file, [what was loaded, e.g.
+        "exterior", "3 modules"])
     """
     started = time.perf_counter()
-    config = station_config(seed, interior_kind, exterior_kind, palette_index, force)
-    if replace:
-        for collection in station_library.find_stations():
-            station_library.remove_station(collection)
+    if palette_seed is not None:
+        config["palettes"] = station_palettes(palette_seed)
+    cursor = mathutils.Vector(station_library.origin(context))
+    chosen = " ".join(config["choices"])
 
-    cursor = context.scene.cursor.location.copy()
-    collections, missing, objects = [], 0, []
+    collections, missing, fresh, loaded = [], 0, [], []
     wanted = [(station_library.INTERIOR, interior, config["interior"]),
               (station_library.EXTERIOR, exterior, config["exterior"])]
     for part, want, kind in wanted:
+        collection = station_library.find_station(part)
+        if collection is not None and (not want or collection[station_library.PROP_KIND] != kind):
+            station_library.remove_station(collection)
+            collection = None
         if not want:
             continue
-        collection, part_objects, lost = station_library.import_part(
-            context, part, kind, station_library.SAVED_PALETTE)
-        missing += lost
-        objects += part_objects
-        collection[PROP_SEED] = "0x%X" % config["seed"]
-        collection[PROP_CHOICES] = " ".join(config["choices"])
-        if part == station_library.EXTERIOR and modules:
-            placed, lost = place_modules(context, collection, config, cursor)
+        just_made = collection is None
+        if just_made:
+            collection, part_objects, lost = station_library.import_part(
+                context, part, kind, station_library.SAVED_PALETTE, cursor)
             missing += lost
-            objects += placed
+            fresh += part_objects
+            loaded.append(part.lower())
+        if part == station_library.EXTERIOR:
+            placed, lost, appended = _update_modules(
+                collection, config["modules"] if modules else [], cursor, just_made)
+            missing += lost
+            fresh += placed
+            if appended:
+                loaded.append("%d module%s" % (appended, "" if appended == 1 else "s"))
+        collection[PROP_SEED] = "0x%X" % config["seed"]
+        collection[PROP_CHOICES] = chosen
         collections.append(collection)
 
-    materials.dedupe_appended_data()
+    if loaded:
+        materials.dedupe_appended_data()
+    objects = [obj for collection in collections for obj in collection.all_objects]
     config["baked"] = _baked(objects, set(config["choices"]))
-    used = {slot.material for obj in objects if obj.type == "MESH"
-            for slot in obj.material_slots if slot.material}
-    tint_materials(used)
+    # only what came in has layers still to tint - the rest already are
+    tint_materials({slot.material for obj in fresh if obj.type == "MESH"
+                    for slot in obj.material_slots if slot.material})
     apply_colours(objects, config["palettes"], layers, colours)
+    for obj in objects:
+        obj.update_tag()
     for collection in collections:
         station_library.recolour(collection, config["palette"])
     station_library.extend_view_clip()
-    print("Charon Forge: %s\n  built in %.2fs"
-          % (describe(config), time.perf_counter() - started))
-    return config, collections, missing
+    print("Charon Forge: %s\n  %s in %.2fs"
+          % (describe(config), "loaded " + ", ".join(loaded) if loaded else "nothing loaded",
+             time.perf_counter() - started))
+    return collections, missing, loaded
+
+
+def _update_modules(collection, modules, cursor, just_made):
+    """Give the exterior's collection exactly `modules`: a slot keeping its
+    module is left alone, one that is new or takes another module is filled
+    - with a copy where the file already has that module, else appended -
+    and one no longer wanted is taken out. A collection `just_made` is
+    filled out of the view layer, as import_part fills it; one already there
+    isn't, since coming back into it would show what was hidden.
+
+    Returns:
+        (objects placed, textures with no file, module files appended)
+    """
+    existing = {obj[PROP_SLOT]: obj for obj in collection.objects if PROP_SLOT in obj}
+    # modules placed before they carried their file are known by the picks
+    old_chosen = set(collection.get(PROP_CHOICES, "").split())
+    old_files = {m["slot"]: m["file"] for m in station_modules(old_chosen)} if old_chosen else {}
+    files = {slot: obj.get(PROP_MODULE, old_files.get(slot)) for slot, obj in existing.items()}
+
+    wanted = {module["slot"]: module for module in modules}
+    going = [obj for slot, obj in existing.items()
+             if slot not in wanted or files[slot] != wanted[slot]["file"]]
+    placing = [module for slot, module in wanted.items()
+               if slot not in existing or files[slot] != module["file"]]
+    if not going and not placing:
+        return [], 0, 0
+    # any module there can be copied - one on its way out too, until it goes
+    loaded = {files[slot]: obj for slot, obj in existing.items() if files[slot]}
+    before = len(loaded)
+    hidden = bool(existing) and all(obj.hide_get() for obj in existing.values())
+
+    place = mathutils.Matrix.Translation(cursor) @ TURN
+    placed, new_materials = [], []
+    if just_made:
+        with collection_utils.excluded_from_view_layer(collection):
+            missing = _place_modules(collection, placing, place, loaded, placed, new_materials)
+    else:
+        missing = _place_modules(collection, placing, place, loaded, placed, new_materials)
+        for obj in placed:
+            obj.hide_set(hidden)
+            obj.hide_render = hidden
+    materials.prepare_materials(new_materials)
+    if going:
+        station_library.remove_objects(going)
+    print("Charon Forge: %d module(s) placed, %d taken out, %d kept"
+          % (len(placed), len(going), len(existing) - len(going)))
+    return placed, missing, len(loaded) - before
 
 
 def find_seed():

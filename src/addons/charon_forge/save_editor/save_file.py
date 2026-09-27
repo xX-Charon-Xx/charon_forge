@@ -2,12 +2,25 @@ import os
 import re
 import json
 import struct
-import lz4.block
 from pathlib import Path
 import shutil
 
+from . import save_editor_dependencies
+
+# every read and write of a save comes through here, so this is where lz4 is
+# made sure of - installed now if the background install on enable has not
+# managed it yet
+if not save_editor_dependencies.ensure_dependencies():
+    raise ImportError(
+        "Charon Forge could not install lz4, which save files need (%s). "
+        "Check your internet connection, or run Blender as administrator once "
+        "so it can install." % (save_editor_dependencies.last_error or "unknown error")
+    )
+import lz4.block
+
 from .save_translation import SaveTranslation
 from .save_editor_utils import BaseData, BaseType
+from ..utils import loading_overlay
 from ..utils.fallbacks.blend_utils import ShowMessageBox
 
 MAGIC = 0xFEEDA1E5
@@ -48,6 +61,8 @@ class SaveFile:
 
     # load hg save file
     def load(self):
+        # one long read, decompress and parse with nothing to step through
+        loading_overlay.step("Reading %s" % self.path.name, show=True)
         with open(self.path, "rb") as f:
             raw = f.read()
         offset = 0
@@ -101,6 +116,7 @@ class SaveFile:
 
     # save data to save file
     def save(self, output_path=None):
+        loading_overlay.step("Writing %s" % self.path.name, show=True)
         write_file_atomic(Path(output_path or self.path), self.pack())
 
     # make backup of save file that is changed into a /blender_backup folder which is different from /nms_base_builder_backup folder

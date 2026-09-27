@@ -8,12 +8,16 @@ editor panel and operators are that addon's and are not registered.
 
 import bpy
 
+from . import save_editor_dependencies
 from .save_manager import CharonSaveManager
 
 classes = (CharonSaveManager,)
 
 
 def register():
+    # lz4, for reading and writing saves - on a thread, so enabling the addon
+    # isn't held up by pip; save_file.py waits for it if it's still going
+    save_editor_dependencies.install_in_background()
     for _class in classes:
         bpy.utils.register_class(_class)
     bpy.types.Scene.charon_save_data = bpy.props.PointerProperty(type=CharonSaveManager)

@@ -13,7 +13,7 @@ import bpy
 
 from ..objects.part import Part
 from .. import materials
-from ..utils import dictionary
+from ..utils import dictionary, loading_overlay
 from ..utils.base_builder_utils import blend_utils
 from . import asset_library, proxy_library
 
@@ -63,6 +63,9 @@ def new_high_res_object(object_id, asset_index=None):
         bpy.types.Object: The new object, or None when the library doesn't
             cover the id, so the caller can fall back to the fbx proxy.
     """
+    # everything that places parts one at a time - the Forge, batch
+    # replace, presets - comes through here
+    loading_overlay.step()
     mesh = asset_library.load_high_res_mesh(object_id, asset_index)
     if mesh is None:
         return None

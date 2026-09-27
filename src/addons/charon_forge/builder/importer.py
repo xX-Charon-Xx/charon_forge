@@ -24,10 +24,11 @@ import time
 
 import bpy
 import mathutils
+import numpy as np
 
 from ..objects.part import Part
 from .. import materials
-from ..utils import collection_utils
+from ..utils import collection_utils, loading_overlay
 from . import asset_library, placement
 
 # name of collection to import objects to
@@ -100,6 +101,15 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
         compensate_normal (bool): Passed to override classes, see BaseVersion.
         high_res (bool): False to build every part from the fbx proxies.
     """
+    # every import comes through here - the base builder addon's too - so
+    # the loading card is put up here rather than by each operator
+    with loading_overlay.loading("Importing %d parts" % len(objects_data)):
+        _import_objects(builder_object, objects_data, compensate_normal, high_res)
+
+
+def _import_objects(builder_object, objects_data, compensate_normal, high_res):
+    # High res meshes, keyed by object id. Shared by every placement.
+    unique_meshes = {}
     # Fbx fallback objects and their per (object id, user data) mesh copies.
     unique_objects = {}
     unique_materials = {}
@@ -134,6 +144,7 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
             with materials.defer_shared_data():
                 # 1. every asset, in one batch: each id's shared mesh, and
                 # its materials merged into the ones the file already has
+                loading_overlay.step("Loading assets")
                 unique_meshes = (
                     asset_library.load_high_res_meshes(
                         [part[2] for part in parts if part[4] is None]
@@ -146,6 +157,7 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
                 # everything its placements have in common - the shared mesh,
                 # the part properties and the colour - coloured in one pass.
                 # The templates are in no collection and removed at the end.
+                loading_overlay.step("Colouring parts")
                 templates = {}
                 new_object = bpy.data.objects.new
                 for _, _, object_id, user_data, override_class in parts:
@@ -163,13 +175,25 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
                 )
                 timing["templates"] = time.perf_counter()
 
+                # every placement's matrix in one numpy pass; a save with a
+                # malformed transform falls back to reading each part alone
+                try:
+                    matrices = deserialise_matrices([part[1] for part in parts]).tolist()
+                except (TypeError, ValueError):
+                    matrices = [deserialise_matrix_world(part[1]) for part in parts]
+                new_matrix = mathutils.Matrix
+
                 # 3. every placement a copy of its template: one call copies
                 # every property in C, leaving only what differs per part -
                 # where it is, when it was placed, its message and order
                 link_object = import_collection.objects.link
                 now = str(int(time.time()))
+                step = loading_overlay.step
+                part_count = max(len(parts), 1)
                 try:
-                    for order, part_data, object_id, user_data, override_class in parts:
+                    for index, (order, part_data, object_id, user_data,
+                                override_class) in enumerate(parts):
+                        step("Placing parts", index / part_count)
                         if override_class is not None:
                             override_class.deserialise_from_data(
                                 part_data, builder_object, compensate_normal=compensate_normal
@@ -199,7 +223,7 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
                                 continue
                             restore_params(bpy_object, part_data, object_id)
 
-                        bpy_object.matrix_world = deserialise_matrix_world(part_data)
+                        bpy_object.matrix_world = new_matrix(matrices[index])
                         bpy_object[Part.PROP_ORDER] = order
                 finally:
                     if templates:
@@ -208,6 +232,7 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
 
                 # asked for here, so they run on leaving even when every
                 # asset was already in the file
+                loading_overlay.step("Preparing materials")
                 materials.dedupe_appended_data()
                 materials.prepare_materials()
 
@@ -218,12 +243,20 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
             timing["materials"] = time.perf_counter()
 
     finally:
+        loading_overlay.step("Updating the scene")
         collection_utils.set_collection_visibility(import_collection.name, visible=True)
         bpy.context.view_layer.update()
 
     timing["end"] = time.perf_counter()
     if REPORT_TIMING:
         _report_timing(len(objects_data), timing)
+        # what the viewport compiles once it draws this - not part of the
+        # import's own time, but usually the longer wait after it
+        meshes = [mesh for mesh in unique_meshes.values() if mesh is not None]
+        meshes.extend(unique_materials.values())
+        materials.shaders.print_shader_report(
+            {mat for mesh in meshes for mat in mesh.materials}
+        )
 
 
 def _report_timing(part_count, timing):
@@ -345,6 +378,45 @@ def restore_params(bpy_object, part_data, object_id):
         bpy_object.pop(Part.PROP_MESSAGE, None)
 
     return bpy_object
+
+
+def deserialise_matrices(parts_data):
+    """Every part's world matrix at once - deserialise_matrix_world over a
+    whole base in one numpy pass rather than a few dozen mathutils calls a
+    part.
+
+    Returns:
+        numpy.ndarray: (parts, 4, 4) row-major world matrices.
+    """
+    count = len(parts_data)
+    zero = (0.0, 0.0, 0.0)
+    pos = np.array([part.get("Position", zero) for part in parts_data],
+                   dtype=np.float64).reshape(count, 3)
+    up = np.array([part.get("Up", zero) for part in parts_data],
+                  dtype=np.float64).reshape(count, 3)
+    at = np.array([part.get("At", zero) for part in parts_data],
+                  dtype=np.float64).reshape(count, 3)
+
+    # the same steps as create_matrix_from_vectors: right is at x up, flipped,
+    # and right and at are both scaled to up's length - a zero vector stays
+    # zero, the way mathutils leaves it
+    up_length = np.linalg.norm(up, axis=1, keepdims=True)
+
+    def to_length(vectors):
+        length = np.linalg.norm(vectors, axis=1, keepdims=True)
+        scale = np.divide(up_length, length, out=np.zeros_like(length), where=length > 0.0)
+        return vectors * scale
+
+    right = to_length(-np.cross(at, up))
+    at = to_length(at)
+
+    matrices = np.zeros((count, 4, 4))
+    matrices[:, :3, 0] = right
+    matrices[:, :3, 1] = up
+    matrices[:, :3, 2] = at
+    matrices[:, :3, 3] = pos
+    matrices[:, 3, 3] = 1.0
+    return np.asarray(X_ROT_90) @ matrices
 
 
 def deserialise_matrix_world(part_data):

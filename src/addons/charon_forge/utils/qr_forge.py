@@ -25,7 +25,7 @@ import bpy
 import mathutils
 import numpy as np
 
-from . import qr_code
+from . import loading_overlay, qr_code
 
 PART_ID = "STORAGEPANEL"
 
@@ -244,6 +244,7 @@ def build_qr_code(text, level="M", module_size=1.0, upright=False, collection_na
     objects = []
     order = len(bpy.data.objects)
     for index, (centre_x, centre_y, along_x, short) in enumerate(panels):
+        loading_overlay.step("Placing panels", index / len(panels))
         scale = short * module_size / short_length
         rotation = _panel_rotation(long_axis, short_axis, thin_axis, along_x)
 

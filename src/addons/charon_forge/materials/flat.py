@@ -10,6 +10,7 @@ validate_material() alone changes every material this makes. Keep
 
 import bpy
 
+from ..utils import loading_overlay
 from ..utils.base_builder_utils import overrides, python_utils, userdata
 from . import colouring, palettes, paths
 from .properties import PROP_READONLY_COLOUR, PROP_READONLY_MATERIAL, PROP_USER_DATA
@@ -170,6 +171,7 @@ def optimise_materials():
     for obj in bpy.context.scene.objects:
         if "ObjectID" not in obj or obj.get("curve_parent") is not None:
             continue
+        loading_overlay.step("Sharing meshes")
 
         obj_id = obj.get("ObjectID")
         try:

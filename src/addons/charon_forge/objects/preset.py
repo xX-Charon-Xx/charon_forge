@@ -9,12 +9,14 @@ import mathutils
 from . import part
 from .. import materials
 from ..utils.base_builder_utils import blend_utils
+from ..utils import selection
 
 
 class Preset(object):
 
     USER_PATH = os.path.join(os.path.expanduser("~"), "CharonForge")
-    PRESET_PATH = os.path.join(USER_PATH, "presets")
+    # the base builder addon's, shared with it - see builder/paths.py
+    PRESET_PATH = os.path.join(os.path.expanduser("~"), "NoMansSkyBaseBuilder", "presets")
 
     def __init__(
         self,
@@ -134,7 +136,7 @@ class Preset(object):
 
     # Methods ---
     def select(self):
-        blend_utils.select(self.control)
+        selection.select_only(self.control)
 
     def reset_transforms(self):
         """Reset transformations to default."""

@@ -18,7 +18,11 @@ a flat material on the mesh, which is not how a high res part is coloured
     through the shared mesh. High res followers do share a mesh, but that
     mesh doesn't hold their colour, so only the first follower changed.
 
-Each is wrapped here: high res objects go to Charon Forge's colouring and
+And one that isn't about colour: its Pin button calls
+NMSSettings.deserialise_from_data with an argument it doesn't take, so
+pinning a base always failed - see _wrap_deserialise_from_data.
+
+Each colour path is wrapped here: high res objects go to Charon Forge's colouring and
 everything else goes to the addon's own code, unchanged. remove() puts the
 originals back.
 """
@@ -162,6 +166,27 @@ def _wrap_apply_colour(original, curve_module):
     return apply_colour
 
 
+# Pinning ---
+def _wrap_deserialise_from_data(original, settings_class):
+    """The addon's Pin button calls NMSSettings.deserialise_from_data with
+    start_new_file=False, which the method doesn't take - so every pin
+    raised a TypeError. False is meant to read the base's details in without
+    new_file(), which empties the scene of every part."""
+    def deserialise_from_data(self, nms_data, start_new_file=True):
+        if start_new_file:
+            return original(self, nms_data)
+        new_file = settings_class.__dict__.get("new_file")
+        settings_class.new_file = lambda _self: None
+        try:
+            return original(self, nms_data)
+        finally:
+            if new_file is None:
+                del settings_class.new_file
+            else:
+                settings_class.new_file = new_file
+    return deserialise_from_data
+
+
 # Install ---
 def install():
     """Wrap the addon's colour paths. True once all of them are wrapped."""
@@ -190,6 +215,8 @@ def install():
 
     if settings_class is not None:
         done &= _patch(settings_class, "apply_default_colour", _wrap_apply_default_colour)
+        done &= _patch(settings_class, "deserialise_from_data",
+                       lambda f: _wrap_deserialise_from_data(f, settings_class))
         if curve_module is not None:
             done &= _patch(settings_class, "apply_colour",
                            lambda f: _wrap_apply_colour(f, curve_module))

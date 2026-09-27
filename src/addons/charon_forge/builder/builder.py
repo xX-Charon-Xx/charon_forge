@@ -13,6 +13,7 @@ from collections import defaultdict
 import bpy
 
 from ..objects import group, part, preset
+from ..utils import loading_overlay
 from ..utils.base_builder_utils import blend_utils, overrides
 from . import paths
 from .catalog import Catalog
@@ -215,7 +216,9 @@ class Builder(Catalog):
             dict: Dictionary of base information.
         """
         object_list = []
-        for item in self.get_all_parts(exclude_presets=get_presets):
+        items = self.get_all_parts(exclude_presets=get_presets)
+        for index, item in enumerate(items):
+            loading_overlay.step("Reading parts", index / len(items))
             use_class = self.get_part_class(item["ObjectID"])
             item_obj = use_class.deserialise_from_object(item, builder_object=self)
             object_list.append(item_obj.serialise())
