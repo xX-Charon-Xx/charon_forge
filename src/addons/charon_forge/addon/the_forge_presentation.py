@@ -187,12 +187,15 @@ def draw_sphere_settings(layout, forge):
         counts_row.prop(forge, "segments", text=segments_label)
     if forge.topology == "RINGS":
         column.prop(forge, "pole_density")
+    column.prop(forge, "pole_part_size")
 
     column = _section(layout, "Shape")
     span_row = column.row(align=True)
     span_row.prop(forge, "top")
     span_row.prop(forge, "bottom")
-    column.prop(forge, "sweep")
+    sweep_row = column.row(align=True)
+    sweep_row.prop(forge, "sweep_start", text="Start")
+    sweep_row.prop(forge, "sweep_end", text="End")
     _draw_inline(column, forge, "sphere_scale", "Stretch", factor=0.2)
     _draw_inline(column, forge, "rotation", "Rot", factor=0.2)
 
@@ -236,14 +239,15 @@ def draw_circle_settings(layout, forge):
 
     column = _section(layout, "Circle")
     _draw_pair(column, forge, "radius", "tile_scale", second_text="Part Size")
-    _draw_pair(column, forge, "hole_size", "shape_sweep")
+    column.prop(forge, "hole_size")
+    arc_row = column.row(align=True)
+    arc_row.prop(forge, "sweep_start", text="Arc Start")
+    arc_row.prop(forge, "sweep_end", text="Arc End")
 
     column = _section(layout, "Fill")
-    fill_row = column.row(align=True)
-    fill_row.prop(forge, "fill_faces", text="Face", toggle=True)
-    fill_row.prop(forge, "fill_edges", text="Circumference", toggle=True)
+    column.row(align=True).prop(forge, "circle_fill", expand=True)
     _draw_pair(column, forge, "face_margin", "spacing", first_text="Margin")
-    if forge.fill_faces:
+    if forge.circle_fill == circle_topology.FACE:
         topology = forge.circle_topology
         if topology == circle_topology.SPOKES:
             column.prop(forge, "spokes")
@@ -253,10 +257,8 @@ def draw_circle_settings(layout, forge):
             column.prop(forge, "centre_density")
         if topology in (circle_topology.RINGS, circle_topology.GRID):
             column.prop(forge, "stagger")
-    if forge.fill_edges:
-        rim_row = column.row(align=True)
-        rim_row.prop(forge, "rim_style", expand=True)
-        rim_row.prop(forge, "rim_offset", text="Offset")
+    else:
+        column.row(align=True).prop(forge, "rim_style", expand=True)
 
     column = _section(layout, "Shape")
     _draw_inline(column, forge, "circle_scale", "Stretch", factor=0.2)

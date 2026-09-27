@@ -36,8 +36,22 @@ class Sphere(Forged):
 
     @staticmethod
     def _span(settings):
+        """The latitude the rings cover - counted wider by Pole Density and
+        Pole Part Size, which bunch the rings up towards the poles."""
         bottom, top = Sphere._latitudes(settings)
+        if settings.topology == topology.RINGS:
+            return topology.weighted_span(
+                bottom, top, settings.pole_density, settings.pole_part_size
+            )
+        if settings.topology == topology.MERIDIANS:
+            return topology.weighted_span(bottom, top, 0.0, settings.pole_part_size)
         return top - bottom
+
+    @staticmethod
+    def _arc(settings):
+        """(start, sweep) - where around the sphere begins and how far round
+        it goes, from Sweep Start to Sweep End."""
+        return topology.arc(settings.sweep_start, settings.sweep_end)
 
     @staticmethod
     def counts(settings):
@@ -56,7 +70,7 @@ class Sphere(Forged):
         if kind in Sphere.ARC_TOPOLOGIES:
             steps = round(radius * Sphere._span(settings) / pitch_up)
             rings = steps + 1 if steps > 0 else 1
-            segments = max(1, round(radius * settings.sweep / pitch_around))
+            segments = max(1, round(radius * Sphere._arc(settings)[1] / pitch_around))
         elif kind == topology.GEODESIC:
             # neighbouring points one part apart
             pitch = (pitch_around + pitch_up) / 2
@@ -67,6 +81,20 @@ class Sphere(Forged):
         elif kind == topology.SPIRAL:
             # as many as the whole sphere's area holds
             segments = max(1, round(4 * math.pi * radius * radius / (pitch_around * pitch_up)))
+        return rings, segments
+
+    @staticmethod
+    def _crowded_counts(settings, rings, segments):
+        """The counts the topologies that spread points over the whole
+        sphere are built with: more of them for Pole Part Size to crowd
+        towards the poles, so the equator keeps the spacing the counts give
+        it - Frequency, Grid and Copies are counted at the equator, like
+        Around."""
+        crowding = topology.pole_crowding(settings.pole_part_size)
+        if settings.topology in (topology.GEODESIC, topology.CUBE):
+            rings = max(1, round(rings * math.sqrt(crowding)))
+        elif settings.topology == topology.SPIRAL:
+            segments = max(1, round(segments * crowding))
         return rings, segments
 
     @staticmethod
@@ -87,7 +115,7 @@ class Sphere(Forged):
         of latitude, copies per radian around - for rescale_counts."""
         span = Sphere._span(settings)
         settings.ring_density = (settings.rings - 1) / span if span > 1e-6 else 0.0
-        settings.around_density = settings.segments / settings.sweep
+        settings.around_density = settings.segments / Sphere._arc(settings)[1]
 
     @staticmethod
     def rescale_counts(settings):
@@ -106,33 +134,39 @@ class Sphere(Forged):
             if settings.ring_density > 0.0:
                 settings.rings = max(1, round(settings.ring_density * Sphere._span(settings)) + 1)
             if settings.around_density > 0.0:
-                settings.segments = max(1, round(settings.around_density * settings.sweep))
+                settings.segments = max(1, round(settings.around_density * Sphere._arc(settings)[1]))
 
     # Layout ---
     @classmethod
     def compute(cls, settings):
         rings, segments = Sphere.counts(settings)
-        if Sphere._whole_sphere_count(settings.topology, rings, segments) > 20 * Forged.MAX_PARTS:
+        built_rings, built_segments = Sphere._crowded_counts(settings, rings, segments)
+        if Sphere._whole_sphere_count(settings.topology, built_rings, built_segments) \
+                > 20 * Forged.MAX_PARTS:
             raise LayoutRefused("Too many parts, the most is %d" % Forged.MAX_PARTS)
 
         bottom, top = Sphere._latitudes(settings)
-        sweep, kind = settings.sweep, settings.topology
+        (start, sweep), kind = Sphere._arc(settings), settings.topology
+        shrink = settings.pole_part_size
         if kind == topology.MERIDIANS:
-            frames = topology.meridians(bottom, top, sweep, rings, segments)
+            frames = topology.meridians(bottom, top, start, sweep, rings, segments, shrink)
         elif kind == topology.GEODESIC:
-            frames = topology.geodesic(bottom, top, sweep, rings)
+            frames = topology.geodesic(bottom, top, start, sweep, built_rings, shrink)
         elif kind == topology.CUBE:
-            frames = topology.cube(bottom, top, sweep, rings)
+            frames = topology.cube(bottom, top, start, sweep, built_rings, shrink)
         elif kind == topology.SPIRAL:
-            frames = topology.spiral(bottom, top, sweep, segments)
+            frames = topology.spiral(bottom, top, start, sweep, built_segments, shrink)
         else:
             frames = topology.rings(
-                bottom, top, sweep, rings, segments, settings.pole_density, settings.stagger
+                bottom, top, start, sweep, rings, segments, settings.pole_density,
+                settings.stagger, settings.pole_part_size,
             )
         turn, centre = Forged.turn_and_centre(settings)
+        # each copy's size against the rest, smaller towards the poles
+        scales = topology.pole_scale(frames[0][:, 2], settings.pole_part_size)
         positions, rotations = topology.place(
-            *frames, settings.radius, turn, centre, Forged.copy_scale(settings),
+            *frames, settings.radius, turn, centre, Forged.copy_scale(settings) * scales,
             axes=settings.sphere_scale,
         )
         accepted = {"rings": rings, "segments": segments} if settings.counts_from_radius else {}
-        return positions, rotations, accepted
+        return positions, rotations, accepted, scales

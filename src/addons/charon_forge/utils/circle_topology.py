@@ -34,6 +34,10 @@ SUNFLOWER = "SUNFLOWER"
 # the patterns Centre Density works on
 DENSITY_TOPOLOGIES = (RINGS, SPIRAL, SUNFLOWER)
 
+# what the parts cover - the face or the outline, one or the other
+FACE = "FACE"
+CIRCUMFERENCE = "CIRCUMFERENCE"
+
 # how the parts round the outline sit
 FLAT = "FLAT"
 WALL = "WALL"
@@ -153,9 +157,9 @@ def _rect_points(centres, along, width, height):
 
 class Disc:
     """The face parts can go on: the ellipse, less its margin and hole, cut
-    to its sweep (anticlockwise from +X)."""
+    to its sweep (anticlockwise from the `start` angle, itself from +X)."""
 
-    def __init__(self, a, b, margin=0.0, hole=0.0, sweep=FULL_TURN):
+    def __init__(self, a, b, margin=0.0, hole=0.0, start=0.0, sweep=FULL_TURN):
         self.a, self.b = float(a), float(b)
         self.narrow, self.wide = min(self.a, self.b), max(self.a, self.b)
         self.margin = float(margin)
@@ -164,14 +168,17 @@ class Disc:
         self.depth = (1.0 - hole) * self.narrow if self.holed else self.narrow
         self.sweep = float(min(max(sweep, 1e-6), FULL_TURN))
         self.whole = self.sweep >= FULL_TURN - 1e-6
-        self.rays = np.array([[1.0, 0.0], [math.cos(self.sweep), math.sin(self.sweep)]])
+        self.start = 0.0 if self.whole else float(start) % FULL_TURN
+        end = self.start + self.sweep
+        self.rays = np.array([[math.cos(self.start), math.sin(self.start)],
+                              [math.cos(end), math.sin(end)]])
 
     def in_sector(self, points, clearance=0.0):
         """Whether each point is inside the sweep, at least `clearance` from
         its two straight edges."""
         if self.whole:
             return np.ones(points.shape[:-1], dtype=bool)
-        angle = np.mod(np.arctan2(points[..., 1], points[..., 0]), FULL_TURN)
+        angle = np.mod(np.arctan2(points[..., 1], points[..., 0]) - self.start, FULL_TURN)
         radius = np.linalg.norm(points, axis=-1)
         inside = (angle <= self.sweep + 1e-9) | (angle >= FULL_TURN - 1e-9) | (radius < 1e-9)
         if clearance > 0:
@@ -183,6 +190,20 @@ class Disc:
                 )
                 inside &= gap >= clearance - 1e-9
         return inside
+
+    def run_in_sector(self, curve, clearance=0.0):
+        """The stretch of a closed curve inside the sweep, from its start edge
+        to its end edge - None if none of it is."""
+        inside = self.in_sector(curve, clearance)
+        if not inside.any():
+            return None
+        if not inside.all():
+            # begin where the stretch does, in case it runs on past the
+            # curve's own first point at +X
+            first = np.flatnonzero(inside & ~np.roll(inside, 1))[0]
+            curve, inside = np.roll(curve, -first, axis=0), np.roll(inside, -first)
+        indices = np.flatnonzero(inside)
+        return curve[indices[0]:indices[-1] + 1]
 
     def rects_in_sector(self, centres, along, width, height):
         if self.whole or not len(centres):
@@ -240,10 +261,9 @@ def rings(disc, width, height, spacing, stagger=False, density=0.0):
                     curve, True, (np.arange(count) + shift) * length / count
                 )
             else:
-                inside = np.flatnonzero(disc.in_sector(curve, clearance))
-                if not len(inside):
+                run = disc.run_in_sector(curve, clearance)
+                if run is None:
                     continue
-                run = curve[inside[0]:inside[-1] + 1]
                 length = _length(run, False) * stretch
                 points, directions = _sample(
                     run, False, (span(length + width, width, spacing) - width / 2) / stretch
@@ -370,7 +390,7 @@ def spokes(disc, width, height, spacing, count):
         return _empty2() + ("",)
     count = max(int(count), 1)
     step = disc.sweep / count
-    angles = np.arange(count) * step + (0.0 if disc.whole else step / 2)
+    angles = disc.start + np.arange(count) * step + (0.0 if disc.whole else step / 2)
     directions = np.stack([np.cos(angles), np.sin(angles)], axis=-1)
     sideways = _perpendicular(directions) * (height / 2)
 
@@ -510,7 +530,7 @@ def sunflower(disc, width, height, spacing, density=0.0):
     power = 0.5 * (1 + density)
     index = np.arange(count)
     radius = (inner ** (1 / power) + (1 - inner ** (1 / power)) * index / count) ** power
-    angle = np.mod(index * GOLDEN_ANGLE, FULL_TURN) * fraction
+    angle = disc.start + np.mod(index * GOLDEN_ANGLE, FULL_TURN) * fraction
     cos, sin = np.cos(angle), np.sin(angle)
     centres = np.stack([a * radius * cos, b * radius * sin], axis=-1)
     along = unit(np.stack([-a * sin, b * cos], axis=-1))
@@ -535,10 +555,9 @@ def _line_curve(disc, curve, width, spacing, facing):
         count = _loop_count(length, width, spacing)
         centres, along = _sample(curve, True, np.arange(count) * length / count)
     else:
-        inside = np.flatnonzero(disc.in_sector(curve))
-        if not len(inside):
+        run = disc.run_in_sector(curve)
+        if run is None:
             return _empty2() + (np.zeros((0, 2)),)
-        run = curve[inside[0]:inside[-1] + 1]
         centres, along = _sample(run, False, span(_length(run, False), width, spacing))
     return centres, along, -_perpendicular(along) * facing
 

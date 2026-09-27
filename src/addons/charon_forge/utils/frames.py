@@ -4,7 +4,21 @@ A frame is a point with three directions: `along` and `up` on the surface,
 `normal` out of it. Pure numpy, no Blender.
 """
 
+import math
+
 import numpy as np
+
+FULL_TURN = 2 * math.pi
+
+
+def arc(start, end):
+    """(start, sweep) for the angles from `start` anticlockwise round to
+    `end` - past 360° and back round if `end` is the smaller. The same start
+    and end go all the way round."""
+    start = start % FULL_TURN
+    sweep = (end - start) % FULL_TURN
+    return start, (FULL_TURN if sweep < 1e-6 else sweep)
+
 
 
 def unit(vectors):
@@ -36,7 +50,7 @@ def place(centres, normals, along, up, turn, centre, scale):
         turn (3x3): the part's rotation into a frame (x along, y up, z out),
             its local rotation included.
         centre (3): the part's centre in that frame, put on the frame's point.
-        scale (float): every part's scale.
+        scale (float or N): every part's scale, or each one's.
 
     Returns:
         (N x 3, N x 3 x 3): where each part's origin goes, and its rotation.
@@ -44,6 +58,9 @@ def place(centres, normals, along, up, turn, centre, scale):
     frames = np.stack([along, up, normals], axis=-1)
     rotations = frames @ np.asarray(turn, dtype=np.float64)
     offsets = frames @ np.asarray(centre, dtype=np.float64)
+    scale = np.asarray(scale, dtype=np.float64)
+    if scale.ndim:
+        scale = scale[:, None]
     return centres - offsets * scale, rotations
 
 

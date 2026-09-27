@@ -36,7 +36,7 @@ def _on_radius_changed(self, context):
 
 
 def _on_span_changed(self, context):
-    """Top, bottom or sweep changed: typed-in counts are scaled with the
+    """Top, bottom, either end of the sweep, pole density or pole part size changed: typed-in counts are scaled with the
     arc they cover, so the copies keep their spacing instead of piling up."""
     if Forged.is_suspended():
         return
@@ -129,6 +129,11 @@ POLYGON_TOPOLOGIES = [
      "A wedge from the middle to each side, filled with rows along that side"),
 ]
 
+CIRCLE_FILLS = [
+    (circle_topology.FACE, "Face", "Fill the face with the part"),
+    (circle_topology.CIRCUMFERENCE, "Circumference", "Line the outline with the part"),
+]
+
 RIM_STYLES = [
     (circle_topology.FLAT, "Flat", "Lying flat along the outline"),
     (circle_topology.WALL, "Wall", "Standing up along the outline, facing out"),
@@ -193,9 +198,16 @@ class CharonForged(bpy.types.PropertyGroup):
     )
     pole_density: FloatProperty(
         name="Pole Density",
-        description="Extra copies in the rings towards the top and bottom, "
-                    "on top of what covers them",
-        default=0.0, min=0.0, soft_max=2.0, max=5.0, update=_on_changed,
+        description="Crowd the copies towards the top and bottom - the rings closer "
+                    "together, and more copies in each, on top of what covers them",
+        default=0.0, min=0.0, soft_max=2.0, max=5.0, update=_on_span_changed,
+    )
+    pole_part_size: FloatProperty(
+        name="Pole Part Size",
+        description="Make the copies smaller the nearer they are to the top and bottom - "
+                    "0.5 has them half size at the poles. More copies go in towards the "
+                    "poles to leave no gaps",
+        default=0.0, min=0.0, max=0.9, subtype="FACTOR", update=_on_span_changed,
     )
     stagger: BoolProperty(
         name="Stagger", description="Offset every other ring by half a copy",
@@ -215,9 +227,17 @@ class CharonForged(bpy.types.PropertyGroup):
         name="Scale", description="Stretch the sphere along X, Y and Z into an ellipsoid",
         size=3, default=(1.0, 1.0, 1.0), min=0.05, soft_max=10.0, update=_on_changed,
     )
-    sweep: FloatProperty(
-        name="Sweep", description="How far around the sphere goes",
-        default=2 * math.pi, min=math.radians(1), max=2 * math.pi, subtype="ANGLE",
+    sweep_start: FloatProperty(
+        name="Sweep Start",
+        description="Where around it begins, anticlockwise from +X",
+        default=0.0, min=0.0, max=2 * math.pi, subtype="ANGLE",
+        update=_on_span_changed,
+    )
+    sweep_end: FloatProperty(
+        name="Sweep End",
+        description="Where around it ends, anticlockwise from +X - "
+                    "the same as the start goes all the way round",
+        default=2 * math.pi, min=0.0, max=2 * math.pi, subtype="ANGLE",
         update=_on_span_changed,
     )
 
@@ -325,10 +345,14 @@ class CharonForged(bpy.types.PropertyGroup):
         update=_on_changed,
     )
 
-    # Circles - with radius, shape_sweep, stagger and the fill settings above ---
+    # Circles - with radius, sweep_start, sweep_end, stagger and the rim above ---
     circle_topology: EnumProperty(
         name="Fill Pattern", description="How the parts fill the circle's face",
         items=CIRCLE_TOPOLOGIES, default=circle_topology.RINGS, update=_on_changed,
+    )
+    circle_fill: EnumProperty(
+        name="Fill", description="Whether the parts fill the circle's face or line its outline",
+        items=CIRCLE_FILLS, default=circle_topology.FACE, update=_on_changed,
     )
     circle_scale: FloatVectorProperty(
         name="Scale", description="Stretch the circle along X and Y into an ellipse",

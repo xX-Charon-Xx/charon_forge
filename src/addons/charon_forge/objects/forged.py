@@ -50,11 +50,13 @@ class Forged:
     MIN_PITCH = 0.01
 
     NODE_GROUP = "Charon Forge Sphere"
-    NODE_GROUP_VERSION = 4
+    NODE_GROUP_VERSION = 5
     MODIFIER = "Charon Forge Sphere"
     PART_NODE = "Part"
     COPIES_NODE = "Copies"
     ROTATION_ATTRIBUTE = "charon_rotation"
+    # each copy's scale, the object's own times its size against the rest
+    SCALE_ATTRIBUTE = "charon_scale"
 
     # the surface frame a part is laid into - x along, y up, z out - as seen
     # where a sphere's latitude and longitude are 0: the world's Y, Z and X
@@ -178,7 +180,9 @@ class Forged:
         """Lay the copies out.
 
         Returns:
-            (positions, rotations, settings to write once it is accepted)
+            (positions, rotations, settings to write once it is accepted),
+            and optionally each copy's size against the rest - 1 for all of
+            them if left out
 
         Raises:
             LayoutRefused: when it can't be built.
@@ -189,11 +193,11 @@ class Forged:
     @staticmethod
     def _node_group(modifier):
         """The object's own tree for its modifier: the part on each point,
-        turned by the point's rotation and scaled.
+        turned by the point's rotation and scaled by its scale.
 
-        The part and scale are set on the tree's nodes rather than as
-        modifier inputs - Blender 5.2 has no ID properties on modifiers to
-        hold those in - so every object keeps a tree of its own. A tree
+        The part is set on the tree's node rather than as a modifier input -
+        Blender 5.2 has no ID properties on modifiers to hold it in - so
+        every object keeps a tree of its own. A tree
         shared, by an object duplicated or one made before this, is replaced.
         """
         tree = modifier.node_group
@@ -219,23 +223,31 @@ class Forged:
         rotation = nodes.new("GeometryNodeInputNamedAttribute")
         rotation.data_type = "QUATERNION"
         rotation.inputs["Name"].default_value = Forged.ROTATION_ATTRIBUTE
+        size = nodes.new("GeometryNodeInputNamedAttribute")
+        size.data_type = "FLOAT"
+        size.inputs["Name"].default_value = Forged.SCALE_ATTRIBUTE
         instances = nodes.new("GeometryNodeInstanceOnPoints")
         instances.name = Forged.COPIES_NODE
         group_output = nodes.new("NodeGroupOutput")
 
-        rotation_output = next(
-            (socket for socket in rotation.outputs
-             if socket.name == "Attribute" and socket.enabled),
-            rotation.outputs[0],
+        rotation_output, size_output = (
+            next(
+                (socket for socket in node.outputs
+                 if socket.name == "Attribute" and socket.enabled),
+                node.outputs[0],
+            )
+            for node in (rotation, size)
         )
         links.new(group_input.outputs["Geometry"], instances.inputs["Points"])
         links.new(part.outputs["Geometry"], instances.inputs["Instance"])
         links.new(rotation_output, instances.inputs["Rotation"])
+        links.new(size_output, instances.inputs["Scale"])
         links.new(instances.outputs["Instances"], group_output.inputs["Geometry"])
 
         group_input.location = (0, 0)
         part.location = (220, -60)
         rotation.location = (220, -260)
+        size.location = (220, -420)
         instances.location = (440, 0)
         group_output.location = (660, 0)
 
@@ -243,7 +255,7 @@ class Forged:
         return tree
 
     @staticmethod
-    def _set_part_and_scale(forged_obj, part, scale):
+    def _set_part(forged_obj, part):
         modifier = forged_obj.modifiers.get(Forged.MODIFIER)
         if modifier is None:
             modifier = forged_obj.modifiers.new(Forged.MODIFIER, "NODES")
@@ -259,14 +271,10 @@ class Forged:
         if part_socket.default_value != part:
             part_socket.default_value = part
             changed = True
-        scale_socket = tree.nodes[Forged.COPIES_NODE].inputs["Scale"]
-        if any(abs(value - scale) > 1e-6 for value in scale_socket.default_value):
-            scale_socket.default_value = (scale, scale, scale)
-            changed = True
         return changed
 
     @staticmethod
-    def _write_points(mesh, positions, rotations):
+    def _write_points(mesh, positions, rotations, scales):
         mesh.clear_geometry()
         mesh.vertices.add(len(positions))
         mesh.vertices.foreach_set("co", positions.astype(np.float32).ravel())
@@ -276,6 +284,10 @@ class Forged:
         attribute.data.foreach_set(
             "value", frames.to_quaternions(rotations).astype(np.float32).ravel()
         )
+        attribute = mesh.attributes.get(Forged.SCALE_ATTRIBUTE)
+        if attribute is None:
+            attribute = mesh.attributes.new(Forged.SCALE_ATTRIBUTE, "FLOAT", "POINT")
+        attribute.data.foreach_set("value", np.asarray(scales, dtype=np.float32).ravel())
         mesh.update()
 
     # Objects ---
@@ -345,7 +357,7 @@ class Forged:
             return
 
         try:
-            positions, rotations, accepted = kind.compute(settings)
+            positions, rotations, accepted, *sizes = kind.compute(settings)
             if len(positions) > Forged.MAX_PARTS:
                 raise LayoutRefused(
                     "%d parts, the most is %d" % (len(positions), Forged.MAX_PARTS)
@@ -365,8 +377,9 @@ class Forged:
             for name, value in accepted.items():
                 setattr(settings, name, value)
 
-        Forged._write_points(forged_obj.data, positions, rotations)
-        if Forged._set_part_and_scale(forged_obj, holder, scale):
+        sizes = sizes[0] if sizes else np.ones(len(positions))
+        Forged._write_points(forged_obj.data, positions, rotations, scale * sizes)
+        if Forged._set_part(forged_obj, holder):
             # values written from Python don't always tag the object themselves
             forged_obj.update_tag()
 
@@ -384,10 +397,15 @@ class Forged:
         if attribute is not None and count:
             attribute.data.foreach_get("value", quaternions)
 
+        scales = np.full(count, forged_obj.charon_forged.applied_scale, dtype=np.float32)
+        attribute = mesh.attributes.get(Forged.SCALE_ATTRIBUTE)
+        if attribute is not None and count:
+            attribute.data.foreach_get("value", scales)
+
         matrices = np.zeros((count, 4, 4))
         if count:
             rotations = frames.from_quaternions(quaternions.reshape(-1, 4))
-            matrices[:, :3, :3] = rotations * forged_obj.charon_forged.applied_scale
+            matrices[:, :3, :3] = rotations * scales[:, None, None]
             matrices[:, :3, 3] = positions.reshape(-1, 3)
             matrices[:, 3, 3] = 1.0
         return matrices
