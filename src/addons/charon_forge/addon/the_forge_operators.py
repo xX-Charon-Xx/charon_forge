@@ -701,7 +701,7 @@ class ForgeQRCode(bpy.types.Operator):
 
         name = "QR Code: " + (text if len(text) <= 24 else text[:24] + "...")
         try:
-            objects, size = qr_forge.build_qr_code(
+            group, size, panel_count = qr_forge.build_qr_code(
                 text, self.ERROR_CORRECTION, self.module_size, collection_name=name,
             )
         except qr_code.QRCodeError as error:
@@ -711,10 +711,10 @@ class ForgeQRCode(bpy.types.Operator):
             self.report({"ERROR"}, f"Could not forge the QR code: {error}")
             return {"CANCELLED"}
 
-        _select_only(context, objects)
+        _select_only(context, [group])
         self.report(
             {"INFO"},
-            f"Forged a {size} x {size} QR code from {len(objects)} panels, in '{name}'",
+            f"Forged a {size} x {size} QR code from {panel_count} panels, grouped as '{group.name}'",
         )
         return {"FINISHED"}
 

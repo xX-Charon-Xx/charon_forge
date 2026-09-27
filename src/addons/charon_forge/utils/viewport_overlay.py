@@ -6,7 +6,10 @@ drawn as blocks of text in the bottom or top left corner of the viewport:
   - Base: the base or corvette the scene was imported from, its type
     (planet base, corvette, freighter, space base, space station base...)
     and the part count, the parts inside groups included.
-  - Active Part: the selected part's id, name, colour and material.
+  - Active Part: what the selected object is - a part, a group, a shape
+    made in The Forge (sphere, circle...), a prefab or a curve, whichever
+    addon made it - with its id, name, colour and material. A prefab says
+    whether it is one of your saved presets or came in from another project.
   - Over the ship's primary cockpit and landing bay (the optimiser panel's
     picks), a floating label naming each.
 
@@ -17,6 +20,7 @@ shown, and where, is in the addon preferences - see the Watchtower panel.
 
 import os
 import re
+from time import perf_counter
 
 import blf
 import bpy
@@ -196,29 +200,167 @@ def base_block(context):
     return block
 
 
-def active_part_block(context):
-    active_object = context.active_object
-    if active_object is None or "ObjectID" not in active_object:
-        return None
-    if not active_object.select_get():
-        return None
+def part_name(object_id):
+    """A part's name as the game calls it, or None."""
+    nice_name = dictionary.get_nice_names_diictionary().get(str(object_id).replace("^", ""))
+    return to_title_case(nice_name) if nice_name else None
 
-    object_id = str(active_object["ObjectID"]).replace("^", "")
-    model_id = model_id_of(active_object)
+
+def part_label(object_id):
+    """"Name (ID)", or just the id when it has no name."""
+    object_id = str(object_id).replace("^", "")
+    name = part_name(object_id)
+    return f"{name} ({object_id})" if name else object_id
+
+
+# Prefabs are the presets both this addon and the base builder addon save, to
+# the one folder they share. Looking them up lists that folder, so what it
+# holds is kept for a moment rather than listed again every redraw.
+PREFAB_CACHE_SECONDS = 2.0
+_prefab_cache = {"time": -PREFAB_CACHE_SECONDS, "presets": {}}
+
+
+def saved_prefabs():
+    """{prefab name: file path} of every prefab in the shared presets folder."""
+    now = perf_counter()
+    if now - _prefab_cache["time"] >= PREFAB_CACHE_SECONDS:
+        from ..objects.preset import Preset
+        try:
+            _prefab_cache["presets"] = Preset.get_presets()
+        except OSError:
+            _prefab_cache["presets"] = {}
+        _prefab_cache["time"] = now
+    return _prefab_cache["presets"]
+
+
+def prefab_source(preset_id):
+    """Where a prefab in the scene is defined: in your presets folder (and
+    its category), or only in the base or project it came in with."""
+    from ..objects.preset import Preset
+    path = saved_prefabs().get(preset_id)
+    if path is None:
+        return "Another project (not in your presets)"
+    folder = os.path.dirname(path)
+    if os.path.normcase(os.path.abspath(folder)) == os.path.normcase(os.path.abspath(Preset.PRESET_PATH)):
+        return "Your presets"
+    return f"Your presets ({os.path.basename(folder)})"
+
+
+def owning_prefab(bpy_object):
+    """The name of the prefab a part was placed as part of, or None."""
+    parent = bpy_object.parent
+    while parent is not None:
+        if "PresetID" in parent:
+            return str(parent["PresetID"])
+        parent = parent.parent
+    return None
+
+
+def forged_form(bpy_object):
+    """The kind of shape The Forge made this, "SPHERE" say, or ""."""
+    settings = getattr(bpy_object, "charon_forged", None)
+    if settings is None or "GroupID" not in bpy_object:
+        return ""
+    return settings.form
+
+
+def _add_colour_rows(block, bpy_object):
+    colour = bpy_object.get(PROP_READONLY_COLOUR)
+    if colour:
+        block.add("Colour", colour)
+    material = bpy_object.get(PROP_READONLY_MATERIAL)
+    if material:
+        block.add("Material", material)
+
+
+def _forged_block(bpy_object, form):
+    settings = bpy_object.charon_forged
+    block = TextBlock(f"Active {form.title()}")
+    block.add("Type", f"{form.title()} (made in The Forge)")
+    if settings.object_id:
+        block.add("Made Of", part_label(settings.object_id))
+    block.add("Parts", f"{_group_part_count(bpy_object):,}")
+    return block
+
+
+def _group_block(bpy_object):
+    block = TextBlock("Active Group")
+    block.add("Type", "Mirrored Group" if bpy_object.get("is_mirror") else "Group")
+    block.add("Parts", f"{_group_part_count(bpy_object):,}")
+    return block
+
+
+def _prefab_block(bpy_object):
+    preset_id = str(bpy_object["PresetID"])
+    block = TextBlock("Active Prefab")
+    block.add("Type", "Prefab")
+    block.add("Name", preset_id)
+    block.add("Defined In", prefab_source(preset_id))
+    path = saved_prefabs().get(preset_id)
+    if path:
+        block.add("File", os.path.basename(path))
+    return block
+
+
+def _curve_block(bpy_object):
+    block = TextBlock("Active Curve")
+    block.add("Type", "Curve")
+    if bpy_object.get("is_group"):
+        block.add("Along It", "A group")
+    elif "dup_ObjectID" in bpy_object:
+        block.add("Along It", part_label(bpy_object["dup_ObjectID"]))
+    count = bpy_object.get("objects_count")
+    if count is not None:
+        block.add("Copies", f"{int(count):,}")
+    return block
+
+
+def _part_block(bpy_object):
+    object_id = str(bpy_object["ObjectID"]).replace("^", "")
+    model_id = model_id_of(bpy_object)
 
     block = TextBlock("Active Part")
     block.add("Part ID", object_id if model_id == object_id else f"{object_id} ({model_id})")
+    name = part_name(model_id)
+    if name:
+        block.add("Name", name)
 
-    nice_name = dictionary.get_nice_names_diictionary().get(model_id)
-    if nice_name:
-        block.add("Name", to_title_case(nice_name))
+    prefab = owning_prefab(bpy_object)
+    if prefab is not None:
+        block.add("In Prefab", f"{prefab} - {prefab_source(prefab)}")
+    elif bpy_object.get("belongs_to_preset"):
+        block.add("In Prefab", "Yes")
+    curve_name = bpy_object.get("curve_parent")
+    if curve_name:
+        block.add("On Curve", curve_name)
+    return block
 
-    colour = active_object.get(PROP_READONLY_COLOUR)
-    if colour:
-        block.add("Colour", colour)
-    material = active_object.get(PROP_READONLY_MATERIAL)
-    if material:
-        block.add("Material", material)
+
+def active_part_block(context):
+    """What the selected object is - a part, a group, a shape made in The
+    Forge, a prefab or a curve, whichever addon made it - and its details."""
+    active_object = context.active_object
+    if active_object is None or not active_object.select_get():
+        return None
+
+    form = forged_form(active_object)
+    if form:
+        block = _forged_block(active_object, form)
+    elif "GroupID" in active_object:
+        block = _group_block(active_object)
+    elif "PresetID" in active_object:
+        block = _prefab_block(active_object)
+    elif "CurveID" in active_object or active_object.get("has_linked_objects"):
+        block = _curve_block(active_object)
+    elif "rig_item" in active_object:
+        block = TextBlock("Active Power Line Control")
+        block.add("Type", "Power Line Control")
+    elif "ObjectID" in active_object:
+        block = _part_block(active_object)
+    else:
+        return None
+
+    _add_colour_rows(block, active_object)
     return block
 
 

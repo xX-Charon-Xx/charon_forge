@@ -201,7 +201,8 @@ def _panel_rotation(long_axis, short_axis, thin_axis, long_along_x):
 
 
 def build_qr_code(text, level="M", module_size=1.0, upright=False, collection_name=None):
-    """Forge a QR code out of panels at the 3D cursor.
+    """Forge a QR code out of panels at the 3D cursor, grouped into one
+    object whose origin is the middle of the code.
 
     Args:
         text (str): What the code says.
@@ -210,12 +211,14 @@ def build_qr_code(text, level="M", module_size=1.0, upright=False, collection_na
         upright (bool): Standing up facing -Y, rather than lying flat.
 
     Returns:
-        tuple: (the new objects, the number of modules along a side).
+        tuple: (the group, the number of modules along a side, the number of
+        panels in it).
 
     Raises:
         qr_code.QRCodeError: When the text doesn't fit a QR code.
     """
     from .. import builder as charon_builder
+    from ..objects.group import Group
 
     modules = qr_code.encode(text, level)
     size = len(modules)
@@ -267,4 +270,13 @@ def build_qr_code(text, level="M", module_size=1.0, upright=False, collection_na
         bpy_object["order"] = order + index
         objects.append(bpy_object)
 
-    return objects, size
+    # one group, its origin at the middle of the code - the cursor, which
+    # the panels were laid out around - turned upright with it if it is
+    loading_overlay.step("Grouping panels", show=True)
+    group = Group.group_objects(objects, placement)
+    if group is None:
+        raise RuntimeError("the panels could not be grouped")
+    group.name = collection.name
+    group["order"] = order
+
+    return group, size, len(objects)

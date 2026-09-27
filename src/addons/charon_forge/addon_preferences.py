@@ -167,7 +167,7 @@ class CharonAddonPreferences(bpy.types.AddonPreferences):
     )
     watchtower_show_active_object: BoolProperty(
         name="Show Active Part",
-        description="Show the active part's id, name, colour and material over the viewport",
+        description="Show what the active object is - a part, group, Forge shape, prefab or curve - with its id, name, colour and material, over the viewport",
         default=True,
         update=on_watchtower_update,
     )
