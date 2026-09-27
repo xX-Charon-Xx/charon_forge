@@ -29,6 +29,7 @@ __all__ = [
     "add_part",
     "deserialise_from_data",
     "load_high_res_mesh",
+    "load_high_res_meshes",
     "new_high_res_object",
     "new_merge_source",
     "new_proxy_object",
@@ -75,6 +76,7 @@ def deserialise_from_data(data, builder_object=None):
 
 
 load_high_res_mesh = asset_library.load_high_res_mesh
+load_high_res_meshes = asset_library.load_high_res_meshes
 new_high_res_object = placement.new_high_res_object
 new_merge_source = placement.new_merge_source
 new_proxy_object = proxy_library.new_proxy_object

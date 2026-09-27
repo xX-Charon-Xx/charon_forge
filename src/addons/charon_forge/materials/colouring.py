@@ -159,26 +159,50 @@ def apply(bpy_object, user_data_value, tag=True):
     return palette
 
 
-def apply_many(pairs, tag=False, update=False):
+def apply_many(pairs, tag=False, update=False, fresh=False):
     """Colour many (object, UserData) pairs, resolving each distinct
-    (part id, UserData) once.
+    (part id, UserData) once - down to the very tuples written, so each
+    object costs only its property writes.
+
+    Args:
+        fresh (bool): The objects were just made, so there are no properties
+            left from the old finish preview to look for.
 
     Returns:
         tuple: (number coloured, number whose UserData did not resolve)
     """
     cache = {}
     applied = unresolved = 0
+    slots = tuple(zip(SLOT_PROPS, SLOT_ORDER))
     for bpy_object, user_data_value in pairs:
         key = (object_id_of(bpy_object), str(user_data_value))
-        if key not in cache:
-            cache[key] = resolve(key[0], user_data_value)
-        resolved = cache[key]
-        if resolved is None:
+        values = cache.get(key)
+        if values is None and key not in cache:
+            resolved = resolve(key[0], user_data_value)
+            if resolved is not None:
+                palette, finish_index, colour_label, finish_label = resolved
+                values = (
+                    tuple((prop, tuple(palette[slot])) for prop, slot in slots),
+                    int(finish_index),
+                    tuple(palette["p"]),
+                    colour_label or "",
+                    finish_label or "",
+                )
+            cache[key] = values
+        if values is None:
             unresolved += 1
             continue
-        palette, finish_index, colour_label, finish_label = resolved
-        apply_palette(bpy_object, palette, finish_index)
-        _write_labels(bpy_object, colour_label, finish_label)
+        slot_values, finish_index, colour, colour_label, finish_label = values
+        for prop, value in slot_values:
+            bpy_object[prop] = value
+        bpy_object[PROP_FINISH] = finish_index
+        if not fresh:
+            for prop in LEGACY_FINISH_PROPS:
+                if prop in bpy_object:
+                    del bpy_object[prop]
+        bpy_object.color = colour
+        bpy_object[PROP_READONLY_COLOUR] = colour_label
+        bpy_object[PROP_READONLY_MATERIAL] = finish_label
         if tag:
             bpy_object.update_tag()
         applied += 1

@@ -14,11 +14,11 @@ import bpy
 
 from .. import builder as charon_builder
 from .. import materials
-from ..builder import paths, placement
+from ..builder import importer, paths, placement
 from ..objects.forged import Forged
 from ..objects.group import Group
 from ..objects.part import Part
-from ..utils import base_builder_utils
+from ..utils import base_builder_utils, collection_utils
 
 
 def _addon_module():
@@ -97,10 +97,11 @@ def _switch_scene_parts(context, target_high_res, proxy_cache):
     """
     switched = 0
     missing_ids = []
-
-    asset_index = charon_builder.asset_library.get_asset_index()
     to_colour = []
 
+    # every part to switch, worked out first, so the high res meshes can all
+    # be loaded in one batch before any part is touched
+    candidates = []
     # A snapshot, because importing a proxy the scene has not used yet links
     # the imported objects in before taking them out again.
     for source_object in list(context.scene.objects):
@@ -121,9 +122,19 @@ def _switch_scene_parts(context, target_high_res, proxy_cache):
         # a fossil bone shows the bone in its Message, not the kind in its
         # ObjectID - switching it by its ObjectID would swap in a generic bone
         model_id = placement.model_id_of(object_id, source_object.get(Part.PROP_MESSAGE))
+        candidates.append((source_object, model_id, user_data))
 
+    high_res_meshes = (
+        charon_builder.load_high_res_meshes(
+            [model_id for _, model_id, _ in candidates],
+            charon_builder.asset_library.get_asset_index(),
+        )
+        if target_high_res and candidates else {}
+    )
+
+    for source_object, model_id, user_data in candidates:
         if target_high_res:
-            new_mesh = charon_builder.load_high_res_mesh(model_id, asset_index)
+            new_mesh = high_res_meshes.get(model_id)
             # An id the high res library does not cover - one of the ones it
             # still misses, or a mirrored part whose twin has no model of its
             # own. Left exactly as it is rather than swapped for something that
@@ -181,7 +192,18 @@ def _switch_scene_proxies(context, target_high_res):
     # forth does not cut a fresh set every time - see builder.apply_proxy_mesh.
     proxy_cache = {}
 
-    with _suspend_scene_updates(), _preserve_selection(context):
+    # every collection a part or group sits in, and the one rebuilt groups'
+    # children are made in, go out of the view layer while their meshes are
+    # swapped - inside _preserve_selection, so the selection is put back
+    # after they are back in the view layer
+    collections = {collection
+                   for obj in context.scene.objects
+                   if Part.PROP_OBJECT_ID in obj or Group.PROP_GROUP_ID in obj
+                   for collection in obj.users_collection}
+    collections.add(collection_utils.get_collection(importer.IMPORT_COLLECTION_NAME))
+    collections.discard(context.scene.collection)
+
+    with _suspend_scene_updates(), _preserve_selection(context),             collection_utils.excluded_from_view_layer(*collections):
         # The library-wide dedupe and finish passes are worth doing once for
         # the whole scene and are pure waste per part - see
         # materials.defer_shared_data.

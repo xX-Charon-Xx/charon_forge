@@ -1,7 +1,11 @@
 """Fast bulk import of the parts in NMS base data.
 
-The import collection is excluded from the view layer while parts are created,
-and as much data as possible is shared between the objects made:
+An import runs in batches, each a single pass over the whole base: every
+asset the base needs is appended first, then every object is made, then every
+part is coloured, then the materials the appends brought in are deduped and
+prepared once - see import_objects. The import collection is excluded from
+the view layer throughout, and as much data as possible is shared between the
+objects made:
 
 - Parts from the high res library share ONE mesh datablock (and with it one
   set of materials) across every placement of that object id, whatever their
@@ -55,11 +59,23 @@ def clear_scene_parts(scene=None):
     scene = scene or bpy.context.scene
     doomed = set()
     holders = set()
+    # Object.children_recursive walks every object in the file on each call,
+    # so asking it once per part made clearing a 2700 part ship take 0.7s -
+    # one map of who parents whom is built here instead
+    children = {}
+    for obj in bpy.data.objects:
+        if obj.parent is not None:
+            children.setdefault(obj.parent, []).append(obj)
     for obj in scene.objects:
         if not any(prop in obj for prop in BUILD_PROPS):
             continue
         doomed.add(obj)
-        doomed.update(obj.children_recursive)
+        stack = list(children.get(obj, ()))
+        while stack:
+            child = stack.pop()
+            if child not in doomed:
+                doomed.add(child)
+                stack.extend(children.get(child, ()))
         # a Forge shape's part sits on a holder object in no scene
         forged = getattr(obj, "charon_forged", None)
         holder = getattr(forged, "part_object", None) if forged is not None else None
@@ -83,88 +99,98 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
         compensate_normal (bool): Passed to override classes, see BaseVersion.
         high_res (bool): False to build every part from the fbx proxies.
     """
-    # High res meshes, keyed by object id. Shared by every placement.
-    unique_meshes = {}
     # Fbx fallback objects and their per (object id, user data) mesh copies.
     unique_objects = {}
     unique_materials = {}
     # (object, user data) pairs to colour in one pass at the end.
     to_colour = []
 
-    asset_index = asset_library.get_asset_index() if high_res else {}
     timing = {"start": time.perf_counter()}
     asset_library.reset_load_stats()
 
-    # exclude the collection from the view layer, so creating objects doesn't
-    # update the scene after every disk read or new object
+    # what each part is, worked out once: (order, data, id, user data, the
+    # class that builds it when it has one of its own)
+    parts = []
+    for order, part_data in enumerate(objects_data):
+        raw_object_id = part_data.get(Part.PROP_OBJECT_ID, None)
+        if raw_object_id is None:
+            continue
+        object_id = raw_object_id.replace("^", "")
+        parts.append((
+            order, part_data, object_id,
+            part_data.get(Part.PROP_USER_DATA, 0),
+            placement.get_override_class(builder_object, object_id),
+        ))
+
+    # the collection is out of the view layer while it fills, so creating
+    # objects doesn't update the scene after every disk read or new object;
+    # it is put back even when a part fails, and always included at the end
+    # - an import that stays excluded looks like it did nothing
     import_collection = collection_utils.get_collection(IMPORT_COLLECTION_NAME)
-    collection_utils.set_collection_visibility(import_collection.name, visible=False)
-
-    # a bad part must never leave the collection excluded - that would look
-    # like the import silently did nothing
     try:
-        # local lookups, this loop runs once per placed part
-        link_object = import_collection.objects.link
-        new_object = bpy.data.objects.new
-
-        for order, part_data in enumerate(objects_data):
-            raw_object_id = part_data.get(Part.PROP_OBJECT_ID, None)
-            if raw_object_id is None:
-                continue
-
-            object_id = raw_object_id.replace("^", "")
-            user_data = part_data.get(Part.PROP_USER_DATA, 0)
-
-            # parts with a class of their own are left to it
-            override_class = placement.get_override_class(builder_object, object_id)
-            if override_class is not None:
-                override_class.deserialise_from_data(
-                    part_data, builder_object, compensate_normal=compensate_normal
+        with collection_utils.excluded_from_view_layer(import_collection):
+            # the whole-library material passes - dedupe, glow, tint - are
+            # wanted by every append and by parts with classes of their own;
+            # inside this they run once, when it closes
+            with materials.defer_shared_data():
+                # 1. every asset, in one batch: each id's shared mesh, and
+                # its materials merged into the ones the file already has
+                unique_meshes = (
+                    asset_library.load_high_res_meshes(
+                        [part[2] for part in parts if part[4] is None]
+                    )
+                    if high_res else {}
                 )
-                continue
+                timing["assets"] = time.perf_counter()
 
-            # import object_id from disk when visiting it first time
-            if object_id not in unique_meshes:
-                unique_meshes[object_id] = (
-                    asset_library.load_high_res_mesh(object_id, asset_index)
-                    if high_res else None
-                )
-            high_res_mesh = unique_meshes[object_id]
+                # 2. every object, a plain new one over its id's shared mesh -
+                # no copy, no ops, every placement of an id on the one mesh
+                link_object = import_collection.objects.link
+                new_object = bpy.data.objects.new
+                for order, part_data, object_id, user_data, override_class in parts:
+                    if override_class is not None:
+                        override_class.deserialise_from_data(
+                            part_data, builder_object, compensate_normal=compensate_normal
+                        )
+                        continue
 
-            if high_res_mesh is not None:
-                # a plain new object over the cached mesh - no copy, no ops,
-                # and every instance of this id points at the same mesh
-                bpy_object = new_object(object_id, high_res_mesh)
-                link_object(bpy_object)
-                to_colour.append((bpy_object, user_data))
-            else:
-                bpy_object = build_fbx_part(
-                    builder_object,
-                    object_id,
-                    user_data,
-                    import_collection,
-                    unique_objects,
-                    unique_materials,
-                )
-                if bpy_object is None:
-                    continue
+                    high_res_mesh = unique_meshes.get(object_id)
+                    if high_res_mesh is not None:
+                        bpy_object = new_object(object_id, high_res_mesh)
+                        link_object(bpy_object)
+                        to_colour.append((bpy_object, user_data))
+                    else:
+                        bpy_object = build_fbx_part(
+                            builder_object,
+                            object_id,
+                            user_data,
+                            import_collection,
+                            unique_objects,
+                            unique_materials,
+                        )
+                        if bpy_object is None:
+                            continue
 
-            restore_params(bpy_object, part_data, object_id)
-            bpy_object.matrix_world = deserialise_matrix_world(part_data)
-            bpy_object[Part.PROP_ORDER] = order
+                    restore_params(bpy_object, part_data, object_id)
+                    bpy_object.matrix_world = deserialise_matrix_world(part_data)
+                    bpy_object[Part.PROP_ORDER] = order
+                timing["build"] = time.perf_counter()
 
-        timing["build"] = time.perf_counter()
+                # 3. every high res part coloured in one pass - properties on
+                # the objects, so the materials stay shared
+                materials.apply_many(to_colour, fresh=True)
+                timing["colour"] = time.perf_counter()
 
-        # colour every high res part in one pass, then dedupe so the shared
-        # materials are the ones that get prepared (glow wired, old finish
-        # nodes out)
-        materials.apply_many(to_colour)
-        timing["colour"] = time.perf_counter()
-        materials.dedupe_appended_data()
-        timing["dedupe"] = time.perf_counter()
-        materials.prepare_materials()
-        materials.use_object_colour_in_viewport()
-        timing["prepare"] = time.perf_counter()
+                # asked for here, so they run on leaving even when every
+                # asset was already in the file
+                materials.dedupe_appended_data()
+                materials.prepare_materials()
+
+            # 4. leaving the block ran the material passes once: textures and
+            # node groups the appends duplicated collapsed first, so the
+            # shared materials are the ones that get prepared
+            materials.use_object_colour_in_viewport()
+            timing["materials"] = time.perf_counter()
 
     finally:
         collection_utils.set_collection_visibility(import_collection.name, visible=True)
@@ -176,11 +202,7 @@ def import_objects(builder_object, objects_data, compensate_normal=True, high_re
 
 
 def _report_timing(part_count, timing):
-    """One console line saying where an import's time went.
-
-    The asset stages (append, clean, glow) happen inside the build loop the
-    first time each id is met, so they are shown as part of it.
-    """
+    """One console line saying where an import's time went."""
     stats = asset_library.get_load_stats()
     start = timing["start"]
 
@@ -190,14 +212,14 @@ def _report_timing(part_count, timing):
         return "%.2fs" % (timing[last] - timing[first])
 
     print(
-        "Charon Forge: imported %d parts in %.2fs - build %s (%d new assets: "
-        "append %.2fs, clean %.2fs, glow %.2fs), colour %s, dedupe %s, "
-        "prepare %s, scene update %s"
+        "Charon Forge: imported %d parts in %.2fs - assets %s (%d new: "
+        "append %.2fs, merge %.2fs, clean %.2fs, glow %.2fs), build %s, "
+        "colour %s, materials %s, scene update %s"
         % (
-            part_count, timing["end"] - start, span("start", "build"),
-            stats["assets"], stats["append"], stats["clean"], stats["glow"],
-            span("build", "colour"), span("colour", "dedupe"),
-            span("dedupe", "prepare"), span("prepare", "end"),
+            part_count, timing["end"] - start, span("start", "assets"),
+            stats["assets"], stats["append"], stats["merge"], stats["clean"], stats["glow"],
+            span("assets", "build"), span("build", "colour"),
+            span("colour", "materials"), span("materials", "end"),
         )
     )
 

@@ -50,8 +50,10 @@ class Forged:
     MIN_PITCH = 0.01
 
     NODE_GROUP = "Charon Forge Sphere"
-    NODE_GROUP_VERSION = 3
+    NODE_GROUP_VERSION = 4
     MODIFIER = "Charon Forge Sphere"
+    PART_NODE = "Part"
+    COPIES_NODE = "Copies"
     ROTATION_ATTRIBUTE = "charon_rotation"
 
     # the surface frame a part is laid into - x along, y up, z out - as seen
@@ -185,32 +187,40 @@ class Forged:
 
     # Node tree ---
     @staticmethod
-    def _node_group():
-        """Every forged object's modifier: the part on each point, turned by
-        the point's rotation and scaled by the Scale input."""
-        tree = bpy.data.node_groups.get(Forged.NODE_GROUP)
-        if tree is not None and tree.get("charon_version") == Forged.NODE_GROUP_VERSION:
+    def _node_group(modifier):
+        """The object's own tree for its modifier: the part on each point,
+        turned by the point's rotation and scaled.
+
+        The part and scale are set on the tree's nodes rather than as
+        modifier inputs - Blender 5.2 has no ID properties on modifiers to
+        hold those in - so every object keeps a tree of its own. A tree
+        shared, by an object duplicated or one made before this, is replaced.
+        """
+        tree = modifier.node_group
+        if (
+            tree is not None
+            and tree.users == 1
+            and tree.get("charon_version") == Forged.NODE_GROUP_VERSION
+            and Forged.PART_NODE in tree.nodes
+            and Forged.COPIES_NODE in tree.nodes
+        ):
             return tree
-        if tree is None:
-            tree = bpy.data.node_groups.new(Forged.NODE_GROUP, "GeometryNodeTree")
-        else:
-            tree.nodes.clear()
-            tree.interface.clear()
+        tree = bpy.data.node_groups.new(Forged.NODE_GROUP, "GeometryNodeTree")
 
         interface = tree.interface
         interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
-        interface.new_socket("Part", in_out="INPUT", socket_type="NodeSocketObject")
-        interface.new_socket("Scale", in_out="INPUT", socket_type="NodeSocketFloat")
         interface.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
 
         nodes, links = tree.nodes, tree.links
         group_input = nodes.new("NodeGroupInput")
         part = nodes.new("GeometryNodeObjectInfo")
+        part.name = Forged.PART_NODE
         part.transform_space = "ORIGINAL"
         rotation = nodes.new("GeometryNodeInputNamedAttribute")
         rotation.data_type = "QUATERNION"
         rotation.inputs["Name"].default_value = Forged.ROTATION_ATTRIBUTE
         instances = nodes.new("GeometryNodeInstanceOnPoints")
+        instances.name = Forged.COPIES_NODE
         group_output = nodes.new("NodeGroupOutput")
 
         rotation_output = next(
@@ -218,11 +228,9 @@ class Forged:
              if socket.name == "Attribute" and socket.enabled),
             rotation.outputs[0],
         )
-        links.new(group_input.outputs["Part"], part.inputs["Object"])
         links.new(group_input.outputs["Geometry"], instances.inputs["Points"])
         links.new(part.outputs["Geometry"], instances.inputs["Instance"])
         links.new(rotation_output, instances.inputs["Rotation"])
-        links.new(group_input.outputs["Scale"], instances.inputs["Scale"])
         links.new(instances.outputs["Instances"], group_output.inputs["Geometry"])
 
         group_input.location = (0, 0)
@@ -235,24 +243,26 @@ class Forged:
         return tree
 
     @staticmethod
-    def _set_modifier_inputs(forged_obj, values):
-        tree = Forged._node_group()
+    def _set_part_and_scale(forged_obj, part, scale):
         modifier = forged_obj.modifiers.get(Forged.MODIFIER)
         if modifier is None:
             modifier = forged_obj.modifiers.new(Forged.MODIFIER, "NODES")
-        if modifier.node_group is not tree:
+        tree = Forged._node_group(modifier)
+        changed = modifier.node_group is not tree
+        if changed:
+            old_tree = modifier.node_group
             modifier.node_group = tree
-        identifiers = {
-            item.name: item.identifier
-            for item in tree.interface.items_tree
-            if getattr(item, "in_out", None) == "INPUT"
-        }
-        changed = False
-        for name, value in values.items():
-            identifier = identifiers.get(name)
-            if identifier is not None and modifier.get(identifier) != value:
-                modifier[identifier] = value
-                changed = True
+            if old_tree is not None and old_tree.users == 0:
+                bpy.data.node_groups.remove(old_tree)
+
+        part_socket = tree.nodes[Forged.PART_NODE].inputs["Object"]
+        if part_socket.default_value != part:
+            part_socket.default_value = part
+            changed = True
+        scale_socket = tree.nodes[Forged.COPIES_NODE].inputs["Scale"]
+        if any(abs(value - scale) > 1e-6 for value in scale_socket.default_value):
+            scale_socket.default_value = (scale, scale, scale)
+            changed = True
         return changed
 
     @staticmethod
@@ -356,8 +366,8 @@ class Forged:
                 setattr(settings, name, value)
 
         Forged._write_points(forged_obj.data, positions, rotations)
-        if Forged._set_modifier_inputs(forged_obj, {"Part": holder, "Scale": scale}):
-            # inputs written from Python don't tag the object themselves
+        if Forged._set_part_and_scale(forged_obj, holder, scale):
+            # values written from Python don't always tag the object themselves
             forged_obj.update_tag()
 
     # Exporting ---

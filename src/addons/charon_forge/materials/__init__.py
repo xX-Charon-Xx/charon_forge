@@ -25,7 +25,7 @@ docs/MATERIALS.md at the top of the repository explains the whole system.
 
 import bpy
 
-from . import colourise, emission, game_data, host, packing, samplers
+from . import colourise, emission, game_data, host, merge, packing, samplers
 from .colouring import (apply, apply_many, apply_palette, clear, decode,
                         default_user_data, encode, is_colourable, is_high_res,
                         object_id_of, recolour, recolour_from_user_data,

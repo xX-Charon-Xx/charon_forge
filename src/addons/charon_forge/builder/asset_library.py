@@ -44,10 +44,10 @@ REBUILD_VARIANTS = True
 
 # Strip the doubled geometry a lot of the library ships with as each asset is
 # appended - see _remove_duplicate_faces below for what it is and why it only
-# shows up in Cycles. Done here rather than in the asset files because the
-# library is generated: fixing the blends by hand would last until the next
-# extraction run, and this also covers whatever is generated next. Runs once
-# per part per session, on the shared mesh every placement then points at.
+# shows up in Cycles. The extraction pipeline now does this when it builds an
+# asset and tags the mesh (CLEAN_TAG), so this only runs for assets without
+# the tag - a library built before that. Runs once per part per session, on
+# the shared mesh every placement then points at.
 CLEAN_DUPLICATE_FACES = True
 
 # Two faces count as facing the same way when their normals agree at least
@@ -55,13 +55,18 @@ CLEAN_DUPLICATE_FACES = True
 # below the angle a genuine back face sits at.
 FACING_TOLERANCE = 0.9
 
+# On a library mesh: the pipeline already removed its duplicate faces
+# (pipeline/blend/dupfaces.py), so appending it skips the clean below. A mesh
+# without it - an older library - is still cleaned here.
+CLEAN_TAG = "nms_faces_clean"
+
 # Set once per session by get_asset_index().
 _asset_index = None
 
 # Seconds spent in each stage of loading assets, and how many were loaded,
 # since the last reset_load_stats() - the importer prints them after a build
 # so a slow import shows where its time went.
-_load_stats = {"assets": 0, "append": 0.0, "clean": 0.0, "glow": 0.0}
+_load_stats = {"assets": 0, "append": 0.0, "merge": 0.0, "clean": 0.0, "glow": 0.0}
 
 
 def reset_load_stats():
@@ -274,7 +279,17 @@ def has_asset(object_id):
     return object_id.replace("^", "") in get_asset_index()
 
 
-def load_high_res_mesh(object_id, asset_index=None):
+def _cached_mesh(object_id):
+    """The id's mesh when this file already has it, else None."""
+    # the cache lives in bpy.data rather than in a module level dict, so it
+    # survives a new file, a module reload and a scene the user already saved
+    cached = bpy.data.meshes.get(MESH_PREFIX + object_id)
+    if cached is not None and cached.get(MESH_TAG) == object_id:
+        return cached
+    return None
+
+
+def load_high_res_mesh(object_id, asset_index=None, _leftovers=None):
     """The shared mesh datablock for an object id, appending it on first use.
 
     Returns:
@@ -282,11 +297,8 @@ def load_high_res_mesh(object_id, asset_index=None):
     """
     asset_index = asset_index if asset_index is not None else get_asset_index()
 
-    # the cache lives in bpy.data rather than in a module level dict, so it
-    # survives a new file, a module reload and a scene the user already saved
-    mesh_name = MESH_PREFIX + object_id
-    cached = bpy.data.meshes.get(mesh_name)
-    if cached is not None and cached.get(MESH_TAG) == object_id:
+    cached = _cached_mesh(object_id)
+    if cached is not None:
         return cached
 
     # A reproducible variant is built out of the mesh it is a variant of rather
@@ -294,7 +306,7 @@ def load_high_res_mesh(object_id, asset_index=None):
     # mesh, and the transform in objects_map.json is measured, so this is the
     # more trustworthy of the two. See nms/utils/variant_map.py.
     if REBUILD_VARIANTS:
-        mesh = rebuild_variant_mesh(object_id, asset_index)
+        mesh = rebuild_variant_mesh(object_id, asset_index, _leftovers)
         if mesh is not None:
             return mesh
 
@@ -302,19 +314,60 @@ def load_high_res_mesh(object_id, asset_index=None):
     if blend_path is None:
         return None
 
-    # every library file holds exactly one mesh object. We only want its mesh -
-    # the object datablock is thrown away and each placement gets a fresh one
+    if _leftovers is not None:
+        return _append_asset(object_id, blend_path, _leftovers)
+    leftovers = []
+    mesh = _append_asset(object_id, blend_path, leftovers)
+    if leftovers:
+        bpy.data.batch_remove(leftovers)
+    return mesh
+
+
+def load_high_res_meshes(object_ids, asset_index=None):
+    """The shared mesh of every id at once - what a bulk import asks for.
+
+    Every asset the ids need is appended in one go before anything is built,
+    variants' roots first, and whatever the appends leave over (the asset
+    files' own objects) is removed in a single batch_remove at the end rather
+    than one rescan of the file per asset.
+
+    Returns:
+        dict: {object_id: mesh, or None when the library doesn't cover it}
+    """
+    asset_index = asset_index if asset_index is not None else get_asset_index()
+    leftovers = []
+    meshes = {}
+    for object_id in dict.fromkeys(object_ids):
+        meshes[object_id] = load_high_res_mesh(object_id, asset_index, leftovers)
+    if leftovers:
+        bpy.data.batch_remove(leftovers)
+    return meshes
+
+
+def _append_asset(object_id, blend_path, leftovers):
+    """Append an id's asset and make its mesh the id's shared mesh.
+
+    Only the mesh is wanted: each placement gets a fresh object. An asset
+    holding the one mesh has just that appended; any other shape of file has
+    its objects appended, the first mesh object's mesh kept, and the objects
+    added to `leftovers` for the caller to remove in one batch.
+    """
     started = time.perf_counter()
     with bpy.data.libraries.load(blend_path, link=False) as (source, target):
-        target.objects = list(source.objects)
+        if len(source.meshes) == 1:
+            target.meshes = list(source.meshes)
+        else:
+            target.objects = list(source.objects)
 
     mesh = None
+    if target.meshes:
+        mesh = target.meshes[0]
     for appended_object in target.objects:
         if appended_object is None:
             continue
         if mesh is None and appended_object.type == "MESH":
             mesh = appended_object.data
-        bpy.data.objects.remove(appended_object)
+        leftovers.append(appended_object)
 
     appended = time.perf_counter()
     _load_stats["append"] += appended - started
@@ -322,12 +375,17 @@ def load_high_res_mesh(object_id, asset_index=None):
         return None
 
     _load_stats["assets"] += 1
-    mesh.name = mesh_name
+    mesh.name = MESH_PREFIX + object_id
     mesh[MESH_TAG] = object_id
-    if CLEAN_DUPLICATE_FACES:
+    # the asset's copies of materials the file already has go straight away,
+    # so the next append doesn't pay for them - see materials/merge.py
+    materials.merge.merge_appended(mesh)
+    merged = time.perf_counter()
+    _load_stats["merge"] += merged - appended
+    if CLEAN_DUPLICATE_FACES and not mesh.get(CLEAN_TAG):
         _remove_duplicate_faces(mesh)
     cleaned = time.perf_counter()
-    _load_stats["clean"] += cleaned - appended
+    _load_stats["clean"] += cleaned - merged
     # a lamp's glow carries the power of the part's game lights - see
     # materials/emission.py
     materials.emission.stamp_glow(mesh, object_id)
@@ -340,7 +398,7 @@ def load_high_res_mesh(object_id, asset_index=None):
     return mesh
 
 
-def rebuild_variant_mesh(object_id, asset_index=None):
+def rebuild_variant_mesh(object_id, asset_index=None, _leftovers=None):
     """Build a variant's mesh by transforming the mesh of its root part.
 
     Only reproducible variants come back with anything - for everything else
@@ -363,7 +421,7 @@ def rebuild_variant_mesh(object_id, asset_index=None):
     if root_id == object_id:
         return None
 
-    root_mesh = load_high_res_mesh(root_id, asset_index)
+    root_mesh = load_high_res_mesh(root_id, asset_index, _leftovers)
     if root_mesh is None:
         return None
 
@@ -430,13 +488,21 @@ def reimport_library_meshes():
     reimported = failed = 0
     retired = []
     with materials.defer_shared_data():
-        for mesh in old_meshes:
-            object_id = mesh[MESH_TAG]
-            try:
-                new_mesh = load_high_res_mesh(object_id)
-            except Exception as error:                     # noqa: BLE001
-                print("Charon Forge: could not reimport %s: %r" % (object_id, error))
-                new_mesh = None
+        object_ids = [mesh[MESH_TAG] for mesh in old_meshes]
+        try:
+            new_meshes = load_high_res_meshes(object_ids)
+        except Exception as error:                         # noqa: BLE001
+            # one bad asset spoils the batch - fall back to each on its own,
+            # so only the bad one is left as it was
+            print("Charon Forge: batch reimport failed, one at a time: %r" % (error,))
+            new_meshes = {}
+            for object_id in object_ids:
+                try:
+                    new_meshes[object_id] = load_high_res_mesh(object_id)
+                except Exception as error:                 # noqa: BLE001
+                    print("Charon Forge: could not reimport %s: %r" % (object_id, error))
+        for mesh, object_id in zip(old_meshes, object_ids):
+            new_mesh = new_meshes.get(object_id)
             if new_mesh is None or new_mesh == mesh:
                 # keep the old one - and put its name back so it's found again
                 mesh.name = MESH_PREFIX + object_id
