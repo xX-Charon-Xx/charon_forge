@@ -1,7 +1,7 @@
 """Objects The Forge makes out of copies of one part - spheres, shapes.
 
-Each is a single object until it is split. Its kind (objects/sphere.py,
-objects/shape.py) works out where every copy goes from the object's settings
+Each is a single object until it is split. Its kind (objects/shapes/sphere.py,
+objects/shapes/shape.py) works out where every copy goes from the object's settings
 (object.charon_forged, addon/the_forge.py), in one vectorised numpy pass.
 The copies are written to the object's own mesh as points carrying a
 rotation, and a geometry nodes modifier puts the part on every point as an
@@ -27,12 +27,13 @@ import bpy
 import numpy as np
 from mathutils import Euler, Matrix, Vector
 
-from .. import materials
-from ..materials.properties import MESH_TAG
-from ..utils import frames
-from ..utils.mesh_utils import mesh_bounds
-from .group import Group
-from .part import Part
+from ... import materials
+from ...materials.properties import MESH_TAG
+from ...utils import frames
+from ...utils.mesh_utils import mesh_bounds
+from ..group import Group
+from ..part import Part
+from . import triangles
 
 
 class LayoutRefused(Exception):
@@ -98,18 +99,51 @@ class Forged:
     def kind_of(bpy_object):
         return Forged._kinds.get(bpy_object.charon_forged.form)
 
+    @staticmethod
+    def is_triangle(settings):
+        """Whether the part is laid as a triangle - as set, or as it was
+        found to be when Part Shape is Auto."""
+        if settings.part_shape == "AUTO":
+            return settings.detected_shape == triangles.TRIANGLE
+        return settings.part_shape == triangles.TRIANGLE
+
     # Measuring the part ---
     @staticmethod
-    def part_to_surface(size):
+    def part_to_surface(size, base=None):
         """The rotation from the part's own axes into the surface frame, the
-        thinnest side facing out - a floor or panel lies flat on a surface."""
+        thinnest side facing out - a floor or panel lies flat on a surface.
+        `base` is the axis a triangle's base runs along, which is turned to
+        lie along the frame's x, the way its rows run."""
         face = min(range(3), key=lambda i: size[i])
         around, up = (face + 1) % 3, (face + 2) % 3
+        flip = 1.0
+        if base is not None and base != around:
+            # the other way round, and one turned back to keep it a turn
+            # rather than a mirror
+            around, up, flip = up, around, -1.0
         columns = [None, None, None]
         columns[around] = Vector((1.0, 0.0, 0.0))
-        columns[up] = Vector((0.0, 1.0, 0.0))
+        columns[up] = Vector((0.0, flip, 0.0))
         columns[face] = Vector((0.0, 0.0, 1.0))
         return Matrix(columns).transposed()
+
+    @staticmethod
+    def _footprint_shape(mesh, size):
+        """The part's triangle seen from above, if it is one: (the axis its
+        base runs along, how far along the base its tip is, the axis and way
+        its tip is from the base) - or None."""
+        count = len(mesh.vertices)
+        if count < 3:
+            return None
+        coords = np.empty(count * 3, dtype=np.float64)
+        mesh.vertices.foreach_get("co", coords)
+        coords = coords.reshape(-1, 3)
+        face = min(range(3), key=lambda i: size[i])
+        axes = ((face + 1) % 3, (face + 2) % 3)
+        found = triangles.detect(coords[:, axes])
+        if found is None:
+            return None
+        return axes[found.base_axis], found.tip, axes[1 - found.base_axis], found.side
 
     @staticmethod
     def measure(settings, mesh):
@@ -117,7 +151,23 @@ class Forged:
         a surface, how it turns onto one, and where its centre is."""
         size, centre = mesh_bounds(mesh)
         size = size * settings.base_scale
-        orientation = Forged.part_to_surface(size)
+        shape = Forged._footprint_shape(mesh, size)
+        settings.detected_shape = triangles.TRIANGLE if shape else triangles.RECTANGLE
+        base = None
+        if Forged.is_triangle(settings):
+            if shape is None:
+                # set to a triangle that wasn't found to be one: its base
+                # along its longer side, its tip halfway
+                face = min(range(3), key=lambda i: size[i])
+                across = sorted(((face + 1) % 3, (face + 2) % 3), key=lambda i: -size[i])
+                shape = (across[0], 0.5, across[1], 1.0)
+            base, tip, tip_axis, tip_way = shape
+        orientation = Forged.part_to_surface(size, base)
+        settings.measured_shape = triangles.TRIANGLE if base is not None else triangles.RECTANGLE
+        if base is not None:
+            settings.triangle_tip = tip
+            # which way the tip is along the frame's up
+            settings.triangle_side = tip_way * orientation[1][tip_axis]
         extent = Vector([
             sum(abs(orientation[row][column]) * size[column] for column in range(3))
             for row in range(3)
@@ -169,6 +219,21 @@ class Forged:
     @staticmethod
     def copy_scale(settings):
         return settings.base_scale * settings.tile_scale
+
+    @staticmethod
+    def as_triangles(settings, centres, normals, along, up, base=None):
+        """A layout's frames with the copies a triangle part needs turned
+        into the gaps along its rows - see objects/shapes/triangles.py. The
+        frames as they were for any other part.
+
+        `base` is each copy's base along its row, the part's at its scale
+        if left out."""
+        if not Forged.is_triangle(settings):
+            return centres, normals, along, up
+        if base is None:
+            base = Forged.footprint(settings)[0]
+        return triangles.interleave(centres, normals, along, up, base,
+                                    settings.triangle_tip)[:4]
 
     # For each kind ---
     @classmethod
@@ -274,6 +339,17 @@ class Forged:
         return changed
 
     @staticmethod
+    def _own_mesh(forged_obj):
+        """The object's mesh, copied off first when it shares it - a Shift+D
+        duplicate shares its mesh with the original, and laying one out again
+        would move the copies of both. The first change sets them apart."""
+        mesh = forged_obj.data
+        if mesh.users > 1:
+            mesh = mesh.copy()
+            forged_obj.data = mesh
+        return mesh
+
+    @staticmethod
     def _write_points(mesh, positions, rotations, scales):
         mesh.clear_geometry()
         mesh.vertices.add(len(positions))
@@ -356,6 +432,13 @@ class Forged:
             settings.message = "The part is gone"
             return
 
+        # measured again when the part is to be laid as another shape than
+        # it was - or when it was measured before shapes were told apart
+        shape = triangles.TRIANGLE if Forged.is_triangle(settings) else triangles.RECTANGLE
+        if not settings.detected_shape or settings.measured_shape != shape:
+            with Forged.suspended():
+                Forged.measure(settings, holder.data)
+
         try:
             positions, rotations, accepted, *sizes = kind.compute(settings)
             if len(positions) > Forged.MAX_PARTS:
@@ -378,7 +461,7 @@ class Forged:
                 setattr(settings, name, value)
 
         sizes = sizes[0] if sizes else np.ones(len(positions))
-        Forged._write_points(forged_obj.data, positions, rotations, scale * sizes)
+        Forged._write_points(Forged._own_mesh(forged_obj), positions, rotations, scale * sizes)
         if Forged._set_part(forged_obj, holder):
             # values written from Python don't always tag the object themselves
             forged_obj.update_tag()

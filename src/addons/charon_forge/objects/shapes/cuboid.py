@@ -1,6 +1,6 @@
 """Cuboids made of copies of one part - a box of any width, depth and height.
 
-Unlike the other shapes (objects/shape.py) a cuboid's faces are rectangles,
+Unlike the other shapes (objects/shapes/shape.py) a cuboid's faces are rectangles,
 so each is filled as a grid corner to corner: every row and column starts at
 one edge of the face and ends at the other, the parts at least Spacing
 apart. Face Margin moves the faces out from the box instead of in from their
@@ -9,8 +9,8 @@ edges.
 
 import numpy as np
 
-from ..utils import frames
-from ..utils import shape_topology as topology
+from ...utils import frames
+from . import shape_topology as topology
 from .forged import Forged
 from .shape import Shape
 
@@ -45,6 +45,7 @@ class Cuboid(Shape):
             spacing=settings.spacing, offset=settings.face_margin,
         )
 
+        centres, normals, along, up = Forged.as_triangles(settings, centres, normals, along, up)
         positions, rotations = frames.place(
             centres, normals, along, up, turn, centre, Forged.copy_scale(settings)
         )

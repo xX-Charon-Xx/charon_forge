@@ -2,7 +2,8 @@ from bpy.types import Panel
 
 from ..utils import icon_utils
 from .crossing_operators import (ExportShipClipboard, ExportShipFile,
-                                 ImportShipClipboard, ImportShipFile)
+                                 ImportShipChanges, ImportShipClipboard,
+                                 ImportShipFile)
 
 
 # Crossing Panel ---
@@ -54,6 +55,13 @@ class CHARON_PT_crossing_panel(Panel):
         obj_only_row.label(text = "")
         obj_only_row.prop(context.scene.charon_crossing, "clipboard_objects_only")
 
+        description_column.separator(factor = 2)
+        description_column.label(text="Changes")
+        changes_row = description_column.row(align=True)
+        changes_row.scale_y = 2
+        changes_row.operator_menu_enum(
+            ImportShipChanges.bl_idname, "source", text="Import Changes", icon="FILE_REFRESH"
+        )
 
 
 classes = (

@@ -15,7 +15,7 @@ import bpy
 from .. import builder as charon_builder
 from .. import materials
 from ..builder import importer, paths, placement
-from ..objects.forged import Forged
+from ..objects.shapes.forged import Forged
 from ..objects.group import Group
 from ..objects.part import Part
 from ..utils import base_builder_utils, collection_utils, loading_overlay

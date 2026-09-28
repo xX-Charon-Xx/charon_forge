@@ -2,14 +2,14 @@
 
 How the copies are spread over the sphere is its topology - rings of
 latitude, meridians, a geodesic, a cube grid or a spiral; see
-utils/sphere_topology.py. Everything a sphere shares with the other forged
+objects/shapes/sphere_topology.py. Everything a sphere shares with the other forged
 objects - the object, its points and modifier, exporting, splitting - is in
-objects/forged.py.
+objects/shapes/forged.py.
 """
 
 import math
 
-from ..utils import sphere_topology as topology
+from . import sphere_topology as topology
 from .forged import Forged, LayoutRefused
 
 
@@ -150,6 +150,9 @@ class Sphere(Forged):
         shrink = settings.pole_part_size
         if kind == topology.MERIDIANS:
             frames = topology.meridians(bottom, top, start, sweep, rings, segments, shrink)
+        elif kind == topology.GEODESIC and Forged.is_triangle(settings):
+            frames = topology.geodesic_triangles(bottom, top, start, sweep, built_rings,
+                                                 settings.triangle_side, shrink)
         elif kind == topology.GEODESIC:
             frames = topology.geodesic(bottom, top, start, sweep, built_rings, shrink)
         elif kind == topology.CUBE:
@@ -161,6 +164,11 @@ class Sphere(Forged):
                 bottom, top, start, sweep, rings, segments, settings.pole_density,
                 settings.stagger, settings.pole_part_size,
             )
+        if Forged.is_triangle(settings) and kind != topology.GEODESIC:
+            # each copy's base on the unit sphere, smaller towards the poles
+            base = Forged.footprint(settings)[0] / settings.radius * topology.pole_scale(
+                frames[0][:, 2], settings.pole_part_size)
+            frames = topology.triangle_rows(frames, base, settings.triangle_tip)
         turn, centre = Forged.turn_and_centre(settings)
         # each copy's size against the rest, smaller towards the poles
         scales = topology.pole_scale(frames[0][:, 2], settings.pole_part_size)

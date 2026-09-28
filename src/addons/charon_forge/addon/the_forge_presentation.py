@@ -2,15 +2,16 @@ import bpy
 from bpy.types import Panel
 
 from ..builder import station_library
-from ..objects.circle import Circle
-from ..objects.cuboid import Cuboid
-from ..objects.forged import Forged
-from ..objects.polygon import Polygon
-from ..objects.rectangle import Rectangle
-from ..objects.shape import Shape
-from ..objects.sphere import Sphere
+from ..objects.shapes.circle import Circle
+from ..objects.shapes.cuboid import Cuboid
+from ..objects.shapes.forged import Forged
+from ..objects.shapes.polygon import Polygon
+from ..objects.shapes.rectangle import Rectangle
+from ..objects.shapes.shape import Shape
+from ..objects.shapes.sphere import Sphere
+from ..objects.shapes.text import Text
 from ..utils import icon_utils
-from ..utils import circle_topology, shape_topology
+from ..objects.shapes import circle_topology, panel_font, shape_topology
 from .the_forge_operators import (
     CreateCircle,
     CreateCuboid,
@@ -20,6 +21,7 @@ from .the_forge_operators import (
     CreateSquare,
     EditStation,
     ForgeQRCode,
+    ForgeText,
     FrameStation,
     RemoveStation,
     ResetForged,
@@ -85,15 +87,18 @@ class CHARON_PT_the_forge_panel(Panel):
                 draw_shape_settings(box, settings)
             elif settings.form == Sphere.FORM:
                 draw_sphere_settings(box, settings)
+            elif settings.form == Text.FORM:
+                draw_text_settings(box, settings)
             row = box.row()
             row.operator(ResetForged.bl_idname, icon="LOOP_BACK")
             row.operator(SplitForged.bl_idname, icon="MOD_EXPLODE")
             layout.separator()
 
-        # everything else stays in view while a shape is being edited, greyed
-        # out until it is deselected
+        # everything else stays in view while a shape or text is being edited,
+        # greyed out only while it is selected as well as active - Blender
+        # keeps a deselected object active
         rest = layout.column()
-        rest.enabled = not editing
+        rest.enabled = not (editing and active_object.select_get())
 
         box = rest.box()
         forge_shape_col = box.column(align = True)
@@ -113,7 +118,10 @@ class CHARON_PT_the_forge_panel(Panel):
         symbol_box = rest.box()
         symbol_col = symbol_box.column(align=True)
         symbol_col.label(text="Forge a Symbol")
-        symbol_col.operator(ForgeQRCode.bl_idname, icon="QRCODE" if "QRCODE" in _ICONS else "TEXTURE")
+        row = symbol_col.row(align=True)
+        row.operator(ForgeQRCode.bl_idname, text="QR Code",
+                     icon="QRCODE" if "QRCODE" in _ICONS else "TEXTURE")
+        row.operator(ForgeText.bl_idname, text="Text", icon="FONT_DATA")
 
         station_box = rest.box()
         station_box.label(text="Forge Space Station", icon="WORLD")
@@ -173,7 +181,7 @@ _COUNT_LABELS = {
 def draw_sphere_settings(layout, forge):
     """The settings of the active sphere."""
     _draw_title(layout, forge, "MESH_UVSPHERE")
-    _draw_inline(layout, forge, "topology", "Topology")
+    _draw_pattern(layout, forge, "topology", "Topology")
 
     column = _section(layout, "Sphere")
     row = column.row(align=True)
@@ -203,7 +211,7 @@ def draw_sphere_settings(layout, forge):
 def draw_shape_settings(layout, forge):
     """The settings of the active shape."""
     _draw_title(layout, forge, "MESH_ICOSPHERE")
-    _draw_inline(layout, forge, "shape_style", "Style")
+    _draw_pattern(layout, forge, "shape_style", "Style")
 
     column = _section(layout, "Shape")
     _draw_pair(column, forge, "size", "tile_scale", second_text="Part Size")
@@ -223,6 +231,10 @@ def draw_cuboid_settings(layout, forge):
     """The settings of the active cuboid - its faces are filled corner to
     corner, so it has no Follow Edges or Corner Overlap."""
     _draw_title(layout, forge, "MESH_CUBE")
+    split = layout.split(factor=0.3, align=True)
+    split.label(text="Part:")
+    split.prop(forge, "part_shape", text="",
+               icon="TRIA_UP" if Forged.is_triangle(forge) else "MESH_PLANE")
 
     column = _section(layout, "Cuboid")
     _draw_pair(column, forge, "size", "tile_scale", second_text="Part Size")
@@ -235,7 +247,7 @@ def draw_circle_settings(layout, forge):
     """The settings of the active circle - the one 2D shape that can line
     its outline too."""
     _draw_title(layout, forge, "MESH_CIRCLE")
-    _draw_inline(layout, forge, "circle_topology", "Pattern")
+    _draw_pattern(layout, forge, "circle_topology", "Pattern")
 
     column = _section(layout, "Circle")
     _draw_pair(column, forge, "radius", "tile_scale", second_text="Part Size")
@@ -269,7 +281,7 @@ def draw_rectangle_settings(layout, forge):
     """The settings of the active square - a rectangle once its width and
     height differ."""
     _draw_title(layout, forge, "MESH_PLANE")
-    _draw_inline(layout, forge, "rect_topology", "Pattern")
+    _draw_pattern(layout, forge, "rect_topology", "Pattern")
 
     column = _section(layout, "Square")
     _draw_pair(column, forge, "hole_size", "tile_scale", second_text="Part Size")
@@ -278,10 +290,37 @@ def draw_rectangle_settings(layout, forge):
     _draw_inline(column, forge, "rotation", "Rot", factor=0.2)
 
 
+def draw_text_settings(layout, forge):
+    """The settings of the active text - its panels are sized by the
+    letters, so it has no Part Size or Rotation."""
+    _draw_title(layout, forge, "FONT_DATA")
+    text_row = layout.row()
+    text_row.scale_y = 1.3
+    text_row.prop(forge, "text_body", text="", icon="TEXT")
+    _draw_inline(layout, forge, "text_font", "Font")
+    style_row = layout.row(align=True)
+    bold = style_row.row(align=True)
+    # a family already as heavy as it goes, or drawn freehand, has no bold -
+    # and one leaning over already no italic
+    bold.enabled = panel_font.has_bold(forge.text_font)
+    bold.prop(forge, "text_bold", toggle=True)
+    italic = style_row.row(align=True)
+    italic.enabled = panel_font.has_italic(forge.text_font)
+    italic.prop(forge, "text_italic", toggle=True)
+
+    column = _section(layout, "Letters")
+    _draw_pair(column, forge, "letter_height", "letter_spacing",
+               first_text="Height", second_text="Spacing")
+    if forge.shape_info:
+        info = column.row()
+        info.enabled = False
+        info.label(text=forge.shape_info, icon="DRIVER_DISTANCE")
+
+
 def draw_polygon_settings(layout, forge):
     """The settings of the active polygon."""
     _draw_title(layout, forge, "SEQ_CHROMA_SCOPE")
-    _draw_inline(layout, forge, "polygon_topology", "Pattern")
+    _draw_pattern(layout, forge, "polygon_topology", "Pattern")
 
     column = _section(layout, "Polygon")
     _draw_pair(column, forge, "polygon_sides", "radius")
@@ -336,6 +375,19 @@ def _draw_title(layout, forge, icon):
         status.label(text=forge.message, icon="ERROR")
     else:
         status.label(text=f"({forge.part_count} parts)")
+
+
+def _draw_pattern(layout, forge, name, title):
+    """The pattern, and on its right what shape the part is laid as - its
+    icon the shape Auto found."""
+    split = layout.split(factor=0.3, align=True)
+    split.label(text=f"{title}:")
+    row = split.row(align=True)
+    row.prop(forge, name, text="")
+    shape = row.row(align=True)
+    shape.ui_units_x = 4.5
+    shape.prop(forge, "part_shape", text="",
+               icon="TRIA_UP" if Forged.is_triangle(forge) else "MESH_PLANE")
 
 
 def _section(layout, title):

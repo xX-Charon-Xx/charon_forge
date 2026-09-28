@@ -12,14 +12,15 @@ from bpy.props import (
 )
 
 from ..builder import station_colours, station_design, station_library
-from ..objects.circle import Circle  # noqa: F401 - registers the kind
-from ..objects.cuboid import Cuboid  # noqa: F401 - registers the kind
-from ..objects.forged import Forged
-from ..objects.polygon import Polygon  # noqa: F401 - registers the kind
-from ..objects.rectangle import Rectangle  # noqa: F401 - registers the kind
-from ..objects.shape import Shape  # noqa: F401 - registers the kind
-from ..objects.sphere import Sphere
-from ..utils import circle_topology, polygon_topology, rectangle_topology, shape_topology
+from ..objects.shapes.circle import Circle  # noqa: F401 - registers the kind
+from ..objects.shapes.cuboid import Cuboid  # noqa: F401 - registers the kind
+from ..objects.shapes.forged import Forged
+from ..objects.shapes.polygon import Polygon  # noqa: F401 - registers the kind
+from ..objects.shapes.rectangle import Rectangle  # noqa: F401 - registers the kind
+from ..objects.shapes.shape import Shape  # noqa: F401 - registers the kind
+from ..objects.shapes.sphere import Sphere
+from ..objects.shapes.text import Text  # noqa: F401 - registers the kind
+from ..objects.shapes import circle_topology, panel_font, polygon_topology, rectangle_topology, shape_topology
 from . import the_forge_operators, the_forge_presentation
 
 
@@ -141,8 +142,8 @@ RIM_STYLES = [
 
 
 # The settings of an object The Forge made, stored on it as
-# object.charon_forged - see objects/forged.py. `form` says which kind it is
-# (objects/sphere.py, objects/shape.py) and is empty on anything else.
+# object.charon_forged - see objects/shapes/forged.py. `form` says which kind it is
+# (objects/shapes/sphere.py, objects/shapes/shape.py) and is empty on anything else.
 class CharonForged(bpy.types.PropertyGroup):
 
     form: StringProperty()
@@ -159,10 +160,31 @@ class CharonForged(bpy.types.PropertyGroup):
     centre_offset: FloatVectorProperty(size=3)
     # the scale of the copies on show, which the export reads
     applied_scale: FloatProperty(default=1.0)
+    # what the part looks like from above, found when it is measured, and
+    # what it was last measured to be laid as - see Forged.measure
+    detected_shape: StringProperty()
+    measured_shape: StringProperty()
+    # a triangle's: how far along its base its tip is, and which way from
+    # the base along the surface's up
+    triangle_tip: FloatProperty(default=0.5)
+    triangle_side: FloatProperty(default=1.0)
     part_count: IntProperty()
     message: StringProperty()
 
     # Every kind ---
+    part_shape: EnumProperty(
+        name="Part Shape",
+        description="What the part looks like from above, which sets how the copies fit "
+                    "together. Triangles are laid up and down in turn, each row filled",
+        items=[
+            ("AUTO", "Auto", "Read it off the part - a triangle floor is laid as a triangle"),
+            ("RECTANGLE", "Rectangle", "Laid side by side, each in the rectangle round it"),
+            ("TRIANGLE", "Triangle",
+             "Laid up and down in turn along every row, a copy turned half round in "
+             "each gap - its base along the row"),
+        ],
+        default="AUTO", update=_on_changed,
+    )
     tile_scale: FloatProperty(
         name="Part Scale", description="Scale every copy",
         default=1.0, min=0.1, max=10.0, update=_on_changed,
@@ -409,6 +431,33 @@ class CharonForged(bpy.types.PropertyGroup):
         name="Size", description="Width and height - equal for a square, apart for a rectangle",
         size=2, default=(10.0, 6.0), min=0.01, soft_max=500.0, subtype="XYZ_LENGTH",
         update=_on_changed,
+    )
+
+    # Text ---
+    text_body: StringProperty(
+        name="Text", description="What the text says - letters, numbers and simple punctuation",
+        update=_on_changed,
+    )
+    text_font: EnumProperty(
+        name="Font", description="The font the text is drawn in",
+        items=panel_font.FAMILIES, default=panel_font.DEFAULT_FAMILY, update=_on_changed,
+    )
+    text_bold: BoolProperty(
+        name="Bold", description="Heavier letters - every stem two panels side by side",
+        default=False, update=_on_changed,
+    )
+    text_italic: BoolProperty(
+        name="Italic", description="Letters leaning over to the right",
+        default=False, update=_on_changed,
+    )
+    letter_height: FloatProperty(
+        name="Letter Height", description="How tall a capital letter is",
+        default=5.0, min=0.1, soft_max=50.0, unit="LENGTH", update=_on_changed,
+    )
+    letter_spacing: FloatProperty(
+        name="Letter Spacing",
+        description="Room added between the letters. Negative closes them up",
+        default=0.0, soft_min=-2.0, soft_max=10.0, unit="LENGTH", update=_on_changed,
     )
 
 

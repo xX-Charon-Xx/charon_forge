@@ -203,9 +203,120 @@ class ExportShipClipboard(bpy.types.Operator):
         return {"FINISHED"}
 
 
+CHANGES_SOURCES = [
+    ("FILE", "From File", "Read the build from a .nmsship, .json or .txt file", "FILE", 0),
+    ("CLIPBOARD", "From Clipboard", "Read the build from JSON on the clipboard", "PASTEDOWN", 1),
+]
+
+# where Import Changes puts what it finds, and the colour tag each one gets
+NEW_COLLECTION_NAME = "Imported Changes"
+CHANGED_COLLECTION_NAME = "Changed in Game"
+
+
+def _changes_collection(name, color_tag):
+    from ..utils import collection_utils
+
+    is_new = bpy.data.collections.get(name) is None
+    collection = collection_utils.get_collection(name)
+    if is_new:
+        collection.color_tag = color_tag
+    return collection
+
+
+class ImportShipChanges(bpy.types.Operator):
+    """Import only what changed in game since the scene was exported: parts
+    placed or changed in game go into their own collection, and parts
+    changed or deleted in game are moved into another"""
+
+    bl_idname = "object.charon_import_changes"
+    bl_label = "Import Changes"
+    bl_options = {"REGISTER", "UNDO"}
+
+    source: bpy.props.EnumProperty(
+        name="Source",
+        description="Where to read the build from",
+        items=CHANGES_SOURCES,
+        default="CLIPBOARD",
+    )
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH", options={"HIDDEN", "SKIP_SAVE"})
+    filter_glob: bpy.props.StringProperty(
+        default="*.nmsship;*.json;*.txt", options={"HIDDEN", "SKIP_SAVE"}
+    )
+
+    def invoke(self, context, event):
+        if self.source == "FILE":
+            context.window_manager.fileselect_add(self)
+            return {"RUNNING_MODAL"}
+        return self.execute(context)
+
+    def _read(self, context):
+        """(parts, BaseVersion, where they came from), or raises NmsShipError."""
+        if self.source == "FILE":
+            file_name = os.path.basename(self.filepath)
+            objects, _, _, base_version = nmsship.read_any(self.filepath)
+            return objects, base_version, file_name
+        objects, base_version = nmsship.read_parts_text(context.window_manager.clipboard)
+        return objects, base_version, "the clipboard"
+
+    @loading_overlay.while_running("Importing changes")
+    def execute(self, context):
+        from ..builder import get_builder
+        from ..utils import build_diff, collection_utils
+
+        try:
+            game_objects, base_version, source_name = self._read(context)
+        except nmsship.NmsShipError as error:
+            self.report({"ERROR"}, f"Could not import changes: {error}")
+            return {"CANCELLED"}
+
+        builder = get_builder()
+        incoming, changed, _ = build_diff.diff(builder, game_objects)
+        if not incoming and not changed:
+            self.report({"INFO"}, f"No changes found in {source_name}")
+            return {"FINISHED"}
+
+        if incoming:
+            # an import picks the cockpit and landing bay it brings as the
+            # ship's primary ones - the scene's own picks are kept instead
+            optimiser = getattr(context.scene, "charon_optimiser", None)
+            primary = (
+                (optimiser.cockpit, optimiser.landing_bay) if optimiser is not None else None
+            )
+
+            before = set(bpy.data.objects)
+            builder.deserialise_from_data({"Objects": incoming, "BaseVersion": base_version})
+
+            if primary is not None:
+                cockpit, landing_bay = primary
+                if cockpit is not None:
+                    optimiser.cockpit = cockpit
+                if landing_bay is not None:
+                    optimiser.landing_bay = landing_bay
+
+            new_collection = _changes_collection(NEW_COLLECTION_NAME, "COLOR_04")
+            for obj in context.scene.objects:
+                if obj in before or not any(prop in obj for prop in importer.BUILD_PROPS):
+                    continue
+                collection_utils.move_object_into_collection(new_collection, obj)
+
+        if changed:
+            changed_collection = _changes_collection(CHANGED_COLLECTION_NAME, "COLOR_01")
+            for obj in changed:
+                collection_utils.move_object_into_collection(changed_collection, obj)
+
+        self.report(
+            {"INFO"},
+            f"From {source_name}: {len(incoming)} new or changed part(s) in "
+            f"'{NEW_COLLECTION_NAME}', {len(changed)} changed or deleted object(s) "
+            f"moved to '{CHANGED_COLLECTION_NAME}'",
+        )
+        return {"FINISHED"}
+
+
 classes = (
     ImportShipFile,
     ExportShipFile,
     ImportShipClipboard,
     ExportShipClipboard,
+    ImportShipChanges,
 )

@@ -4,7 +4,7 @@ Blender.
 
 A polygon is any convex one, held as the lines along its sides: a regular
 one with a flat bottom side, stretched along X and Y. Like a circle
-(utils/circle_topology.py) its face is measured by distance in from the
+(objects/shapes/circle_topology.py) its face is measured by distance in from the
 outline: moving every side in by the same distance gives the line the
 frames follow, and the hole is whatever is deeper in than the band, so the
 band is one width on every side. Sides of a stretched polygon that shrink

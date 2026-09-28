@@ -5,7 +5,7 @@ import bpy
 import bpy.utils.previews
 
 ADDON_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-ICONS_JSON = os.path.join(ADDON_PATH, "resources", "icon_definitions.json")
+ICONS_JSON = os.path.join(ADDON_PATH, "images", "icon_definitions.json")
 
 # One PNG per object id, named <object_id>.png - the asset browser's per-part
 # thumbnails, scanned rather than listed in icon_definitions.json since there
@@ -61,7 +61,7 @@ def get_icon_id(name):
         return pcoll[name].icon_id
     if name not in _missing_icons:
         _missing_icons.add(name)
-        print(f"Charon Forge: icon {name!r} is not loaded - check resources/icon_definitions.json")
+        print(f"Charon Forge: icon {name!r} is not loaded - check images/icon_definitions.json")
     return 0
 
 

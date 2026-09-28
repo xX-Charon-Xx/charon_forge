@@ -2,15 +2,15 @@
 
 A shape is a style - a hull from a corner count (Even, Pyramid, Prism...) or
 one built face by face (Donut, Cylinder, Cone, Capsule, Star) - sized and
-stretched (utils/shape_topology.py). The part fills its faces in rows or in
+stretched (objects/shapes/shape_topology.py). The part fills its faces in rows or in
 rings following their outline, lines its edges, sits on its corners, or any
 mix of the three, and never reaches past a face's boundary or an edge's
 ends. Everything it shares with the other forged objects is in
-objects/forged.py.
+objects/shapes/forged.py.
 """
 
-from ..utils import frames
-from ..utils import shape_topology as topology
+from ...utils import frames
+from . import shape_topology as topology
 from .forged import Forged
 
 
@@ -62,6 +62,7 @@ class Shape(Forged):
             follow_edges=settings.follow_edges,
             overlap=settings.corner_overlap,
         )
+        centres, normals, along, up = Forged.as_triangles(settings, centres, normals, along, up)
         positions, rotations = frames.place(
             centres, normals, along, up, turn, centre, Forged.copy_scale(settings)
         )

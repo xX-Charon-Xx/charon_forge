@@ -18,8 +18,8 @@ import math
 
 import numpy as np
 
-from .frames import stretch as frames_stretch
-from .frames import unit
+from ...utils.frames import stretch as frames_stretch
+from ...utils.frames import unit
 
 EVEN = "EVEN"
 PYRAMID = "PYRAMID"

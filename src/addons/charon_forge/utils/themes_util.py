@@ -19,7 +19,7 @@ THEME_PRESET_MENU = "USERPREF_MT_interface_theme_presets"
 THEME_PRESET_SUBDIR = "interface_theme"
 
 ADDON_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-THEMES_JSON = os.path.join(ADDON_PATH, "resources", "theme_definitions.json")
+THEMES_JSON = os.path.join(ADDON_PATH, "themes", "theme_definitions.json")
 
 # identifier used for blender's own built-in theme, not one of ours from themes.json
 DEFAULT_THEME_ID = "blender_dark"

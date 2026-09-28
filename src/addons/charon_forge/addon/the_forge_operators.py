@@ -1,16 +1,20 @@
+import math
+
 import bpy
 
 from ..builder import station_design, station_library, station_prompt
 from ..utils import loading_overlay, qr_code, qr_forge, seed_utils
-from ..objects.circle import Circle
-from ..objects.cuboid import Cuboid
-from ..objects.forged import Forged
+from ..objects.shapes.circle import Circle
+from ..objects.shapes.cuboid import Cuboid
+from ..objects.shapes import panel_font
+from ..objects.shapes.forged import Forged
 from ..objects.group import Group
 from ..objects.part import Part
-from ..objects.polygon import Polygon
-from ..objects.rectangle import Rectangle
-from ..objects.shape import Shape
-from ..objects.sphere import Sphere
+from ..objects.shapes.polygon import Polygon
+from ..objects.shapes.rectangle import Rectangle
+from ..objects.shapes.shape import Shape
+from ..objects.shapes.sphere import Sphere
+from ..objects.shapes.text import PART_ID as TEXT_PART_ID, Text
 
 
 def forge_source_problem(obj):
@@ -110,11 +114,12 @@ class ResetForged(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     # what was measured off the part or is kept by the object itself, and
-    # stays as it is
+    # stays as it is - a text keeps what it says
     KEPT = {
         "rna_type", "name", "form", "part_object", "object_id", "base_scale", "part_size",
         "pitch_around", "pitch_up", "base_rotation", "centre_offset", "applied_scale",
-        "part_count", "message", "shape_info",
+        "part_count", "message", "shape_info", "text_body", "detected_shape",
+        "measured_shape", "triangle_tip", "triangle_side",
     }
 
     @classmethod
@@ -719,8 +724,153 @@ class ForgeQRCode(bpy.types.Operator):
         return {"FINISHED"}
 
 
+# (text, font, bold, italic) -> (panels, width in font units) or the error,
+# for the popup
+_text_preview_cache = {}
+
+
+def _text_preview(text, font):
+    """What the popup says about the text before it is forged. Cached, since
+    the popup redraws on every keystroke."""
+    key = (text, font.label)
+    if key not in _text_preview_cache:
+        if len(_text_preview_cache) > 32:
+            _text_preview_cache.clear()
+        try:
+            panels, width = panel_font.plan(text, font, _QR_PANEL_RATIO)
+            _text_preview_cache[key] = (len(panels), width)
+        except ValueError as error:
+            _text_preview_cache[key] = str(error)
+    return _text_preview_cache[key]
+
+
+class ForgeText(bpy.types.Operator):
+    """Build a line of text out of storage panels, at the 3D cursor - one object whose text, font and size can be changed after"""
+
+    bl_idname = "object.charon_forge_text"
+    bl_label = "Forge Text"
+    bl_options = {"REGISTER", "UNDO"}
+
+    text: bpy.props.StringProperty(
+        name="Text",
+        description="What the text says - letters, numbers and simple punctuation",
+    )
+    font: bpy.props.EnumProperty(
+        name="Font",
+        description="The font the text is drawn in",
+        items=panel_font.FAMILIES, default=panel_font.DEFAULT_FAMILY,
+    )
+    bold: bpy.props.BoolProperty(
+        name="Bold", description="Heavier letters - every stem two panels side by side",
+    )
+    italic: bpy.props.BoolProperty(
+        name="Italic", description="Letters leaning over to the right",
+    )
+    letter_height: bpy.props.FloatProperty(
+        name="Letter Height",
+        description="How tall a capital letter is",
+        default=5.0, min=0.1, soft_max=50.0, unit="LENGTH",
+    )
+    upright: bpy.props.BoolProperty(
+        name="Stand Up",
+        description="Stand the text up facing the front view, rather than lying flat",
+        default=False,
+    )
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(
+            self, width=380, title="Forge Text", confirm_text="Forge",
+        )
+
+    def draw(self, context):
+        layout = self.layout
+
+        intro = layout.column(align=True)
+        intro.scale_y = 0.8
+        intro.label(text="Writes a line of text in capitals", icon="INFO")
+        intro.label(text="built from Storage Panels, at the 3D cursor.", icon="BLANK1")
+
+        layout.separator()
+        content = layout.box().column(align=True)
+        content.label(text="Content", icon="TEXT")
+        text_row = content.row()
+        text_row.scale_y = 1.4
+        text_row.activate_init = True
+        text_row.prop(self, "text", text="", icon="FONT_DATA")
+
+        layout.separator()
+        settings = layout.column()
+        settings.scale_y = 1.2
+        settings.prop(self, "font")
+        style_row = settings.row(align=True)
+        bold = style_row.row(align=True)
+        # a family already as heavy as it goes, or drawn freehand, has no
+        # bold - and one leaning over already no italic
+        bold.enabled = panel_font.has_bold(self.font)
+        bold.prop(self, "bold", toggle=True)
+        italic = style_row.row(align=True)
+        italic.enabled = panel_font.has_italic(self.font)
+        italic.prop(self, "italic", toggle=True)
+        settings.prop(self, "letter_height")
+        settings.prop(self, "upright")
+
+        layout.separator()
+        summary = layout.box().column(align=True)
+        if not self.text.strip():
+            summary.label(text="Enter some text to see its size", icon="QUESTION")
+            return
+        font = panel_font.get_font(self.font, self.bold, self.italic)
+        preview = _text_preview(self.text.strip(), font)
+        if isinstance(preview, str):
+            summary.alert = True
+            summary.label(text=preview.capitalize(), icon="ERROR")
+            return
+        panels, width = preview
+        summary.label(text=f"{width * self.letter_height / font.height:.1f} m long",
+                      icon="DRIVER_DISTANCE")
+        summary.label(text=f"About {panels} panels", icon="MOD_ARRAY")
+
+    @loading_overlay.while_running("Forging text")
+    def execute(self, context):
+        text = self.text.strip()
+        if not text:
+            self.report({"ERROR"}, "Enter the text to forge")
+            return {"CANCELLED"}
+
+        font = panel_font.get_font(self.font, self.bold, self.italic)
+        # checked before a part is added, so nothing is left behind
+        missing = font.missing(text)
+        if missing:
+            self.report({"ERROR"}, f"Could not write that: the font has no {' '.join(missing)}")
+            return {"CANCELLED"}
+
+        from .. import builder as charon_builder
+
+        try:
+            source = charon_builder.add_part(TEXT_PART_ID).object
+            forged_obj = Text.create_text(source, text, font.name, self.letter_height,
+                                          self.bold, self.italic)
+        except Exception as error:                            # noqa: BLE001
+            self.report({"ERROR"}, f"Could not forge the text: {error}")
+            return {"CANCELLED"}
+
+        forged_obj.location = context.scene.cursor.location
+        if self.upright:
+            # facing -Y, the front view
+            forged_obj.rotation_euler = (math.radians(90.0), 0.0, 0.0)
+
+        _select_only(context, [forged_obj])
+        settings = forged_obj.charon_forged
+        if settings.message:
+            self.report({"WARNING"}, settings.message)
+        else:
+            self.report({"INFO"}, f"Forged '{text}' from {settings.part_count} panels")
+        return {"FINISHED"}
+
+
 classes = (
     ForgeQRCode,
+    ForgeText,
     CreateSphere,
     CreateShape,
     CreateCuboid,

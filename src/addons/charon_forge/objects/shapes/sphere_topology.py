@@ -3,7 +3,7 @@
 Pure numpy, no Blender: every topology comes down to a unit normal per copy
 plus the two directions its part's sides line up with (`along` and `up`,
 both on the surface). place() turns those into positions and rotations.
-Kept apart from objects/sphere.py so it can be run and checked outside
+Kept apart from objects/shapes/sphere.py so it can be run and checked outside
 Blender.
 """
 
@@ -11,9 +11,10 @@ import math
 
 import numpy as np
 
-from . import frames
-from .frames import arc  # noqa: F401 - the sphere's sweep
-from .frames import unit as _unit
+from ...utils import frames
+from ...utils.frames import arc  # noqa: F401 - the sphere's sweep
+from ...utils.frames import unit as _unit
+from . import triangles
 
 RINGS = "RINGS"
 MERIDIANS = "MERIDIANS"
@@ -238,6 +239,30 @@ def geodesic_points(frequency):
 def geodesic(bottom, top, start, sweep, frequency, pole_part_size=0.0):
     normals = crowd_to_poles(geodesic_points(frequency), pole_part_size)
     return frame_from_normals(normals[in_range(normals, bottom, top, start, sweep)])
+
+
+def geodesic_triangles(bottom, top, start, sweep, frequency, side, pole_part_size=0.0):
+    """A triangle part on every face of the geodesic sphere, rather than on
+    its corners - see triangles.geodesic_faces."""
+    corners, faces = _icosahedron()
+    normals, along, up = triangles.geodesic_faces(corners, faces, frequency, side)
+    crowded = crowd_to_poles(normals, pole_part_size)
+    along = _unit(along - np.einsum("ij,ij->i", along, crowded)[:, None] * crowded)
+    up = np.cross(crowded, along)
+    keep = in_range(crowded, bottom, top, start, sweep)
+    return crowded[keep], along[keep], up[keep]
+
+
+def triangle_rows(frames, base, tip):
+    """A sphere's frames with a triangle part's turned copies in the gaps
+    along its rows - see triangles.interleave. `base` is each copy's base on
+    the unit sphere."""
+    normals, along, up = frames
+    centres, _normals, along, up, _source = triangles.interleave(
+        normals, normals, along, up, base, tip)
+    normals = _unit(centres)
+    along = _unit(along - np.einsum("ij,ij->i", along, normals)[:, None] * normals)
+    return normals, along, np.cross(normals, along)
 
 
 # Cube ---

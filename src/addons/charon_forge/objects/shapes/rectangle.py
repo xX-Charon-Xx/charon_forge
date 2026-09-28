@@ -4,12 +4,12 @@ It starts as a square and its width and height can be set apart. It lies
 flat, its face filled with the part in rows, bricks, frames or a diagonal
 grid, and its edges lined with it, lying flat or standing as walls. It can
 have a hole in the middle, leaving a band the same width on every side. The layout
-is utils/rectangle_topology.py; everything it shares with the other forged
-objects is in objects/forged.py.
+is objects/shapes/rectangle_topology.py; everything it shares with the other forged
+objects is in objects/shapes/forged.py.
 """
 
-from ..utils import frames
-from ..utils import rectangle_topology as topology
+from ...utils import frames
+from . import rectangle_topology as topology
 from .forged import Forged, LayoutRefused
 
 
@@ -45,6 +45,7 @@ class Rectangle(Forged):
             rim_style=settings.rim_style,
             rim_offset=settings.rim_offset,
         )
+        centres, normals, along, up = Forged.as_triangles(settings, centres, normals, along, up)
         positions, rotations = frames.place(
             centres, normals, along, up, turn, centre, Forged.copy_scale(settings)
         )

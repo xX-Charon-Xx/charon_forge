@@ -3,7 +3,7 @@ as rows, bricks, frames or a diagonal grid, and the edges lined with a band
 of parts. Pure numpy, no Blender.
 
 A rectangle lies on the XY plane about the origin. Like a circle
-(utils/circle_topology.py) its face is measured by distance in from the
+(objects/shapes/circle_topology.py) its face is measured by distance in from the
 outline: the frames follow it inward, and the hole is whatever is deeper in
 than the band, so the band is one width on every side.
 """

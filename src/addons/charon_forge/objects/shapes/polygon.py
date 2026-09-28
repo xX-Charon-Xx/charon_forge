@@ -4,12 +4,12 @@ A regular polygon of any number of sides - stretched along X and Y if need
 be - lies flat, its face filled with the part in frames, rows or wedges, and
 its edges lined with it, lying flat or standing as walls. It can have a hole
 in the middle, leaving a band the same width along every side. The layout
-is utils/polygon_topology.py; everything it shares with the other forged
-objects is in objects/forged.py.
+is objects/shapes/polygon_topology.py; everything it shares with the other forged
+objects is in objects/shapes/forged.py.
 """
 
-from ..utils import frames
-from ..utils import polygon_topology as topology
+from ...utils import frames
+from . import polygon_topology as topology
 from .forged import Forged, LayoutRefused
 
 
@@ -44,6 +44,7 @@ class Polygon(Forged):
             rim_style=settings.rim_style,
             rim_offset=settings.rim_offset,
         )
+        centres, normals, along, up = Forged.as_triangles(settings, centres, normals, along, up)
         positions, rotations = frames.place(
             centres, normals, along, up, turn, centre, Forged.copy_scale(settings)
         )

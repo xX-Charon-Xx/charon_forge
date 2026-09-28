@@ -193,7 +193,14 @@ def stamp_glow(mesh, object_id):
 
 def lamps_on(scene=None):
     scene = scene or getattr(bpy.context, "scene", None)
-    return bool(getattr(scene, "charon_lamps", True)) if scene else True
+    if scene is None:
+        return True
+    # the Watchtower's game lamp layer lights the scene instead (see
+    # lighting/game_lights.py) - a lamp is never counted twice
+    lighting = getattr(scene, "charon_lighting", None)
+    if lighting is not None and lighting.enabled and lighting.game_lights:
+        return False
+    return bool(getattr(scene, "charon_lamps", True))
 
 
 def set_lamps(enabled):

@@ -1,5 +1,6 @@
 import bpy
 
+from .. import lighting
 from ..utils import viewport_overlay
 from . import the_watchtower_operators, the_watchtower_presentation
 
@@ -11,6 +12,8 @@ classes = the_watchtower_operators.classes + the_watchtower_presentation.classes
 
 
 def register():
+    # scene.charon_lighting - the Game Lighting sub-panel's settings
+    lighting.register()
     for _class in classes:
         bpy.utils.register_class(_class)
     # on a timer: while blender is still bringing addons up there are no
@@ -24,3 +27,4 @@ def unregister():
     viewport_overlay.unregister_draw()
     for _class in reversed(classes):
         bpy.utils.unregister_class(_class)
+    lighting.unregister()

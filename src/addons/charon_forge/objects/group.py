@@ -106,7 +106,7 @@ class Group:
         # a Forge sphere or shape writes its cache from its copies when read
         forged = getattr(parent_obj, "charon_forged", None)
         if forged is not None and forged.form:
-            from .forged import Forged
+            from .shapes.forged import Forged
             Forged.refresh_child_cache(parent_obj)
 
         if Group.PROP_CHILD_CACHE not in parent_obj:
@@ -870,7 +870,7 @@ class Group:
                 loading_overlay.step("Switching groups")
                 # a Forge sphere's or shape's mesh is the points its node
                 # tree places the part on, not a merged mesh - see
-                # objects/forged.py
+                # objects/shapes/forged.py
                 forged = getattr(group_obj, "charon_forged", None)
                 if forged is not None and forged.form:
                     continue

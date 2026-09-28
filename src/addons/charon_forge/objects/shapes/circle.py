@@ -3,12 +3,12 @@
 A circle - an ellipse once scaled - lies flat, its face filled with the part
 in rings, rows, a grid, spokes, spiral arms or a sunflower spread, or its outline lined with it,
 lying flat or standing as a wall. It can have a hole in the middle and be
-cut short to an arc, from a start angle round to an end angle. The layout is utils/circle_topology.py; everything it
-shares with the other forged objects is in objects/forged.py.
+cut short to an arc, from a start angle round to an end angle. The layout is objects/shapes/circle_topology.py; everything it
+shares with the other forged objects is in objects/shapes/forged.py.
 """
 
-from ..utils import circle_topology as topology
-from ..utils import frames
+from . import circle_topology as topology
+from ...utils import frames
 from .forged import Forged, LayoutRefused
 
 
@@ -59,6 +59,7 @@ class Circle(Forged):
             arms=settings.spiral_arms,
             density=settings.centre_density,
         )
+        centres, normals, along, up = Forged.as_triangles(settings, centres, normals, along, up)
         positions, rotations = frames.place(
             centres, normals, along, up, turn, centre, Forged.copy_scale(settings)
         )

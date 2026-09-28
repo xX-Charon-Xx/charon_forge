@@ -19,8 +19,8 @@ import bpy
 
 from . import importer, placement, proxy_library, station_prompt
 from .. import materials
-from ..objects import circle, cuboid, polygon, rectangle, shape, sphere  # noqa: F401 - registers the forged kinds
-from ..objects.forged import Forged
+from ..objects.shapes import circle, cuboid, polygon, rectangle, shape, sphere  # noqa: F401 - registers the forged kinds
+from ..objects.shapes.forged import Forged
 from ..utils import optimiser_utils
 
 # what the libraries mark the meshes they cache and hand out again with

@@ -14,7 +14,7 @@ import math
 
 import numpy as np
 
-from .frames import unit
+from ...utils.frames import unit
 from .shape_topology import _corner_to_corner as span
 
 FULL_TURN = 2 * math.pi
