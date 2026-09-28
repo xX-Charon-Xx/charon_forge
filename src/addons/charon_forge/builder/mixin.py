@@ -17,8 +17,9 @@ its own Builder class.
 
 import bpy
 
-from . import importer, placement, proxy_library, station_prompt
+from . import asset_library, importer, placement, proxy_library, station_prompt
 from .. import materials
+from ..objects.part import Part
 from ..objects.shapes import circle, cuboid, polygon, qr, rectangle, shape, sphere, text  # noqa: F401 - registers the forged kinds
 from ..objects.shapes.forged import Forged
 from ..utils import optimiser_utils
@@ -52,14 +53,22 @@ class HighResBuilderMixin(object):
 
     # Mirroring ---
     def _swap_to_twin(self, part_object, new_object_id, flip_axis):
-        """The base builder addon's mirror and flip, with the faces of the
-        flipped mesh turned back the right way out.
+        """The base builder addon's mirror and flip, showing the twin's own
+        model rather than a flipped copy of this one.
 
-        Mirroring is entirely the addon's: mirror_part / flip_part scale the
-        part's mesh by -1 on one axis and give it the twin's id. Blender's
-        Mesh.transform doesn't reverse the faces' winding for a negative
-        scale, so they end up facing inwards and a material with backface
-        culling shows the part from inside (B_STR_AA_N, B_DECO_Q_0).
+        The addon's mirror_part / flip_part scale the part's mesh by -1 on one
+        axis and give it the twin's id. But a save only carries the id and the
+        transform, so the next import places the twin's own model - which for
+        most pairs is not this mesh flipped (B_STR_T_NWTB is B_STR_T_NETB
+        flipped; B_STR_A_S is B_STR_A_N flipped AND turned about up; a _Y_
+        flip is a half turn, not a mirror). What the scene showed was then not
+        what came back. Showing the twin's model makes the two the same; the
+        mirror tool's transform is corrected to suit it, see mirror_fit.
+
+        A part the libraries don't cover keeps the addon's flipped copy, with
+        its faces turned back the right way out - Mesh.transform doesn't
+        reverse the winding for a negative scale, so a material with backface
+        culling showed the part from inside (B_STR_AA_N, B_DECO_Q_0).
         """
         # The addon only copies a mesh that has other users. A part that is
         # the sole user of a library's cached mesh would have that cache
@@ -71,7 +80,13 @@ class HighResBuilderMixin(object):
         result = super(HighResBuilderMixin, self)._swap_to_twin(
             part_object, new_object_id, flip_axis
         )
-        part_object.data.flip_normals()
+
+        flipped = part_object.data
+        if _show_twin_model(part_object, mesh, new_object_id):
+            if flipped.users == 0:
+                bpy.data.meshes.remove(flipped)
+        else:
+            flipped.flip_normals()
         return result
 
     # Lookups ---
@@ -147,3 +162,35 @@ class HighResBuilderMixin(object):
         remaining = dict(data)
         remaining["Objects"] = []
         super(HighResBuilderMixin, self).deserialise_from_data(remaining)
+
+
+def _show_twin_model(part_object, source_mesh, twin_id):
+    """Point a part that was just mirrored or flipped at its twin's own model,
+    out of the library its mesh came from.
+
+    Returns:
+        bool: False when that library has no model for the twin (or the mesh
+            is from neither library), in which case the object is untouched.
+    """
+    # an alternate form shows another id's model, see placement.add_part
+    if "nms_form_model" in part_object:
+        return False
+
+    user_data = part_object.get(Part.PROP_USER_DATA, Part.DEFAULT_USER_DATA)
+
+    if materials.MESH_TAG in source_mesh:
+        twin_mesh = asset_library.load_high_res_mesh(twin_id)
+        if twin_mesh is None:
+            return False
+        part_object.data = twin_mesh
+        # colour resolves by id, and the twin's default palette may differ
+        materials.recolour_from_user_data([part_object], user_data)
+        materials.dedupe_appended_data()
+        materials.prepare_materials(twin_mesh.materials)
+        return True
+
+    if (proxy_library.PROXY_MESH_TAG in source_mesh
+            or proxy_library.PROXY_PLACEMENT_TAG in source_mesh):
+        return proxy_library.apply_proxy_mesh(part_object, twin_id, user_data)
+
+    return False

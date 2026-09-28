@@ -67,7 +67,9 @@ itself, with no collapsible sub-panel.
   presets don't store them.
 * **Game Lighting: Advanced** is The Watchtower's folded sub-panel.
 
-1. **Where:** Planet or Space. Station (Space Station, Freighter, Derelict
+1. **Where:** Planet or Space. Every scene starts on Space; importing a base
+   from a save sets Planet for a planet base (`HomePlanetBase`) and Space for
+   every other base type. Station (Space Station, Freighter, Derelict
    Freighter, Space Anomaly) is hidden for now; its code is all still there.
    `STATION_ENABLED = True` in `lighting/properties.py` brings the button back. Picking one
    loads that place's starting values (`PLACE_DEFAULTS` in

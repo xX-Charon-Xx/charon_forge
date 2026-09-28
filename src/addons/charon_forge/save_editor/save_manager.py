@@ -351,6 +351,14 @@ class CharonSaveManager(bpy.types.PropertyGroup):
         if nms_tools is not None:
             nms_tools.deserialise_from_data(nms_base_json)
         get_builder().deserialise_from_data(nms_base_json)
+
+        # the game lighting's place follows the base: a planet base is lit
+        # as Planet, every other base type as Space
+        lighting = getattr(context.scene, "charon_lighting", None)
+        if lighting is not None:
+            place = "PLANET" if str(base_identifiers.base_type) == BaseType.BASE else "SPACE"
+            if lighting.context != place:
+                lighting.context = place
         #return a string for operators for status message
         return "Base/Corvette imported sucessfully"
     

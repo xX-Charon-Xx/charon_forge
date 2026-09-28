@@ -242,7 +242,9 @@ class CharonLightingSettings(bpy.types.PropertyGroup):
                     "world, view and viewport shading it replaced",
         default=False, update=_on_enabled)
     context: EnumProperty(
-        name="Where", items=CONTEXTS, default="PLANET", update=_on_place)
+        name="Where", items=CONTEXTS, default="SPACE", update=_on_place,
+        description="Space for every scene; a planet base imported from a "
+                    "save switches it to Planet")
     station_type: EnumProperty(
         name="Inside", items=STATION_TYPES, default="FREIGHTER", update=_on_place)
 
@@ -312,7 +314,7 @@ class CharonLightingSettings(bpy.types.PropertyGroup):
                     "light strips - and the light the game lamps throw. "
                     "1 is the game's own")
     ambient: FloatProperty(
-        name="Sky Light", min=0.0, soft_max=4.0, default=0.8, update=_apply,
+        name="Sky Light", min=0.0, soft_max=4.0, default=0.5, update=_apply,
         description="How strongly the sky lights the scene")
     sky_brightness: FloatProperty(
         name="Sky Brightness", min=0.0, soft_max=4.0, default=1.0, update=_apply,

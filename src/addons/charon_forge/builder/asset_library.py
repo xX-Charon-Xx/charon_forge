@@ -37,10 +37,22 @@ STYLE_PRIORITY = ("Builders", "Exterior")
 MESH_PREFIX = "NMS_HR_"
 MESH_TAG = materials.MESH_TAG
 
-# False places every id from its own asset again, the way the addon did before
-# the variant map existed. Kept as a switch because it is the one thing to turn
-# off if a rebuilt part ever looks worse than the asset it replaced.
-REBUILD_VARIANTS = True
+# True builds a "reproducible" variant (utils/variant_map.py) out of its root's
+# mesh instead of placing its own asset. That was for the base builder addon's
+# old library, where many corvette variants shipped the wrong mesh. Every id in
+# this library is extracted from the game on its own, and measured against it
+# the rebuild was wrong for 84 of the 444 variants - B_STR_T_NWTB is its root
+# B_STR_T_NETB mirrored, and a rotation (rot_z_180) can never make a mirror, so
+# it sat 3 m from where the game puts it. The fbx proxies are no better off:
+# a variant's own fbx matched the high res asset more often than the rebuilt
+# one. So every id is placed from its own asset.
+REBUILD_VARIANTS = False
+
+# What the extraction pipeline stamps an asset's mesh with: the id it is the
+# model of. A variant rebuilt by an earlier version is a copy of its root's
+# mesh, so it carries the root's id here - which is how one saved in a file is
+# told apart from the variant's own asset, see _is_stale_rebuild.
+ASSET_ID_TAG = "nms_id"
 
 # Strip the doubled geometry a lot of the library ships with as each asset is
 # appended - see _remove_duplicate_faces below for what it is and why it only
@@ -298,9 +310,38 @@ def load_high_res_mesh(object_id, asset_index=None, _leftovers=None):
     asset_index = asset_index if asset_index is not None else get_asset_index()
 
     cached = _cached_mesh(object_id)
-    if cached is not None:
+    if cached is not None and not _is_stale_rebuild(cached, object_id):
         return cached
 
+    # A variant rebuilt before REBUILD_VARIANTS was turned off, saved with the
+    # file: out of the cache's way, then everything using it moved onto the
+    # asset, so a saved scene heals as soon as the id is placed or imported
+    stale = cached
+    if stale is not None:
+        stale.name = "OLD_" + stale.name
+    mesh = _load_uncached_mesh(object_id, asset_index, _leftovers)
+    if stale is not None:
+        if mesh is None:
+            stale.name = MESH_PREFIX + object_id
+            return stale
+        stale.user_remap(mesh)
+        if stale.users == 0:
+            bpy.data.meshes.remove(stale)
+    return mesh
+
+
+def _is_stale_rebuild(mesh, object_id):
+    """A cached variant mesh that was rebuilt out of its root's asset, while
+    this library no longer rebuilds. Matched on the root's id rather than on
+    any id that differs - an alternate form's asset (B_HAB_A_OPEN) carries
+    the id of the part it is a form of."""
+    if REBUILD_VARIANTS:
+        return False
+    rebuild = variant_map.get_rebuild(object_id)
+    return rebuild is not None and mesh.get(ASSET_ID_TAG) == rebuild[0]
+
+
+def _load_uncached_mesh(object_id, asset_index, _leftovers):
     # A reproducible variant is built out of the mesh it is a variant of rather
     # than out of its own asset - most of the corvette variants ship the wrong
     # mesh, and the transform in objects_map.json is measured, so this is the
@@ -486,6 +527,10 @@ def reimport_library_meshes():
     # appends each part afresh (a variant rebuilds from its freshly loaded root)
     for mesh in old_meshes:
         mesh.name = "OLD_" + mesh.name
+
+    # a mirror's fit is measured off the meshes being replaced
+    from . import mirror_fit
+    mirror_fit.clear()
 
     reimported = failed = 0
     retired = []

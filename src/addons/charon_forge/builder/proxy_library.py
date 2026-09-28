@@ -68,10 +68,12 @@ def load_proxy_mesh(object_id, catalog=None):
     if cached is not None and cached.get(PROXY_MESH_TAG) == object_id:
         return cached
 
-    # Same rebuild the high res side does, and for the same reason - the fbx
-    # library has the wrong mesh under a lot of the corvette variant ids. The
-    # proxies are stored in the same space as the high res assets, so the
-    # transform out of objects_map.json applies to them unchanged.
+    # Same rebuild the high res side does, under the same switch - which is
+    # off: the table is wrong for 84 variants, and even where it is right a
+    # variant's own fbx matched the high res asset more often than the
+    # rebuilt one (see asset_library.REBUILD_VARIANTS). The proxies are stored
+    # in the same space as the high res assets, so the transform out of
+    # objects_map.json would apply to them unchanged.
     if asset_library.REBUILD_VARIANTS:
         mesh = rebuild_variant_proxy_mesh(object_id, catalog)
         if mesh is not None:

@@ -18,9 +18,11 @@ a flat material on the mesh, which is not how a high res part is coloured
     through the shared mesh. High res followers do share a mesh, but that
     mesh doesn't hold their colour, so only the first follower changed.
 
-And one that isn't about colour: its Pin button calls
+And two that aren't about colour: its Pin button calls
 NMSSettings.deserialise_from_data with an argument it doesn't take, so
-pinning a base always failed - see _wrap_deserialise_from_data.
+pinning a base always failed - see _wrap_deserialise_from_data. And its mirror
+tool's mirror_correction, which gets the fit that places a mirrored part's
+twin model where the flipped mesh was - see _wrap_mirror_correction.
 
 Each colour path is wrapped here: high res objects go to Charon Forge's colouring and
 everything else goes to the addon's own code, unchanged. remove() puts the
@@ -32,6 +34,7 @@ import sys
 import bpy
 
 from . import materials
+from .builder import mirror_fit
 from .objects.group import Group as CharonGroup
 from .objects.part import Part
 from .utils import base_builder_utils
@@ -187,6 +190,39 @@ def _wrap_deserialise_from_data(original, settings_class):
     return deserialise_from_data
 
 
+# Mirroring ---
+def _mirror_twin_id(object_id):
+    """The id the addon's mirror tool swaps a part to, or None when it leaves
+    the part as it is. Its own rule (build_tool and Group.mirror_cache_data
+    only swap to a twin it lists), so the fit is added only where the twin's
+    model is what ends up shown."""
+    host_part = getattr(base_builder_utils.get_module("part"), "Part", Part)
+    twin_id = host_part.get_mirror_part_id(object_id)
+    if twin_id is None:
+        return None
+    listed = getattr(base_builder_utils.get_module("tools.build_tool"),
+                     "nice_name_dictionary", None)
+    if listed is not None and twin_id not in listed:
+        return None
+    return twin_id
+
+
+def _wrap_mirror_correction(original):
+    """mirror_correction(object_id, matrix_world) is the last step of the
+    addon's mirror transform, for a single part and for each part of a
+    mirrored group. Its own corrections are hand tuned offsets for a few base
+    parts; for a part whose twin has a high res model, the measured
+    fit replaces them - see builder/mirror_fit.py."""
+    def mirror_correction(object_id, matrix_world):
+        object_id = str(object_id).replace("^", "")
+        twin_id = _mirror_twin_id(object_id)
+        fit = mirror_fit.fit(object_id, twin_id) if twin_id else None
+        if fit is None:
+            return original(object_id, matrix_world)
+        return matrix_world @ fit
+    return mirror_correction
+
+
 # Install ---
 def install():
     """Wrap the addon's colour paths. True once all of them are wrapped."""
@@ -226,6 +262,13 @@ def install():
     if not done:
         print("Charon Forge: some of the base builder addon's colour tools could "
               "not be hooked, they may not colour high res groups or curves")
+
+    mirror_module = base_builder_utils.get_module("utils.mirror_utils")
+    if mirror_module is None or not _patch(mirror_module, "mirror_correction",
+                                           _wrap_mirror_correction):
+        print("Charon Forge: the base builder addon's mirror tool could not be "
+              "hooked, mirrored parts may move when a base is saved and loaded")
+        done = False
     return done
 
 
