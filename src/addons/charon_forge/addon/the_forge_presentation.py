@@ -9,6 +9,7 @@ from ..objects.shapes.polygon import Polygon
 from ..objects.shapes.rectangle import Rectangle
 from ..objects.shapes.shape import Shape
 from ..objects.shapes.sphere import Sphere
+from ..objects.shapes.qr import QRCode
 from ..objects.shapes.text import Text
 from ..utils import icon_utils
 from ..objects.shapes import circle_topology, panel_font, shape_topology
@@ -89,6 +90,8 @@ class CHARON_PT_the_forge_panel(Panel):
                 draw_sphere_settings(box, settings)
             elif settings.form == Text.FORM:
                 draw_text_settings(box, settings)
+            elif settings.form == QRCode.FORM:
+                draw_qr_settings(box, settings)
             row = box.row()
             row.operator(ResetForged.bl_idname, icon="LOOP_BACK")
             row.operator(SplitForged.bl_idname, icon="MOD_EXPLODE")
@@ -311,6 +314,24 @@ def draw_text_settings(layout, forge):
     column = _section(layout, "Letters")
     _draw_pair(column, forge, "letter_height", "letter_spacing",
                first_text="Height", second_text="Spacing")
+    if forge.shape_info:
+        info = column.row()
+        info.enabled = False
+        info.label(text=forge.shape_info, icon="DRIVER_DISTANCE")
+
+
+
+def draw_qr_settings(layout, forge):
+    """The settings of the active QR code - like a text, its panels are
+    sized by the code, so it has no Part Size or Rotation."""
+    _draw_title(layout, forge, "QRCODE" if "QRCODE" in _ICONS else "TEXTURE")
+    text_row = layout.row()
+    text_row.scale_y = 1.3
+    text_row.prop(forge, "qr_text", text="",
+                  icon="LINKED" if "://" in forge.qr_text else "TEXT")
+
+    column = _section(layout, "Squares")
+    column.prop(forge, "qr_square_size", text="Size")
     if forge.shape_info:
         info = column.row()
         info.enabled = False

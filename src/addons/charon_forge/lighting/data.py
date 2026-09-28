@@ -10,8 +10,8 @@ game's sky tables - nothing in it is tuned by hand:
     planet.<list>       day / dusk / night / day_firestorm / day_gravstorm sky
                         entries, generic ('Generic', 'Dark') and per biome
     space.common/rare   spaceskycolours / spacerareskycolours entries
-    hdris               the game's HDRIs, converted to .hdr
     spacedome           the space nebula masks (R, G, B are separate masks)
+    nebulaplasma        the tiling nebula wisps (filaments in alpha)
 
 Loaded on first use and cached.
 """
@@ -22,12 +22,6 @@ import os
 ADDON_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 LIGHTING_PATH = os.path.join(ADDON_PATH, "resources", "lighting")
 LIGHTING_JSON = os.path.join(LIGHTING_PATH, "lighting.json")
-HDRI_PATH = os.path.join(LIGHTING_PATH, "hdris")
-
-# prefiltered halves of an HDRI, for the game's image based lighting - not
-# something to look at
-_HDRI_SKIP = ("_irradiance", "_radiance")
-
 _data = None
 
 
@@ -49,10 +43,6 @@ def available():
 
 def sky_globals():
     return load().get("globals", {}).get("sky", {})
-
-
-def planet_sky_globals():
-    return load().get("globals", {}).get("planet_sky", {})
 
 
 def planet_lists(kind):
@@ -86,18 +76,39 @@ def space_entry(kind, index):
     return entries[index % len(entries)] if entries else {}
 
 
-def hdri_names():
-    return [n for n in load().get("hdris", [])
-            if not any(s in n for s in _HDRI_SKIP)]
+_space_keys = None
 
 
-def hdri_path(name):
-    return os.path.join(HDRI_PATH, name)
+def space_sky_keys():
+    """Every space sky as (key, kind, index, star colour): 'c3' is common
+    entry 3, 'r12' rare entry 12. Built once - the panel asks on every redraw."""
+    global _space_keys
+    if _space_keys is None:
+        _space_keys = [(prefix + str(i), kind, i, entry.get("GalaxyStarType") or "?")
+                       for kind, prefix in (("common", "c"), ("rare", "r"))
+                       for i, entry in enumerate(space_entries(kind))]
+    return _space_keys
+
+
+def space_entry_by_key(key):
+    kind = "rare" if key.startswith("r") else "common"
+    try:
+        return space_entry(kind, int(key[1:]))
+    except ValueError:
+        return space_entry("common", 0)
+
+
+def _texture(name_key):
+    name = load().get(name_key)
+    return os.path.join(LIGHTING_PATH, name) if name else None
 
 
 def spacedome_path():
-    name = load().get("spacedome")
-    return os.path.join(LIGHTING_PATH, name) if name else None
+    return _texture("spacedome")
+
+
+def nebulaplasma_path():
+    return _texture("nebulaplasma")
 
 
 # Colour ---

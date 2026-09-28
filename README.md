@@ -178,7 +178,7 @@ Build large shapes out of copies of a single part, and more.
 The shape is made of copies of your part and stays adjustable: change its size, how many copies it has, how they're laid out, and how big each one is. The viewport updates as you go, even with thousands of copies. **Split into Parts** turns it into ordinary parts when you're done. Shapes keep the part's colour, count towards the part total, and export as their individual parts.
 
 **Forge a Symbol:**
-- **Forge a QR Code:** type any text or a link, and Charon builds a scannable QR code out of storage panels at the 3D cursor.
+- **Forge a QR Code:** type any text or a link, and Charon builds a scannable QR code out of storage panels at the 3D cursor - one object, like Forge Text, whose content and square size can be changed in The Forge panel after.
   - It uses as few panels as it can: long runs and blocks are covered by single, larger panels.
   - The popup shows the code's size and roughly how many panels it will take before you build it.
 

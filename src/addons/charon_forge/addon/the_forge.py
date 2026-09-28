@@ -16,6 +16,7 @@ from ..objects.shapes.circle import Circle  # noqa: F401 - registers the kind
 from ..objects.shapes.cuboid import Cuboid  # noqa: F401 - registers the kind
 from ..objects.shapes.forged import Forged
 from ..objects.shapes.polygon import Polygon  # noqa: F401 - registers the kind
+from ..objects.shapes.qr import QRCode  # noqa: F401 - registers the kind
 from ..objects.shapes.rectangle import Rectangle  # noqa: F401 - registers the kind
 from ..objects.shapes.shape import Shape  # noqa: F401 - registers the kind
 from ..objects.shapes.sphere import Sphere
@@ -460,6 +461,16 @@ class CharonForged(bpy.types.PropertyGroup):
         default=0.0, soft_min=-2.0, soft_max=10.0, unit="LENGTH", update=_on_changed,
     )
 
+    # QR codes ---
+    qr_text: StringProperty(
+        name="Content", description="What the QR code says - a link, or any text",
+        update=_on_changed,
+    )
+    qr_square_size: FloatProperty(
+        name="Square Size", description="How big one square of the code is",
+        default=1.0, min=0.05, soft_max=10.0, unit="LENGTH", update=_on_changed,
+    )
+
 
 # State for The Forge panel, stored on the scene as scene.charon_the_forge.
 # The station switches keep nothing themselves - they read and set whether
@@ -499,6 +510,18 @@ class TheForge(bpy.types.PropertyGroup):
     )
 
 
+@bpy.app.handlers.persistent
+def _on_load(_filepath=None):
+    """A file saved with a part's shared mesh joined into a group: give it
+    back its own - see Forged.repair_part_meshes."""
+    try:
+        repaired = Forged.repair_part_meshes()
+        if repaired:
+            print("Charon Forge: gave %d part mesh(es) back their own shape" % repaired)
+    except Exception as exc:                              # noqa: BLE001
+        print("Charon Forge: could not check the part meshes on load: %r" % exc)
+
+
 classes = (
     CharonForged,
     TheForge,
@@ -512,9 +535,13 @@ def register():
         bpy.utils.register_class(_class)
     bpy.types.Scene.charon_the_forge = PointerProperty(type=TheForge)
     bpy.types.Object.charon_forged = PointerProperty(type=CharonForged)
+    if _on_load not in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.append(_on_load)
 
 
 def unregister():
+    if _on_load in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.remove(_on_load)
     del bpy.types.Object.charon_forged
     del bpy.types.Scene.charon_the_forge
     for _class in reversed(classes):

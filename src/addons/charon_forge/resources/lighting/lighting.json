@@ -17231,15 +17231,6 @@
    }
   ]
  },
- "hdris": [
-  "bambanani_sunset_1k.hdr",
-  "default.hdr",
-  "goegap_1k_no_sun.hdr",
-  "golden_gate_hills_1k.hdr",
-  "overcast_industrial_courtyard_1k.hdr",
-  "overcast_industrial_courtyard_1k_irradiance.hdr",
-  "overcast_industrial_courtyard_1k_radiance.hdr",
-  "rogland_clear_night_1k.hdr"
- ],
- "spacedome": "spacedome01.png"
+ "spacedome": "spacedome01.png",
+ "nebulaplasma": "nebulaplasma.png"
 }

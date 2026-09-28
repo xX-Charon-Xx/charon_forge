@@ -16,7 +16,7 @@ boost is switched off (emission.set_lamps) so a lamp is not counted twice.
 
 Power: a game light reaches `intensity / d^2`; a Blender point light of P
 watts matches that at P = 4 pi x intensity - the same scale the emission
-boost uses. `power` scales all of them at once.
+boost uses. `power` (the panel's Glow) scales all of them at once.
 """
 
 import math
@@ -128,9 +128,13 @@ def rebuild(scene, power=1.0):
 
 
 def set_power(power):
+    """Every lamp x power (the Glow slider). Only lamps whose value changes are
+    written, so it costs nothing while another slider moves."""
     for lamp in bpy.data.lights:
         if LIGHT_TAG in lamp:
-            lamp.energy = 4.0 * math.pi * lamp[LIGHT_TAG] * power
+            energy = 4.0 * math.pi * lamp[LIGHT_TAG] * power
+            if abs(lamp.energy - energy) > 1e-6:
+                lamp.energy = energy
 
 
 def set_visible(scene, visible):

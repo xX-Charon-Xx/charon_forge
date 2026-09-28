@@ -196,6 +196,16 @@ def merge_objects_with_operator(objects, object_name):
     # duplicate leaves its copy of the active object active, which is what gets joined into
     meshes_before = set(bpy.data.meshes)
     bpy.ops.object.duplicate(linked=False)
+
+    # join writes into the active object's mesh in place. Parts share their
+    # library's cached mesh, and duplicate can leave the copy on it (the
+    # Duplicate Data preferences, library meshes) - joined into, every other
+    # user of it would show the merge too: a forged text, whose hidden holder
+    # object is over that mesh, turned into the QR code being grouped
+    active = view_layer.objects.active
+    if active.data.users > 1:
+        active.data = active.data.copy()
+
     bpy.ops.object.join()
 
     merged = view_layer.objects.active

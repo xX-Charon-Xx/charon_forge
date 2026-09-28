@@ -15,17 +15,13 @@ Group.extract_pos_up_at), but only evenly: it always keeps its proportions.
      scaled to its full length and stacked, whichever of those - either way
      round - takes fewer. Panels overlap each other rather than overhang.
 
-Everything here is in modules; build_qr_code turns it into placed parts.
+Everything here is in modules; objects/shapes/qr.py lays the panels out as
+one forged object.
 """
 
 import heapq
 import math
 
-import bpy
-import mathutils
-import numpy as np
-
-from . import loading_overlay, qr_code
 
 PART_ID = "STORAGEPANEL"
 
@@ -170,113 +166,3 @@ def plan(modules, ratio):
         for centre_x, centre_y, along_x, short in plan_panels(width, height, ratio):
             panels.append((x + centre_x, y + centre_y, along_x, short))
     return panels
-
-
-# Building ---
-def measure_part(mesh):
-    """The panel's axes, read off its mesh: (long axis, short axis, thin axis,
-    their lengths, the bounding box centre), axes as 0/1/2."""
-    count = len(mesh.vertices)
-    coords = np.empty(count * 3, dtype=np.float64)
-    mesh.vertices.foreach_get("co", coords)
-    points = coords.reshape(-1, 3)
-    low, high = points.min(axis=0), points.max(axis=0)
-    extents = high - low
-    long_axis, short_axis, thin_axis = [int(axis) for axis in np.argsort(-extents)]
-    return long_axis, short_axis, thin_axis, extents, (low + high) / 2
-
-
-def _panel_rotation(long_axis, short_axis, thin_axis, long_along_x):
-    """The part's rotation lying flat, long side along X or Y, turned over so
-    the side opposite its front faces up - the side the code is read from."""
-    rotation = mathutils.Matrix(((0.0,) * 3,) * 3)
-    long_world, short_world = (0, 1) if long_along_x else (1, 0)
-    rotation[long_world][long_axis] = 1.0
-    rotation[short_world][short_axis] = 1.0
-    rotation[2][thin_axis] = -1.0
-    if rotation.determinant() < 0:
-        # turned half round in the plane rather than mirrored
-        rotation[short_world][short_axis] = -1.0
-    return rotation
-
-
-def build_qr_code(text, level="M", module_size=1.0, upright=False, collection_name=None):
-    """Forge a QR code out of panels at the 3D cursor, grouped into one
-    object whose origin is the middle of the code.
-
-    Args:
-        text (str): What the code says.
-        level (str): Error correction, "L", "M", "Q" or "H".
-        module_size (float): One module, in metres.
-        upright (bool): Standing up facing -Y, rather than lying flat.
-
-    Returns:
-        tuple: (the group, the number of modules along a side, the number of
-        panels in it).
-
-    Raises:
-        qr_code.QRCodeError: When the text doesn't fit a QR code.
-    """
-    from .. import builder as charon_builder
-    from ..objects.group import Group
-
-    modules = qr_code.encode(text, level)
-    size = len(modules)
-
-    first = charon_builder.add_part(PART_ID).object
-    long_axis, short_axis, thin_axis, extents, centre = measure_part(first.data)
-    long_length, short_length, thin_length = (
-        extents[long_axis], extents[short_axis], extents[thin_axis]
-    )
-    ratio = long_length / short_length
-    panels = plan(modules, ratio)
-
-    collection = bpy.data.collections.new(collection_name or "QR Code")
-    bpy.context.scene.collection.children.link(collection)
-
-    cursor = bpy.context.scene.cursor.location.copy()
-    placement = mathutils.Matrix.Translation(cursor)
-    if upright:
-        placement = placement @ mathutils.Matrix.Rotation(math.radians(90.0), 4, "X")
-
-    # the panels' faces flush, whatever their size
-    largest_scale = max(short for _x, _y, _along_x, short in panels) * module_size / short_length
-    top = thin_length * largest_scale
-    local_centre = mathutils.Vector(centre)
-
-    objects = []
-    order = len(bpy.data.objects)
-    for index, (centre_x, centre_y, along_x, short) in enumerate(panels):
-        loading_overlay.step("Placing panels", index / len(panels))
-        scale = short * module_size / short_length
-        rotation = _panel_rotation(long_axis, short_axis, thin_axis, along_x)
-
-        target = mathutils.Vector((
-            (centre_x - size / 2) * module_size,
-            (size / 2 - centre_y) * module_size,
-            top - thin_length * scale / 2,
-        ))
-        # the part's origin isn't the middle of it
-        location = target - rotation @ (local_centre * scale)
-        matrix = (mathutils.Matrix.Translation(location)
-                  @ rotation.to_4x4()
-                  @ mathutils.Matrix.Scale(scale, 4))
-
-        bpy_object = first if index == 0 else first.copy()
-        for old in list(bpy_object.users_collection):
-            old.objects.unlink(bpy_object)
-        collection.objects.link(bpy_object)
-        bpy_object.matrix_world = placement @ matrix
-        bpy_object["order"] = order + index
-        objects.append(bpy_object)
-
-    # one group, its origin at the middle of the code - the cursor, which
-    # the panels were laid out around - turned upright with it if it is
-    loading_overlay.step("Grouping panels", show=True)
-    group = Group.group_objects(objects, placement)
-    if group is None:
-        raise RuntimeError("the panels could not be grouped")
-    group.name = collection.name
-    group["order"] = order
-
-    return group, size, len(objects)

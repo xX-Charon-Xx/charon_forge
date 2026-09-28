@@ -2,17 +2,23 @@ import bpy
 
 from .. import lighting
 from ..utils import viewport_overlay
-from . import the_watchtower_operators, the_watchtower_presentation
+from . import (the_watchtower_lighting_operators,
+               the_watchtower_lighting_presentation, the_watchtower_operators,
+               the_watchtower_presentation)
 
-# The Watchtower keeps no state of its own - what the overlay shows, and
+# The Watchtower's overlay keeps no state of its own - what it shows, and
 # where, is in the addon preferences (watchtower_*), so it holds across files
-# and restarts.
+# and restarts. Its Game Lighting keeps scene.charon_lighting (lighting/).
 
-classes = the_watchtower_operators.classes + the_watchtower_presentation.classes
+# the panel before its Advanced sub-panel
+classes = (the_watchtower_operators.classes
+           + the_watchtower_lighting_operators.classes
+           + the_watchtower_presentation.classes
+           + the_watchtower_lighting_presentation.classes)
 
 
 def register():
-    # scene.charon_lighting - the Game Lighting sub-panel's settings
+    # scene.charon_lighting - the Game Lighting settings
     lighting.register()
     for _class in classes:
         bpy.utils.register_class(_class)

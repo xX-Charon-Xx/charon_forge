@@ -11,6 +11,11 @@ import uuid
 from .. import materials
 from ..utils import loading_overlay
 from ..utils.base_builder_utils import blend_utils
+# the merge is always ours: the base builder addon's joins into the active
+# part's mesh in place, which is the library mesh every copy of that part
+# shares - grouping a QR code of storage panels turned every other storage
+# panel, and the Forge Text over one, into the whole code
+from ..utils.fallbacks import blend_utils as merge_utils
 from .part import Part
 
 """
@@ -162,7 +167,7 @@ class Group:
         colour_info = Group.get_colour_info(objects_list)
 
         # Merge objects
-        merged_object = blend_utils.merge_objects(objects_list, "Grouped_Objects")
+        merged_object = merge_utils.merge_objects(objects_list, "Grouped_Objects")
 
         # this check used to sit after the write below, so a failed merge threw
         # a TypeError on None instead of returning None the way it says it does

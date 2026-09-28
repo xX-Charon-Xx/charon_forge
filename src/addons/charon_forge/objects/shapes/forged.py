@@ -58,6 +58,8 @@ class Forged:
     ROTATION_ATTRIBUTE = "charon_rotation"
     # each copy's scale, the object's own times its size against the rest
     SCALE_ATTRIBUTE = "charon_scale"
+    # on a shared part mesh found to match the library - see repair_part_meshes
+    CHECKED_TAG = "charon_join_checked"
 
     # the surface frame a part is laid into - x along, y up, z out - as seen
     # where a sphere's latitude and longitude are 0: the world's Y, Z and X
@@ -568,3 +570,89 @@ class Forged:
         if holder is not None and holder.users == 0:
             bpy.data.objects.remove(holder)
         return parts
+
+    # Repairs ---
+    @staticmethod
+    def repair_part_meshes():
+        """Give back the parts' meshes a large group was joined into.
+
+        Grouping a big set of parts - a QR code - could join them into the
+        library's shared mesh for the part itself (see
+        blend_utils.merge_objects_with_operator), so every object over it,
+        a forged text's holder among them, showed the whole group. A file
+        saved like that still has it. The shared meshes forged objects and
+        groups are over are checked against the library, and one that no
+        longer matches is replaced for everything but the groups on it.
+
+        Returns:
+            int: How many meshes were replaced.
+        """
+        # imported here: the builder imports the objects
+        from ...builder import asset_library
+
+        def cached_id(mesh):
+            object_id = mesh.get(MESH_TAG) if mesh is not None else None
+            if object_id and mesh.name == asset_library.MESH_PREFIX + object_id:
+                return object_id
+            return None
+
+        # a group always gets a mesh of its own, so one over a shared mesh
+        # was joined into it; a forged object's part is checked too, for a
+        # file whose group is gone since
+        suspects = {}
+        for obj in bpy.data.objects:
+            if obj.type != "MESH":
+                continue
+            if Forged.is_forged(obj):
+                holder = obj.charon_forged.part_object
+                mesh = holder.data if holder is not None else None
+            elif Group.PROP_GROUP_ID in obj:
+                mesh = obj.data
+            else:
+                continue
+            if cached_id(mesh) and not mesh.get(Forged.CHECKED_TAG):
+                suspects[mesh.name] = mesh
+
+        fixed = set()
+        for mesh in suspects.values():
+            object_id = cached_id(mesh)
+            # out of the cache's way, so the library's own is loaded afresh
+            mesh.name = "%s (joined)" % mesh.name
+            fresh = asset_library.load_high_res_mesh(object_id)
+            if fresh is None or (
+                len(fresh.vertices) == len(mesh.vertices)
+                and len(fresh.polygons) == len(mesh.polygons)
+            ):
+                if fresh is not None:
+                    bpy.data.meshes.remove(fresh)
+                mesh.name = asset_library.MESH_PREFIX + object_id
+                if fresh is not None:
+                    mesh[Forged.CHECKED_TAG] = True
+                continue
+            fresh[Forged.CHECKED_TAG] = True
+
+            groups = []
+            for obj in bpy.data.objects:
+                if obj.data != mesh:
+                    continue
+                if Group.PROP_GROUP_ID in obj and not Forged.is_forged(obj):
+                    groups.append(obj)
+                else:
+                    obj.data = fresh
+            if not groups:
+                bpy.data.meshes.remove(mesh)
+            fixed.add(fresh.name)
+
+        # measured off the joined mesh if they were laid out again since
+        if fixed:
+            for obj in bpy.data.objects:
+                if not Forged.is_forged(obj):
+                    continue
+                settings = obj.charon_forged
+                holder = settings.part_object
+                if holder is None or holder.data is None or holder.data.name not in fixed:
+                    continue
+                with Forged.suspended():
+                    Forged.measure(settings, holder.data)
+                Forged.update(obj)
+        return len(fixed)

@@ -3,7 +3,7 @@ import math
 import bpy
 
 from ..builder import station_design, station_library, station_prompt
-from ..utils import loading_overlay, qr_code, qr_forge, seed_utils
+from ..utils import loading_overlay, qr_code, seed_utils
 from ..objects.shapes.circle import Circle
 from ..objects.shapes.cuboid import Cuboid
 from ..objects.shapes import panel_font
@@ -11,6 +11,8 @@ from ..objects.shapes.forged import Forged
 from ..objects.group import Group
 from ..objects.part import Part
 from ..objects.shapes.polygon import Polygon
+from ..objects.shapes import qr
+from ..objects.shapes.qr import QRCode
 from ..objects.shapes.rectangle import Rectangle
 from ..objects.shapes.shape import Shape
 from ..objects.shapes.sphere import Sphere
@@ -114,11 +116,11 @@ class ResetForged(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     # what was measured off the part or is kept by the object itself, and
-    # stays as it is - a text keeps what it says
+    # stays as it is - a text or QR code keeps what it says
     KEPT = {
         "rna_type", "name", "form", "part_object", "object_id", "base_scale", "part_size",
         "pitch_around", "pitch_up", "base_rotation", "centre_offset", "applied_scale",
-        "part_count", "message", "shape_info", "text_body", "detected_shape",
+        "part_count", "message", "shape_info", "text_body", "qr_text", "detected_shape",
         "measured_shape", "triangle_tip", "triangle_side",
     }
 
@@ -615,32 +617,19 @@ class CreatePolygon(_CreateForged, bpy.types.Operator):
 # the build itself measures the part
 _QR_PANEL_RATIO = 2.4
 
-# (text, level) -> (squares along a side, panels) or the error, for the popup
-_qr_preview_cache = {}
-
-
-def _qr_preview(text, level):
-    """What the popup says about a code before it is forged. Cached, since
+def _qr_preview(text):
+    """What the popup says about a code before it is forged: (squares along
+    a side, panels) or the error. Planned once per text - see qr.plan - since
     the popup redraws on every keystroke."""
-    key = (text, level)
-    if key not in _qr_preview_cache:
-        if len(_qr_preview_cache) > 32:
-            _qr_preview_cache.clear()
-        try:
-            modules = qr_code.encode(text, level)
-            _qr_preview_cache[key] = (len(modules), len(qr_forge.plan(modules, _QR_PANEL_RATIO)))
-        except qr_code.QRCodeError as error:
-            _qr_preview_cache[key] = str(error)
-    return _qr_preview_cache[key]
+    try:
+        squares, panels = qr.plan(text, _QR_PANEL_RATIO)
+    except qr_code.QRCodeError as error:
+        return str(error)
+    return squares, len(panels)
 
 
 class ForgeQRCode(bpy.types.Operator):
-    """Build a QR code out of storage panels, at the 3D cursor"""
-
-    # A forged code never gets scratched or smudged, so it takes the least
-    # error correction a QR code can have - which is also the smallest code,
-    # and the fewest panels. (There is no level with none at all.)
-    ERROR_CORRECTION = "L"
+    """Build a QR code out of storage panels, at the 3D cursor - one object whose content and size can be changed after"""
 
     bl_idname = "object.charon_forge_qr_code"
     bl_label = "Forge a QR Code"
@@ -654,6 +643,11 @@ class ForgeQRCode(bpy.types.Operator):
         name="Square Size",
         description="How big one square of the code is",
         default=1.0, min=0.05, soft_max=10.0, unit="LENGTH",
+    )
+    upright: bpy.props.BoolProperty(
+        name="Stand Up",
+        description="Stand the code up facing the front view, rather than lying flat",
+        default=False,
     )
 
     def invoke(self, context, event):
@@ -678,16 +672,17 @@ class ForgeQRCode(bpy.types.Operator):
         text_row.prop(self, "text", text="", icon="LINKED" if "://" in self.text else "FONT_DATA")
 
         layout.separator()
-        size_row = layout.row()
-        size_row.scale_y = 1.2
-        size_row.prop(self, "module_size")
+        settings = layout.column()
+        settings.scale_y = 1.2
+        settings.prop(self, "module_size")
+        settings.prop(self, "upright")
 
         layout.separator()
         summary = layout.box().column(align=True)
         if not self.text.strip():
             summary.label(text="Enter some text to see the code's size", icon="QUESTION")
             return
-        preview = _qr_preview(self.text.strip(), self.ERROR_CORRECTION)
+        preview = _qr_preview(self.text.strip())
         if isinstance(preview, str):
             summary.alert = True
             summary.label(text=preview.capitalize(), icon="ERROR")
@@ -703,24 +698,33 @@ class ForgeQRCode(bpy.types.Operator):
         if not text:
             self.report({"ERROR"}, "Enter the text for the QR code")
             return {"CANCELLED"}
-
-        name = "QR Code: " + (text if len(text) <= 24 else text[:24] + "...")
-        try:
-            group, size, panel_count = qr_forge.build_qr_code(
-                text, self.ERROR_CORRECTION, self.module_size, collection_name=name,
-            )
-        except qr_code.QRCodeError as error:
-            self.report({"ERROR"}, f"Could not make a QR code: {error}")
+        # checked before a part is added, so nothing is left behind
+        preview = _qr_preview(text)
+        if isinstance(preview, str):
+            self.report({"ERROR"}, f"Could not make a QR code: {preview}")
             return {"CANCELLED"}
+
+        from .. import builder as charon_builder
+
+        try:
+            source = charon_builder.add_part(qr.PART_ID).object
+            forged_obj = QRCode.create_qr_code(source, text, self.module_size)
         except Exception as error:                            # noqa: BLE001
             self.report({"ERROR"}, f"Could not forge the QR code: {error}")
             return {"CANCELLED"}
 
-        _select_only(context, [group])
-        self.report(
-            {"INFO"},
-            f"Forged a {size} x {size} QR code from {panel_count} panels, grouped as '{group.name}'",
-        )
+        forged_obj.location = context.scene.cursor.location
+        if self.upright:
+            # facing -Y, the front view
+            forged_obj.rotation_euler = (math.radians(90.0), 0.0, 0.0)
+
+        _select_only(context, [forged_obj])
+        settings = forged_obj.charon_forged
+        if settings.message:
+            self.report({"WARNING"}, settings.message)
+        else:
+            self.report({"INFO"}, f"Forged a QR code from {settings.part_count} panels - "
+                                  f"{settings.shape_info}")
         return {"FINISHED"}
 
 

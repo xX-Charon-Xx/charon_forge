@@ -45,6 +45,19 @@ whose game scenes hold LIGHT nodes gets
 (glow_boost below). Every other mesh has no nms_glow, reads 0, and stays at
 strength 1. The unboosted value is kept as `nms_glow_lamp` so the Colours
 panel can switch lamps off and on (set_lamps).
+
+The Glow slider - every glow brighter at once
+---------------------------------------------
+On top of that, every glow strength is multiplied by
+
+    1 + charon_glow_boost   an Attribute node, type VIEW_LAYER
+
+which Blender looks up on the view layer, then the scene. The Watchtower's
+Glow slider writes the scene's charon_glow_boost (set_glow), so one number
+brightens every glowing surface in the file - no material is touched when it
+moves. A scene without the property reads 0: glow as the game has it.
+Materials wired before this (EMISSION_VERSION 2) get the multiplier added in
+place (_add_scene_boost).
 """
 
 import bpy
@@ -52,7 +65,9 @@ import bpy
 from .properties import MAT_CLASS, MAT_FLAGS
 
 EMISSION_TAG = "charon_emission"
-EMISSION_VERSION = 2
+EMISSION_VERSION = 3
+SCENE_GLOW_PROP = "charon_glow_boost"
+SCENE_GLOW_LABEL = "Charon glow boost"
 
 GLOW_PROP = "nms_glow"
 GLOW_LAMP_PROP = "nms_glow_lamp"
@@ -76,10 +91,14 @@ def ensure_emission(materials=None):
     for mat in materials:
         if mat is None or not mat.node_tree or MAT_CLASS not in mat:
             continue
-        if mat.get(EMISSION_TAG) == EMISSION_VERSION:
+        tag = mat.get(EMISSION_TAG)
+        if tag == EMISSION_VERSION:
             continue
         mat[EMISSION_TAG] = EMISSION_VERSION
-        if _wire(mat):
+        if tag == 2:
+            if _add_scene_boost(mat.node_tree):
+                changed += 1
+        elif _wire(mat):
             changed += 1
     return changed
 
@@ -155,6 +174,54 @@ def _scale_by_glow(tree, strength, source):
         times.inputs[0].default_value = strength.default_value
     tree.links.new(floor.outputs["Value"], times.inputs[1])
     tree.links.new(times.outputs["Value"], strength)
+    _add_scene_boost(tree)
+
+
+def _add_scene_boost(tree):
+    """Put x (1 + scene charon_glow_boost) between the glow strength and the
+    Principled BSDF. Only where the strength comes from the Charon glow chain,
+    and only once."""
+    bsdf = next((n for n in tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+    if bsdf is None:
+        return False
+    strength = bsdf.inputs["Emission Strength"]
+    if not strength.is_linked:
+        return False
+    source_node = strength.links[0].from_node
+    if source_node.label != GLOW_LABEL:
+        return False
+    x, y = source_node.location.x, source_node.location.y
+    attr = tree.nodes.new("ShaderNodeAttribute")
+    attr.attribute_type = "VIEW_LAYER"
+    attr.attribute_name = SCENE_GLOW_PROP
+    attr.label = SCENE_GLOW_LABEL
+    attr.location = (x - 220, y - 220)
+    one_plus = tree.nodes.new("ShaderNodeMath")
+    one_plus.operation = "ADD"
+    one_plus.inputs[1].default_value = 1.0
+    one_plus.label = SCENE_GLOW_LABEL
+    one_plus.location = (x, y - 220)
+    tree.links.new(attr.outputs["Fac"], one_plus.inputs[0])
+    boost = tree.nodes.new("ShaderNodeMath")
+    boost.operation = "MULTIPLY"
+    boost.label = SCENE_GLOW_LABEL
+    boost.location = (x + 220, y - 110)
+    tree.links.new(source_node.outputs[0], boost.inputs[0])
+    tree.links.new(one_plus.outputs[0], boost.inputs[1])
+    tree.links.new(boost.outputs[0], strength)
+    return True
+
+
+def set_glow(scene, multiplier):
+    """Every glow in the scene x multiplier (1 = the game's own)."""
+    value = max(0.0, float(multiplier)) - 1.0
+    if abs(scene.get(SCENE_GLOW_PROP, 0.0) - value) < 1e-6:
+        return
+    scene[SCENE_GLOW_PROP] = value
+    # a view layer attribute is read when the scene is evaluated
+    scene.update_tag()
+    for layer in scene.view_layers:
+        layer.update()
 
 
 # Lamps ---
