@@ -2002169,7 +2002169,7 @@
     }
    ]
   },
-  "STA_SPC_PROPS_PACKAGELOCKER_DROPOFF": {
+  "STA_SPC_PROPS_PACKAGELOCKER_DROPOFF_REF": {
    "palette_group": null,
    "station_palette_group": null,
    "default_palette": "LEGACY1",
@@ -2002183,7 +2002183,7 @@
    "finish_visible": false,
    "emissive": [
     {
-     "material": "BiggsLightsMat12",
+     "material": "DropOffLockerLights_Mat",
      "colour": [
       1.0,
       1.0,
@@ -2002204,6 +2002204,238 @@
     }
    ],
    "lights": [
+    {
+     "name": "DropOffSpot",
+     "position": [
+      0.0,
+      0.3434,
+      0.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.3434,
+      0.0,
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1.0,
+     "radius": 4.472136,
+     "fov": 150.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "DropOffLight",
+     "position": [
+      0.0,
+      1.5645,
+      0.0972
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      1.56452,
+      0.0,
+      0.0,
+      1.0,
+      0.09717,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1.0,
+     "radius": 4.472136,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "spotLight4",
+     "position": [
+      0.0,
+      2.5215,
+      0.8268
+     ],
+     "matrix": [
+      0.0,
+      -10.0,
+      0.0,
+      0.0,
+      3.45731,
+      0.0,
+      9.38334,
+      2.52149,
+      -9.38334,
+      -0.0,
+      3.45731,
+      0.82684,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1.0,
+     "radius": 4.472136,
+     "fov": 107.328094,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "STA_SPC_PROPS_PACKAGELOCKER_DROPOFF_STATION": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [
+    {
+     "material": "DropOffLockerLights_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    },
+    {
+     "material": "BiggsAtmosFieldMAT",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/COMMON/SPACECRAFT/BIGGS/BIGGSSPACEWALKSHIELD.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "DropOffSpot",
+     "position": [
+      0.0,
+      0.3434,
+      0.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.3434,
+      0.0,
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1.0,
+     "radius": 4.472136,
+     "fov": 150.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "DropOffLight",
+     "position": [
+      0.0,
+      1.5645,
+      0.0972
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      1.56452,
+      0.0,
+      0.0,
+      1.0,
+      0.09717,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 1.0,
+     "radius": 4.472136,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
     {
      "name": "spotLight4",
      "position": [
