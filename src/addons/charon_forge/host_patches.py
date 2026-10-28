@@ -191,6 +191,20 @@ def _wrap_deserialise_from_data(original, settings_class):
 
 
 # Mirroring ---
+def _wrap_get_mirror_part_id(original):
+    """Use the wing-family rules even with an older Base Builder installed.
+
+    Its compass suffixes otherwise intercept E, N, O_0 and O_1 before the
+    wing rule. Patch the shared Part class so buttons, builders and group
+    caches all choose the same twin as the mesh-fit correction.
+    """
+    def get_mirror_part_id(object_id):
+        if object_id.startswith("B_WNG_"):
+            return Part.get_mirror_part_id(object_id)
+        return original(object_id)
+    return get_mirror_part_id
+
+
 def _mirror_twin_id(object_id):
     """The id the addon's mirror tool swaps a part to, or None when it leaves
     the part as it is. Its own rule (build_tool and Group.mirror_cache_data
@@ -262,6 +276,13 @@ def install():
     if not done:
         print("Charon Forge: some of the base builder addon's colour tools could "
               "not be hooked, they may not colour high res groups or curves")
+
+    part_class = getattr(base_builder_utils.get_module("part"), "Part", None)
+    if part_class is None or not _patch(part_class, "get_mirror_part_id",
+                                      _wrap_get_mirror_part_id, static=True):
+        print("Charon Forge: the base builder addon's wing mirror lookup could "
+              "not be hooked")
+        done = False
 
     mirror_module = base_builder_utils.get_module("utils.mirror_utils")
     if mirror_module is None or not _patch(mirror_module, "mirror_correction",
