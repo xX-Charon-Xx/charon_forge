@@ -5,7 +5,7 @@
  "library": "..",
  "counts": {
   "parts": 2475,
-  "visible": 1708,
+  "visible": 1665,
   "fossils": 143
  },
  "categories": [
@@ -13138,9 +13138,7 @@
     "emissive_materials": 27
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_COK_C2": {
@@ -13184,9 +13182,7 @@
     "emissive_materials": 27
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_COK_C3": {
@@ -13230,9 +13226,7 @@
     "emissive_materials": 27
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_COK_C4": {
@@ -13276,9 +13270,7 @@
     "emissive_materials": 27
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_COK_C5": {
@@ -13322,9 +13314,7 @@
     "emissive_materials": 27
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_COK_C6": {
@@ -13368,9 +13358,7 @@
     "emissive_materials": 27
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_COK_C7": {
@@ -13414,9 +13402,7 @@
     "emissive_materials": 28
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_COK_C8": {
@@ -13460,9 +13446,7 @@
     "emissive_materials": 28
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_COK_C9": {
@@ -13506,9 +13490,7 @@
     "emissive_materials": 28
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_COK_D": {
@@ -13604,9 +13586,7 @@
     "emissive_materials": 29
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_CON2_0": {
@@ -14170,9 +14150,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_CON_4": {
@@ -16027,9 +16005,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_DECO_V_0": {
@@ -16037,6 +16013,9 @@
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": null,
+   "variants": [
+    "B_DECO_V_1"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_DECO_V_0.blend",
    "icon": "icons/B_DECO_V_0.png",
@@ -16073,17 +16052,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_DECO_V_1": {
-   "name": "LUNGFISH CAP",
+   "name": "LUNGFISH CAP (1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_DECO_V_0",
+   "show_in_drawer": false,
    "asset": "assets/B_DECO_V_1.blend",
    "icon": "icons/B_DECO_V_1.png",
    "kind": "object",
@@ -16119,9 +16096,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_DECO_W": {
@@ -16165,9 +16140,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_DOOR": {
@@ -17756,6 +17729,9 @@
    "category": "Corvette",
    "subcategory": "Reactors",
    "variant_of": null,
+   "variants": [
+    "B_GEN_6_1"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_GEN_6.blend",
    "icon": "icons/B_GEN_6.png",
@@ -17792,17 +17768,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_GEN_6_1": {
-   "name": "CHELONE-CLASS GENERATOR",
+   "name": "CHELONE-CLASS GENERATOR (1)",
    "category": "Corvette",
    "subcategory": "Reactors",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_GEN_6",
+   "show_in_drawer": false,
    "asset": "assets/B_GEN_6_1.blend",
    "icon": "icons/B_GEN_6_1.png",
    "kind": "object",
@@ -17838,9 +17812,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_GFLOOR": {
@@ -18115,9 +18087,7 @@
     "emissive_materials": 13
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_HAB_A": {
@@ -18350,9 +18320,7 @@
     "emissive_materials": 14
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_HOP_A": {
@@ -22561,10 +22529,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_N": {
@@ -22617,9 +22582,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AC_NE": {
@@ -22680,9 +22643,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AC_NE1": {
@@ -22726,10 +22687,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_NE2": {
@@ -22773,10 +22731,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_NE3": {
@@ -22820,10 +22775,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_NW": {
@@ -22867,10 +22819,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_NW1": {
@@ -22914,10 +22863,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_NW2": {
@@ -22961,10 +22907,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_NW3": {
@@ -23008,10 +22951,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_S": {
@@ -23055,10 +22995,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_W": {
@@ -23102,10 +23039,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_E": {
@@ -23149,10 +23083,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_N": {
@@ -23196,10 +23127,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_NE": {
@@ -23243,10 +23171,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_NE1": {
@@ -23290,10 +23215,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_NE2": {
@@ -23337,10 +23259,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_NE3": {
@@ -23384,10 +23303,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_NW": {
@@ -23431,10 +23347,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_NW1": {
@@ -23478,10 +23391,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_NW2": {
@@ -23525,10 +23435,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_NW3": {
@@ -23572,10 +23479,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_S": {
@@ -23619,10 +23523,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AC_Y_W": {
@@ -23666,10 +23567,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AC_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_E": {
@@ -23713,10 +23611,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_N": {
@@ -23769,9 +23664,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AD_NE": {
@@ -23832,9 +23725,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AD_NE1": {
@@ -23878,10 +23769,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_NE2": {
@@ -23925,10 +23813,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_NE3": {
@@ -23972,10 +23857,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_NW": {
@@ -24019,10 +23901,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_NW1": {
@@ -24066,10 +23945,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_NW2": {
@@ -24113,10 +23989,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_NW3": {
@@ -24160,10 +24033,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_S": {
@@ -24207,10 +24077,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_W": {
@@ -24254,10 +24121,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_E": {
@@ -24301,10 +24165,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_N": {
@@ -24348,10 +24209,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_NE": {
@@ -24395,10 +24253,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_NE1": {
@@ -24442,10 +24297,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_NE2": {
@@ -24489,10 +24341,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_NE3": {
@@ -24536,10 +24385,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_NW": {
@@ -24583,10 +24429,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_NW1": {
@@ -24630,10 +24473,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_NW2": {
@@ -24677,10 +24517,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_NW3": {
@@ -24724,10 +24561,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_S": {
@@ -24771,10 +24605,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AD_Y_W": {
@@ -24818,10 +24649,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AD_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_NE": {
@@ -24882,9 +24710,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AE_NE1": {
@@ -24928,10 +24754,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_NE2": {
@@ -24975,10 +24798,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_NE3": {
@@ -25022,10 +24842,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_NW": {
@@ -25069,10 +24886,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_NW1": {
@@ -25116,10 +24930,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_NW2": {
@@ -25163,10 +24974,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_NW3": {
@@ -25210,10 +25018,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_Y_NE": {
@@ -25257,10 +25062,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_Y_NE1": {
@@ -25304,10 +25106,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_Y_NE2": {
@@ -25351,10 +25150,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_Y_NE3": {
@@ -25398,10 +25194,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_Y_NW": {
@@ -25445,10 +25238,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_Y_NW1": {
@@ -25492,10 +25282,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_Y_NW2": {
@@ -25539,10 +25326,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AE_Y_NW3": {
@@ -25586,10 +25370,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AE_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_NE": {
@@ -25650,9 +25431,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AF_NE1": {
@@ -25696,10 +25475,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_NE2": {
@@ -25743,10 +25519,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_NE3": {
@@ -25790,10 +25563,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_NW": {
@@ -25837,10 +25607,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_NW1": {
@@ -25884,10 +25651,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_NW2": {
@@ -25931,10 +25695,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_NW3": {
@@ -25978,10 +25739,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_Y_NE": {
@@ -26025,10 +25783,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_Y_NE1": {
@@ -26072,10 +25827,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_Y_NE2": {
@@ -26119,10 +25871,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_Y_NE3": {
@@ -26166,10 +25915,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_Y_NW": {
@@ -26213,10 +25959,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_Y_NW1": {
@@ -26260,10 +26003,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_Y_NW2": {
@@ -26307,10 +26047,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AF_Y_NW3": {
@@ -26354,10 +26091,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AF_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AG_NE": {
@@ -26410,9 +26144,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AG_NE1": {
@@ -26456,10 +26188,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AG_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AG_NE2": {
@@ -26503,10 +26232,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AG_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AG_NE3": {
@@ -26550,10 +26276,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AG_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AG_Y_NE": {
@@ -26597,10 +26320,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AG_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AG_Y_NE1": {
@@ -26644,10 +26364,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AG_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AG_Y_NE2": {
@@ -26691,10 +26408,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AG_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AG_Y_NE3": {
@@ -26738,17 +26452,23 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AG_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AH_NETB": {
-   "name": "BASILISK RIM",
+   "name": "BASILISK RIM (NE)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": null,
+   "variants": [
+    "B_STR_AH_NETB1",
+    "B_STR_AH_NETB2",
+    "B_STR_AH_NETB3",
+    "B_STR_AH_NWTB",
+    "B_STR_AH_NWTB1",
+    "B_STR_AH_NWTB2",
+    "B_STR_AH_NWTB3"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_STR_AH_NETB.blend",
    "icon": "icons/B_STR_AH_NETB.png",
@@ -26785,17 +26505,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AH_NETB1": {
-   "name": "BASILISK RIM",
+   "name": "BASILISK RIM (NE1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AH_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AH_NETB1.blend",
    "icon": "icons/B_STR_AH_NETB1.png",
    "kind": "object",
@@ -26831,17 +26549,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AH_NETB2": {
-   "name": "BASILISK RIM",
+   "name": "BASILISK RIM (NE2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AH_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AH_NETB2.blend",
    "icon": "icons/B_STR_AH_NETB2.png",
    "kind": "object",
@@ -26877,17 +26593,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AH_NETB3": {
-   "name": "BASILISK RIM",
+   "name": "BASILISK RIM (NE3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AH_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AH_NETB3.blend",
    "icon": "icons/B_STR_AH_NETB3.png",
    "kind": "object",
@@ -26923,17 +26637,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AH_NWTB": {
-   "name": "BASILISK RIM",
+   "name": "BASILISK RIM (NW)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AH_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AH_NWTB.blend",
    "icon": "icons/B_STR_AH_NWTB.png",
    "kind": "object",
@@ -26969,17 +26681,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AH_NWTB1": {
-   "name": "BASILISK RIM",
+   "name": "BASILISK RIM (NW1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AH_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AH_NWTB1.blend",
    "icon": "icons/B_STR_AH_NWTB1.png",
    "kind": "object",
@@ -27015,17 +26725,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AH_NWTB2": {
-   "name": "BASILISK RIM",
+   "name": "BASILISK RIM (NW2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AH_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AH_NWTB2.blend",
    "icon": "icons/B_STR_AH_NWTB2.png",
    "kind": "object",
@@ -27061,17 +26769,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AH_NWTB3": {
-   "name": "BASILISK RIM",
+   "name": "BASILISK RIM (NW3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AH_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AH_NWTB3.blend",
    "icon": "icons/B_STR_AH_NWTB3.png",
    "kind": "object",
@@ -27107,16 +26813,23 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AI_NETB": {
-   "name": "REAPER RIM",
+   "name": "REAPER RIM (NE)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": null,
+   "variants": [
+    "B_STR_AI_NETB1",
+    "B_STR_AI_NETB2",
+    "B_STR_AI_NETB3",
+    "B_STR_AI_NWTB",
+    "B_STR_AI_NWTB1",
+    "B_STR_AI_NWTB2",
+    "B_STR_AI_NWTB3"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_STR_AI_NETB.blend",
    "icon": "icons/B_STR_AI_NETB.png",
@@ -27153,17 +26866,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AI_NETB1": {
-   "name": "REAPER RIM",
+   "name": "REAPER RIM (NE1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AI_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AI_NETB1.blend",
    "icon": "icons/B_STR_AI_NETB1.png",
    "kind": "object",
@@ -27199,17 +26910,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AI_NETB2": {
-   "name": "REAPER RIM",
+   "name": "REAPER RIM (NE2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AI_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AI_NETB2.blend",
    "icon": "icons/B_STR_AI_NETB2.png",
    "kind": "object",
@@ -27245,17 +26954,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AI_NETB3": {
-   "name": "REAPER RIM",
+   "name": "REAPER RIM (NE3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AI_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AI_NETB3.blend",
    "icon": "icons/B_STR_AI_NETB3.png",
    "kind": "object",
@@ -27291,17 +26998,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AI_NWTB": {
-   "name": "REAPER RIM",
+   "name": "REAPER RIM (NW)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AI_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AI_NWTB.blend",
    "icon": "icons/B_STR_AI_NWTB.png",
    "kind": "object",
@@ -27337,17 +27042,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AI_NWTB1": {
-   "name": "REAPER RIM",
+   "name": "REAPER RIM (NW1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AI_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AI_NWTB1.blend",
    "icon": "icons/B_STR_AI_NWTB1.png",
    "kind": "object",
@@ -27383,17 +27086,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AI_NWTB2": {
-   "name": "REAPER RIM",
+   "name": "REAPER RIM (NW2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AI_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AI_NWTB2.blend",
    "icon": "icons/B_STR_AI_NWTB2.png",
    "kind": "object",
@@ -27429,17 +27130,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AI_NWTB3": {
-   "name": "REAPER RIM",
+   "name": "REAPER RIM (NW3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AI_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AI_NWTB3.blend",
    "icon": "icons/B_STR_AI_NWTB3.png",
    "kind": "object",
@@ -27475,16 +27174,23 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AJ_NETB": {
-   "name": "PHANTOM RIM",
+   "name": "PHANTOM RIM (NE)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": null,
+   "variants": [
+    "B_STR_AJ_NETB1",
+    "B_STR_AJ_NETB2",
+    "B_STR_AJ_NETB3",
+    "B_STR_AJ_NWTB",
+    "B_STR_AJ_NWTB1",
+    "B_STR_AJ_NWTB2",
+    "B_STR_AJ_NWTB3"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_STR_AJ_NETB.blend",
    "icon": "icons/B_STR_AJ_NETB.png",
@@ -27521,17 +27227,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AJ_NETB1": {
-   "name": "PHANTOM RIM",
+   "name": "PHANTOM RIM (NE1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AJ_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AJ_NETB1.blend",
    "icon": "icons/B_STR_AJ_NETB1.png",
    "kind": "object",
@@ -27567,17 +27271,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AJ_NETB2": {
-   "name": "PHANTOM RIM",
+   "name": "PHANTOM RIM (NE2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AJ_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AJ_NETB2.blend",
    "icon": "icons/B_STR_AJ_NETB2.png",
    "kind": "object",
@@ -27613,17 +27315,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AJ_NETB3": {
-   "name": "PHANTOM RIM",
+   "name": "PHANTOM RIM (NE3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AJ_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AJ_NETB3.blend",
    "icon": "icons/B_STR_AJ_NETB3.png",
    "kind": "object",
@@ -27659,17 +27359,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AJ_NWTB": {
-   "name": "PHANTOM RIM",
+   "name": "PHANTOM RIM (NW)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AJ_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AJ_NWTB.blend",
    "icon": "icons/B_STR_AJ_NWTB.png",
    "kind": "object",
@@ -27705,17 +27403,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AJ_NWTB1": {
-   "name": "PHANTOM RIM",
+   "name": "PHANTOM RIM (NW1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AJ_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AJ_NWTB1.blend",
    "icon": "icons/B_STR_AJ_NWTB1.png",
    "kind": "object",
@@ -27751,17 +27447,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AJ_NWTB2": {
-   "name": "PHANTOM RIM",
+   "name": "PHANTOM RIM (NW2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AJ_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AJ_NWTB2.blend",
    "icon": "icons/B_STR_AJ_NWTB2.png",
    "kind": "object",
@@ -27797,17 +27491,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AJ_NWTB3": {
-   "name": "PHANTOM RIM",
+   "name": "PHANTOM RIM (NW3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AJ_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AJ_NWTB3.blend",
    "icon": "icons/B_STR_AJ_NWTB3.png",
    "kind": "object",
@@ -27843,16 +27535,23 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AK_NETB": {
-   "name": "BLACKTHORN RIM",
+   "name": "BLACKTHORN RIM (NE)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": null,
+   "variants": [
+    "B_STR_AK_NETB1",
+    "B_STR_AK_NETB2",
+    "B_STR_AK_NETB3",
+    "B_STR_AK_NWTB",
+    "B_STR_AK_NWTB1",
+    "B_STR_AK_NWTB2",
+    "B_STR_AK_NWTB3"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_STR_AK_NETB.blend",
    "icon": "icons/B_STR_AK_NETB.png",
@@ -27889,17 +27588,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AK_NETB1": {
-   "name": "BLACKTHORN RIM",
+   "name": "BLACKTHORN RIM (NE1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AK_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AK_NETB1.blend",
    "icon": "icons/B_STR_AK_NETB1.png",
    "kind": "object",
@@ -27935,17 +27632,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AK_NETB2": {
-   "name": "BLACKTHORN RIM",
+   "name": "BLACKTHORN RIM (NE2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AK_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AK_NETB2.blend",
    "icon": "icons/B_STR_AK_NETB2.png",
    "kind": "object",
@@ -27981,17 +27676,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AK_NETB3": {
-   "name": "BLACKTHORN RIM",
+   "name": "BLACKTHORN RIM (NE3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AK_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AK_NETB3.blend",
    "icon": "icons/B_STR_AK_NETB3.png",
    "kind": "object",
@@ -28027,17 +27720,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AK_NWTB": {
-   "name": "BLACKTHORN RIM",
+   "name": "BLACKTHORN RIM (NW)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AK_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AK_NWTB.blend",
    "icon": "icons/B_STR_AK_NWTB.png",
    "kind": "object",
@@ -28073,17 +27764,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AK_NWTB1": {
-   "name": "BLACKTHORN RIM",
+   "name": "BLACKTHORN RIM (NW1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AK_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AK_NWTB1.blend",
    "icon": "icons/B_STR_AK_NWTB1.png",
    "kind": "object",
@@ -28119,17 +27808,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AK_NWTB2": {
-   "name": "BLACKTHORN RIM",
+   "name": "BLACKTHORN RIM (NW2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AK_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AK_NWTB2.blend",
    "icon": "icons/B_STR_AK_NWTB2.png",
    "kind": "object",
@@ -28165,17 +27852,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AK_NWTB3": {
-   "name": "BLACKTHORN RIM",
+   "name": "BLACKTHORN RIM (NW3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_STR_AK_NETB",
+   "show_in_drawer": false,
    "asset": "assets/B_STR_AK_NWTB3.blend",
    "icon": "icons/B_STR_AK_NWTB3.png",
    "kind": "object",
@@ -28211,9 +27896,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AM_NE": {
@@ -28274,9 +27957,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AM_NE1": {
@@ -28320,10 +28001,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_NE2": {
@@ -28367,10 +28045,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_NE3": {
@@ -28414,10 +28089,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_NW": {
@@ -28461,10 +28133,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_NW1": {
@@ -28508,10 +28177,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_NW2": {
@@ -28555,10 +28221,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_NW3": {
@@ -28602,10 +28265,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_Y_NE": {
@@ -28649,10 +28309,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_Y_NE1": {
@@ -28696,10 +28353,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_Y_NE2": {
@@ -28743,10 +28397,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_Y_NE3": {
@@ -28790,10 +28441,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_Y_NW": {
@@ -28837,10 +28485,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_Y_NW1": {
@@ -28884,10 +28529,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_Y_NW2": {
@@ -28931,10 +28573,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AM_Y_NW3": {
@@ -28978,10 +28617,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AM_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_NE": {
@@ -29042,9 +28678,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AN_NE1": {
@@ -29088,10 +28722,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_NE2": {
@@ -29135,10 +28766,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_NE3": {
@@ -29182,10 +28810,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_NW": {
@@ -29229,10 +28854,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_NW1": {
@@ -29276,10 +28898,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_NW2": {
@@ -29323,10 +28942,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_NW3": {
@@ -29370,10 +28986,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_Y_NE": {
@@ -29417,10 +29030,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_Y_NE1": {
@@ -29464,10 +29074,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_Y_NE2": {
@@ -29511,10 +29118,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_Y_NE3": {
@@ -29558,10 +29162,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_Y_NW": {
@@ -29605,10 +29206,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_Y_NW1": {
@@ -29652,10 +29250,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_Y_NW2": {
@@ -29699,10 +29294,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AN_Y_NW3": {
@@ -29746,10 +29338,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AN_NE",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AO_E": {
@@ -29793,10 +29382,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AO_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AO_N": {
@@ -29849,9 +29435,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AO_S": {
@@ -29895,10 +29479,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AO_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AO_W": {
@@ -29942,10 +29523,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AO_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AO_Y_E": {
@@ -29989,10 +29567,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AO_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AO_Y_N": {
@@ -30036,10 +29611,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AO_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AO_Y_S": {
@@ -30083,10 +29655,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AO_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AO_Y_W": {
@@ -30130,10 +29699,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AO_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AP_E": {
@@ -30177,10 +29743,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AP_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AP_N": {
@@ -30233,9 +29796,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_STR_AP_S": {
@@ -30279,10 +29840,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AP_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AP_W": {
@@ -30326,10 +29884,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AP_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AP_Y_E": {
@@ -30373,10 +29928,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AP_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AP_Y_N": {
@@ -30420,10 +29972,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AP_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AP_Y_S": {
@@ -30467,10 +30016,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AP_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_AP_Y_W": {
@@ -30514,10 +30060,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "variant": "new-family:B_STR_AP_N",
-    "name": "game+variant-suffix"
+    "source": "carried"
    }
   },
   "B_STR_A_E": {
@@ -50670,9 +50213,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_TUR_A": {
@@ -51010,9 +50551,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WALL": {
@@ -52485,9 +52024,7 @@
     "emissive_materials": 5
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "subtitle"
+    "source": "carried"
    }
   },
   "B_WALL_CARG0": {
@@ -53809,9 +53346,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "subtitle"
+    "source": "carried"
    }
   },
   "B_WALL_WINDOW": {
@@ -56272,6 +55807,9 @@
    "category": "Corvette",
    "subcategory": "Wings",
    "variant_of": null,
+   "variants": [
+    "B_WNG_S_R"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_WNG_S.blend",
    "icon": "icons/B_WNG_S.png",
@@ -56308,17 +55846,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_S_R": {
-   "name": "GORGON THRUSTER",
+   "name": "GORGON THRUSTER (R)",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_S",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_S_R.blend",
    "icon": "icons/B_WNG_S_R.png",
    "kind": "object",
@@ -56354,9 +55890,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_T": {
@@ -56364,6 +55898,9 @@
    "category": "Corvette",
    "subcategory": "Wings",
    "variant_of": null,
+   "variants": [
+    "B_WNG_T_R"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_WNG_T.blend",
    "icon": "icons/B_WNG_T.png",
@@ -56400,17 +55937,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_T_R": {
-   "name": "DROMEDARY WING MODULE",
+   "name": "DROMEDARY WING MODULE (R)",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_T",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_T_R.blend",
    "icon": "icons/B_WNG_T_R.png",
    "kind": "object",
@@ -56446,9 +55981,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_U": {
@@ -56456,6 +55989,9 @@
    "category": "Corvette",
    "subcategory": "Wings",
    "variant_of": null,
+   "variants": [
+    "B_WNG_U_R"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_WNG_U.blend",
    "icon": "icons/B_WNG_U.png",
@@ -56492,17 +56028,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_U_R": {
-   "name": "KOMODO WING MODULE",
+   "name": "KOMODO WING MODULE (R)",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_U",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_U_R.blend",
    "icon": "icons/B_WNG_U_R.png",
    "kind": "object",
@@ -56538,9 +56072,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_V": {
@@ -56548,6 +56080,9 @@
    "category": "Corvette",
    "subcategory": "Wings",
    "variant_of": null,
+   "variants": [
+    "B_WNG_V_R"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_WNG_V.blend",
    "icon": "icons/B_WNG_V.png",
@@ -56584,17 +56119,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_V_R": {
-   "name": "ARTHROPOD WING MODULE",
+   "name": "ARTHROPOD WING MODULE (R)",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_V",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_V_R.blend",
    "icon": "icons/B_WNG_V_R.png",
    "kind": "object",
@@ -56630,9 +56163,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_W": {
@@ -56640,6 +56171,11 @@
    "category": "Corvette",
    "subcategory": "Wings",
    "variant_of": null,
+   "variants": [
+    "B_WNG_W_B",
+    "B_WNG_W_R",
+    "B_WNG_W_T"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_WNG_W.blend",
    "icon": "icons/B_WNG_W.png",
@@ -56676,17 +56212,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_W_B": {
    "name": "ELDRITCH THRUSTER",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_W",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_W_B.blend",
    "icon": "icons/B_WNG_W_B.png",
    "kind": "object",
@@ -56722,17 +56256,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_W_R": {
-   "name": "ELDRITCH THRUSTER",
+   "name": "ELDRITCH THRUSTER (R)",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_W",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_W_R.blend",
    "icon": "icons/B_WNG_W_R.png",
    "kind": "object",
@@ -56768,17 +56300,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_W_T": {
    "name": "ELDRITCH THRUSTER",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_W",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_W_T.blend",
    "icon": "icons/B_WNG_W_T.png",
    "kind": "object",
@@ -56814,9 +56344,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_X": {
@@ -56824,6 +56352,11 @@
    "category": "Corvette",
    "subcategory": "Wings",
    "variant_of": null,
+   "variants": [
+    "B_WNG_X_B",
+    "B_WNG_X_R",
+    "B_WNG_X_T"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_WNG_X.blend",
    "icon": "icons/B_WNG_X.png",
@@ -56860,17 +56393,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_X_B": {
    "name": "PLATED THRUSTER",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_X",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_X_B.blend",
    "icon": "icons/B_WNG_X_B.png",
    "kind": "object",
@@ -56906,17 +56437,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_X_R": {
-   "name": "PLATED THRUSTER",
+   "name": "PLATED THRUSTER (R)",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_X",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_X_R.blend",
    "icon": "icons/B_WNG_X_R.png",
    "kind": "object",
@@ -56952,17 +56481,15 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_X_T": {
    "name": "PLATED THRUSTER",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_X",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_X_T.blend",
    "icon": "icons/B_WNG_X_T.png",
    "kind": "object",
@@ -56998,9 +56525,7 @@
     "emissive_materials": 1
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_Y": {
@@ -57008,6 +56533,11 @@
    "category": "Corvette",
    "subcategory": "Wings",
    "variant_of": null,
+   "variants": [
+    "B_WNG_Y_B",
+    "B_WNG_Y_R",
+    "B_WNG_Y_T"
+   ],
    "show_in_drawer": true,
    "asset": "assets/B_WNG_Y.blend",
    "icon": "icons/B_WNG_Y.png",
@@ -57044,17 +56574,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_Y_B": {
    "name": "LOCKJAW THRUSTER",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_Y",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_Y_B.blend",
    "icon": "icons/B_WNG_Y_B.png",
    "kind": "object",
@@ -57090,17 +56618,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_Y_R": {
-   "name": "LOCKJAW THRUSTER",
+   "name": "LOCKJAW THRUSTER (R)",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_Y",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_Y_R.blend",
    "icon": "icons/B_WNG_Y_R.png",
    "kind": "object",
@@ -57136,17 +56662,15 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "B_WNG_Y_T": {
    "name": "LOCKJAW THRUSTER",
    "category": "Corvette",
    "subcategory": "Wings",
-   "variant_of": null,
-   "show_in_drawer": true,
+   "variant_of": "B_WNG_Y",
+   "show_in_drawer": false,
    "asset": "assets/B_WNG_Y_T.blend",
    "icon": "icons/B_WNG_Y_T.png",
    "kind": "object",
@@ -57182,9 +56706,7 @@
     "emissive_materials": 0
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "CARBONPLANTER": {
@@ -83373,9 +82895,7 @@
     "emissive_materials": 7
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "GRAV_RAMP": {
@@ -83414,9 +82934,7 @@
     "emissive_materials": 6
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "GRAV_WALL": {
@@ -83455,9 +82973,7 @@
     "emissive_materials": 7
    },
    "source": {
-    "source": "derived",
-    "category": "seed-mapping",
-    "name": "game"
+    "source": "carried"
    }
   },
   "HEALTHSTATION": {
