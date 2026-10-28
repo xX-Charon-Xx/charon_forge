@@ -465,8 +465,12 @@ class Part(object):
         # Wing letters/numbers identify models, not compass directions or sides.
         # Resolve them first: E -> E_R, N -> N_R, O_0 -> O_0_R, O_1 -> O_1_R.
         if object_id.startswith("B_WNG_"):
-            # These vertical Aeron variants have no separate handed counterpart.
-            if object_id in ("B_WNG_P_T", "B_WNG_P_B", "B_WNG_R_T", "B_WNG_R_B"):
+            # These top/bottom mounted variants (Aeron, and the Eldritch,
+            # Plated and Lockjaw thrusters) have no separate handed counterpart.
+            # B_WNG_T and B_WNG_B themselves are ordinary handed wings.
+            if object_id in ("B_WNG_P_T", "B_WNG_P_B", "B_WNG_R_T", "B_WNG_R_B",
+                             "B_WNG_W_T", "B_WNG_W_B", "B_WNG_X_T", "B_WNG_X_B",
+                             "B_WNG_Y_T", "B_WNG_Y_B"):
                 return None
             # The base Aeron blade itself ends in R.
             if object_id in ("B_WNG_R", "B_WNG_R_R"):

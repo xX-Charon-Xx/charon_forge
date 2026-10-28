@@ -33,10 +33,11 @@ from no_mans_sky_base_builder.utils import blend_utils, mirror_utils
 
 # Expected pairs are catalog facts, independent of the lookup implementation.
 ROOTS = ['B_WNG_' + letter for letter in 'ABCDEFGHIJKLMN'] + [
-    'B_WNG_O_0', 'B_WNG_O_1', 'B_WNG_O_2', 'B_WNG_P', 'B_WNG_Q', 'B_WNG_R']
+    'B_WNG_O_0', 'B_WNG_O_1', 'B_WNG_O_2', 'B_WNG_P', 'B_WNG_Q', 'B_WNG_R'] + [
+    'B_WNG_' + letter for letter in 'STUVWXY']
 PAIRS = {root: root + '_R' for root in ROOTS}
 PAIRS.update({right: left for left, right in list(PAIRS.items())})
-UNPAIRED = {'B_WNG_P_T', 'B_WNG_P_B', 'B_WNG_R_T', 'B_WNG_R_B'}
+UNPAIRED = {'B_WNG_' + letter + mount for letter in 'PRWXY' for mount in ('_T', '_B')}
 CATALOG = json.loads((charon_root / 'resources/nice_names.json').read_text())
 
 
@@ -65,18 +66,26 @@ def surface_error(source, twin, fit):
 
 
 class WingMirrorTests(unittest.TestCase):
-    def test_catalog_and_all_44_ids(self):
+    def test_catalog_and_all_wing_ids(self):
         self.assertEqual({key for key in CATALOG if key.startswith('B_WNG_')}, set(PAIRS) | UNPAIRED)
+        # The host's own lookup and catalog are only asked about the wings it
+        # lists; newer ones reach it through host_patches, tested below.
         host_catalog = json.loads((args.host_addon / 'resources/nice_names.json').read_text())
         for part_class in (Part, host.part.Part):
+            host_only = part_class is host.part.Part
             for source, twin in PAIRS.items():
+                if host_only and source not in host_catalog:
+                    continue
                 with self.subTest(plugin=part_class.__module__, source=source):
                     self.assertEqual(part_class.get_mirror_part_id(source), twin)
                     self.assertIn(twin, CATALOG)
-                    self.assertIn(twin, host_catalog)
+                    if host_only:
+                        self.assertIn(twin, host_catalog)
                     self.assertTrue((charon_root / ('asset_browser/assets/' + twin + '.blend')).is_file())
                     self.assertEqual(part_class.get_mirror_part_id(twin), source)
             for source in UNPAIRED:
+                if host_only and source not in host_catalog:
+                    continue
                 self.assertIsNone(part_class.get_mirror_part_id(source))
 
     def test_compass_pairs_unchanged(self):

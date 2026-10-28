@@ -116,3 +116,27 @@ intended part before mirroring it again.
 `tests/installed_rockhopper_mirror.py` exercises the enabled installed add-ons
 using normal Blender preferences. `tests/wing_mirror_regression.py` also accepts
 `--charon-addon` to verify an installed Charon directory.
+
+
+## Follow-up: game build 26271400 wings (28 October 2026)
+
+The update added seven handed wing families: B_WNG_S, T, U, V (Gorgon,
+Dromedary, Komodo, Arthropod) and B_WNG_W, X, Y (Eldritch, Plated, Lockjaw),
+each with an _R twin. W, X and Y also ship _T and _B top/bottom mounts which,
+like the Aeron P/R mounts, have no handed twin; the lookup now returns None
+for those six as well. B_WNG_T and B_WNG_B are ordinary handed wings, so the
+exception list names the mounts exactly instead of matching any _T/_B suffix.
+
+Base Builder's mirror tool and Group.mirror_cache_data swap only to a twin in
+their own nice_names.json, which has none of the new parts, so a new wing
+mirrored as a flipped mesh under its original ID. host_patches.py now adds
+Charon's catalog IDs that the host lacks to those two module dictionaries
+(never replacing a host entry) and removes them again in remove(). The same
+gap affected the update's new hull plating pairs (B_STR_AC_NE / B_STR_AC_NW
+and the rest).
+
+The regression now covers 64 wing IDs: 27 handed pairs and 10 mounts. The
+host's own lookup is checked only for the IDs its catalog lists. All four
+tests passed in Blender 5.1.2 against the Official source tree; every new
+handed wing swapped to its twin on X, Y and Z, and the largest sampled vertex
+distance was 0.0111 (B_WNG_Y), within the 0.02 tolerance.

@@ -22,7 +22,9 @@ And two that aren't about colour: its Pin button calls
 NMSSettings.deserialise_from_data with an argument it doesn't take, so
 pinning a base always failed - see _wrap_deserialise_from_data. And its mirror
 tool's mirror_correction, which gets the fit that places a mirrored part's
-twin model where the flipped mesh was - see _wrap_mirror_correction.
+twin model where the flipped mesh was - see _wrap_mirror_correction. Its
+mirror and flip tools also only swap to a twin listed in its own
+nice_names.json, which predates parts Charon Forge ships - see _list_twins.
 
 Each colour path is wrapped here: high res objects go to Charon Forge's colouring and
 everything else goes to the addon's own code, unchanged. remove() puts the
@@ -37,10 +39,13 @@ from . import materials
 from .builder import mirror_fit
 from .objects.group import Group as CharonGroup
 from .objects.part import Part
-from .utils import base_builder_utils
+from .utils import base_builder_utils, dictionary
 
 # (owner, attribute name, the original as it sat in owner.__dict__)
 _patched = []
+
+# (the addon's nice name dictionary, an id _list_twins added to it)
+_listed = []
 
 _MARKER = "_charon_original"
 
@@ -205,6 +210,32 @@ def _wrap_get_mirror_part_id(original):
     return get_mirror_part_id
 
 
+def _list_twins():
+    """Let the addon's mirror and flip tools swap to parts only we ship.
+
+    build_tool and Group.mirror_cache_data swap a part to its twin only when
+    the twin is in their own nice_names.json, loaded once into a module level
+    dictionary that nothing else reads. A game update's new parts (B_WNG_S /
+    B_WNG_S_R, B_STR_AC_NE / B_STR_AC_NW) are not in it, so mirroring one
+    flipped its mesh and kept its id - a save the game cannot rebuild. Our
+    catalog's ids are added to those dictionaries, never replacing one of the
+    addon's own; remove() takes them out again.
+    """
+    ours = dictionary.get_nice_names_diictionary()
+    found = True
+    for module_name in ("tools.build_tool", "group"):
+        listed = getattr(base_builder_utils.get_module(module_name),
+                         "nice_name_dictionary", None)
+        if not isinstance(listed, dict):
+            found = False
+            continue
+        for object_id, nice_name in ours.items():
+            if object_id not in listed:
+                listed[object_id] = nice_name
+                _listed.append((listed, object_id))
+    return found
+
+
 def _mirror_twin_id(object_id):
     """The id the addon's mirror tool swaps a part to, or None when it leaves
     the part as it is. Its own rule (build_tool and Group.mirror_cache_data
@@ -290,14 +321,22 @@ def install():
         print("Charon Forge: the base builder addon's mirror tool could not be "
               "hooked, mirrored parts may move when a base is saved and loaded")
         done = False
+
+    if not _list_twins():
+        print("Charon Forge: the base builder addon's mirror tool could not be "
+              "told about our parts, new parts may mirror without their twin")
+        done = False
     return done
 
 
 def remove():
-    """Put the addon's own functions back."""
+    """Put the addon's own functions and dictionaries back."""
     while _patched:
         owner, name, raw = _patched.pop()
         try:
             setattr(owner, name, raw)
         except (AttributeError, TypeError, ReferenceError):
             pass    # the addon went away first
+    while _listed:
+        listed, object_id = _listed.pop()
+        listed.pop(object_id, None)
