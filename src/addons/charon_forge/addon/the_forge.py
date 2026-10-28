@@ -460,6 +460,12 @@ class CharonForged(bpy.types.PropertyGroup):
         description="Room added between the letters. Negative closes them up",
         default=0.0, soft_min=-2.0, soft_max=10.0, unit="LENGTH", update=_on_changed,
     )
+    letter_width: FloatProperty(
+        name="Letter Width",
+        description="How wide each letter is drawn - under 1 condensed, over 1 wide. "
+                    "The room between the letters stays as it is",
+        default=1.0, min=0.3, max=3.0, soft_min=0.5, soft_max=2.0, update=_on_changed,
+    )
 
     # QR codes ---
     qr_text: StringProperty(

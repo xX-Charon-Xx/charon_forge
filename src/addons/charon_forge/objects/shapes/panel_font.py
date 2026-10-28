@@ -27,9 +27,11 @@ _FIT = 1e-4
 class Font:
     """A font: its glyphs, each (advance width, strokes), a stroke being
     (x0, y0, x1, y1, thickest) - the line down the middle of it, end to end,
-    and the thickest a panel laying it may be before it takes two."""
+    and the thickest a panel laying it may be before it takes two. Its slant
+    is how far its glyphs lean across for every unit up, about half its
+    height."""
 
-    def __init__(self, name, label, description, height, spacing, space, glyphs):
+    def __init__(self, name, label, description, height, spacing, space, glyphs, slant=0.0):
         self.name = name
         self.label = label
         self.description = description
@@ -37,6 +39,7 @@ class Font:
         self.spacing = spacing
         self.space = space
         self.glyphs = glyphs
+        self.slant = slant
 
     def glyph(self, character):
         """The glyph drawing a character, or None when the font has none -
@@ -421,22 +424,25 @@ def _fitted(glyphs):
 def _make_font(family, bold, italic):
     name, label, description = next(entry for entry in FAMILIES if entry[0] == family)[:3]
     spacing = 1.0
+    slant = 0.0
     if family in ORGANIC:
         height = _O_HEIGHT
         glyphs = _fitted(_organic_glyphs())
         if family == "SCRIPT":
-            glyphs = _slanted(glyphs, SCRIPT_SLANT, height / 2)
+            slant = SCRIPT_SLANT
+            glyphs = _slanted(glyphs, slant, height / 2)
             spacing = 0.4
     else:
         grid = _Grid(family, bold)
         height = grid.H
         glyphs = _fitted(_glyphs(grid))
     if italic:
-        glyphs = _slanted(glyphs, ITALIC_SLANT, height / 2)
+        slant = ITALIC_SLANT
+        glyphs = _slanted(glyphs, slant, height / 2)
     style = " ".join(word for word, on in (("Bold", bold), ("Italic", italic)) if on)
     return Font(
         name, f"{label} {style}".strip(), description,
-        height=height, spacing=spacing, space=2.4, glyphs=glyphs,
+        height=height, spacing=spacing, space=2.4, glyphs=glyphs, slant=slant,
     )
 
 
@@ -471,12 +477,28 @@ def plan_stroke(stroke, ratio=PANEL):
     ]
 
 
-def plan(text, font, ratio=PANEL, spacing=0.0):
+def _widened(strokes, font, width):
+    """A glyph's strokes stretched across by `width` - under 1 condensed,
+    over 1 wide - its lean kept as it was. A bar's panels are as thick as
+    they are long, so a narrower letter's bars come out thinner and a wider
+    one's thicker, or split in two once they would be too thick."""
+    middle = font.height / 2
+    return tuple(
+        ((x0 - font.slant * (y0 - middle)) * width + font.slant * (y0 - middle), y0,
+         (x1 - font.slant * (y1 - middle)) * width + font.slant * (y1 - middle), y1, weight)
+        for x0, y0, x1, y1, weight in strokes
+    )
+
+
+def plan(text, font, ratio=PANEL, spacing=0.0, width=1.0):
     """Every panel of a line of text, laid left to right from the origin.
 
     Args:
         spacing (float): Room added between the letters, in font units -
             negative closes them up.
+        width (float): How wide the letters are drawn against the font's
+            own - under 1 condensed, over 1 wide. The room between them
+            is left as it is.
 
     Returns:
         tuple: (the panels - (centre x, centre y, angle, long side) each, in
@@ -492,11 +514,13 @@ def plan(text, font, ratio=PANEL, spacing=0.0):
     panels = []
     x = 0.0
     for index, character in enumerate(text):
-        width, strokes = font.glyph(character)
+        advance, strokes = font.glyph(character)
+        if width != 1.0:
+            strokes = _widened(strokes, font, width)
         for stroke in strokes:
             for centre_x, centre_y, angle, long_side in plan_stroke(stroke, ratio):
                 panels.append((x + centre_x, centre_y, angle, long_side))
-        x += width
+        x += advance * width
         if index < len(text) - 1:
             x += font.spacing + spacing
     return panels, x

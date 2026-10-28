@@ -3,7 +3,7 @@
 The letters are drawn in a panel font (objects/shapes/panel_font.py): each
 stroke is laid with the part end to end, every copy scaled so its long side
 spans its share of the stroke. It lies flat, the text reading along +X, and
-stays one object whose text, font and size can be changed after - everything
+stays one object whose text, font, size, width and spacing can be changed after - everything
 it shares with the other forged objects is in objects/shapes/forged.py.
 """
 
@@ -28,7 +28,8 @@ class Text(Forged):
         The text itself is kept by Reset."""
 
     @classmethod
-    def create_text(cls, source, text, font, letter_height, bold=False, italic=False):
+    def create_text(cls, source, text, font, letter_height, bold=False, italic=False,
+                    letter_width=1.0, letter_spacing=0.0):
         """Turn a part into a line of text, in its place.
 
         Returns:
@@ -42,6 +43,8 @@ class Text(Forged):
             settings.text_bold = bold
             settings.text_italic = italic
             settings.letter_height = letter_height
+            settings.letter_width = letter_width
+            settings.letter_spacing = letter_spacing
         Forged.update(forged_obj)
         return forged_obj
 
@@ -69,7 +72,8 @@ class Text(Forged):
 
         unit = settings.letter_height / font.height
         spacing = settings.letter_spacing / unit
-        panels, line_width = panel_font.plan(text, font, long_side / short_side, spacing)
+        panels, line_width = panel_font.plan(text, font, long_side / short_side, spacing,
+                                            settings.letter_width)
         panels = np.array(panels, dtype=np.float64)
         centre_x, centre_y, angles, lengths = panels.T
         # each copy's size against the part at its own scale

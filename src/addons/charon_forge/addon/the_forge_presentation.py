@@ -312,8 +312,9 @@ def draw_text_settings(layout, forge):
     italic.prop(forge, "text_italic", toggle=True)
 
     column = _section(layout, "Letters")
-    _draw_pair(column, forge, "letter_height", "letter_spacing",
-               first_text="Height", second_text="Spacing")
+    column.prop(forge, "letter_height", text="Height")
+    column.prop(forge, "letter_width", text="Width", slider=True)
+    column.prop(forge, "letter_spacing", text="Spacing", slider=True)
     if forge.shape_info:
         info = column.row()
         info.enabled = False

@@ -733,15 +733,15 @@ class ForgeQRCode(bpy.types.Operator):
 _text_preview_cache = {}
 
 
-def _text_preview(text, font):
-    """What the popup says about the text before it is forged. Cached, since
-    the popup redraws on every keystroke."""
-    key = (text, font.label)
+def _text_preview(text, font, spacing=0.0, width=1.0):
+    """What the popup says about the text before it is forged, the spacing
+    in font units. Cached, since the popup redraws on every keystroke."""
+    key = (text, font.label, spacing, width)
     if key not in _text_preview_cache:
         if len(_text_preview_cache) > 32:
             _text_preview_cache.clear()
         try:
-            panels, width = panel_font.plan(text, font, _QR_PANEL_RATIO)
+            panels, width = panel_font.plan(text, font, _QR_PANEL_RATIO, spacing, width)
             _text_preview_cache[key] = (len(panels), width)
         except ValueError as error:
             _text_preview_cache[key] = str(error)
@@ -774,6 +774,17 @@ class ForgeText(bpy.types.Operator):
         name="Letter Height",
         description="How tall a capital letter is",
         default=5.0, min=0.1, soft_max=50.0, unit="LENGTH",
+    )
+    letter_width: bpy.props.FloatProperty(
+        name="Letter Width",
+        description="How wide each letter is drawn - under 1 condensed, over 1 wide. "
+                    "The room between the letters stays as it is",
+        default=1.0, min=0.3, max=3.0, soft_min=0.5, soft_max=2.0,
+    )
+    letter_spacing: bpy.props.FloatProperty(
+        name="Letter Spacing",
+        description="Room added between the letters. Negative closes them up",
+        default=0.0, soft_min=-2.0, soft_max=10.0, unit="LENGTH",
     )
     upright: bpy.props.BoolProperty(
         name="Stand Up",
@@ -816,6 +827,8 @@ class ForgeText(bpy.types.Operator):
         italic.enabled = panel_font.has_italic(self.font)
         italic.prop(self, "italic", toggle=True)
         settings.prop(self, "letter_height")
+        settings.prop(self, "letter_width", slider=True)
+        settings.prop(self, "letter_spacing", slider=True)
         settings.prop(self, "upright")
 
         layout.separator()
@@ -824,7 +837,9 @@ class ForgeText(bpy.types.Operator):
             summary.label(text="Enter some text to see its size", icon="QUESTION")
             return
         font = panel_font.get_font(self.font, self.bold, self.italic)
-        preview = _text_preview(self.text.strip(), font)
+        preview = _text_preview(self.text.strip(), font,
+                                self.letter_spacing * font.height / self.letter_height,
+                                self.letter_width)
         if isinstance(preview, str):
             summary.alert = True
             summary.label(text=preview.capitalize(), icon="ERROR")
@@ -853,7 +868,8 @@ class ForgeText(bpy.types.Operator):
         try:
             source = charon_builder.add_part(TEXT_PART_ID).object
             forged_obj = Text.create_text(source, text, font.name, self.letter_height,
-                                          self.bold, self.italic)
+                                          self.bold, self.italic,
+                                          self.letter_width, self.letter_spacing)
         except Exception as error:                            # noqa: BLE001
             self.report({"ERROR"}, f"Could not forge the text: {error}")
             return {"CANCELLED"}
