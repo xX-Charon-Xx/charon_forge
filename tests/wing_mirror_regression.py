@@ -95,6 +95,10 @@ class WingMirrorTests(unittest.TestCase):
                 self.assertEqual(part_class.get_mirror_part_id(source), twin)
                 self.assertEqual(part_class.get_mirror_part_id(twin), source)
             self.assertIsNone(part_class.get_mirror_part_id('CUBEROOM'))
+            # same _0/_1 ending, different parts: B_GEN_1 must not become B_GEN_0
+            for source in ('B_GEN_0', 'B_GEN_1', 'B_CON2_0', 'B_CON2_1',
+                           'B_CON_L_0', 'B_CON_L_1', 'B_CON_R_0', 'B_CON_R_1'):
+                self.assertIsNone(part_class.get_mirror_part_id(source))
 
     def test_legacy_host_patch_reload_and_remove(self):
         saved = host.part.Part.__dict__['get_mirror_part_id']
@@ -115,7 +119,9 @@ class WingMirrorTests(unittest.TestCase):
                 for source, twin in PAIRS.items():
                     self.assertEqual(host.part.Part.get_mirror_part_id(source), twin)
                 for source in CATALOG:
-                    if not source.startswith('B_WNG_'):
+                    if source in Part.NOT_MIRROR_PAIRS:
+                        self.assertIsNone(host.part.Part.get_mirror_part_id(source))
+                    elif not source.startswith('B_WNG_'):
                         self.assertEqual(host.part.Part.get_mirror_part_id(source), legacy(source))
         finally:
             while len(host_patches._patched) > start:

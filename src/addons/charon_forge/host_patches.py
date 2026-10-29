@@ -200,11 +200,13 @@ def _wrap_get_mirror_part_id(original):
     """Use the wing-family rules even with an older Base Builder installed.
 
     Its compass suffixes otherwise intercept E, N, O_0 and O_1 before the
-    wing rule. Patch the shared Part class so buttons, builders and group
-    caches all choose the same twin as the mesh-fit correction.
+    wing rule, and its _0/_1 pair swapped different parts such as the Medusa
+    reactor B_GEN_1 for the Zenith B_GEN_0. Patch the shared Part class so
+    buttons, builders and group caches all choose the same twin as the
+    mesh-fit correction.
     """
     def get_mirror_part_id(object_id):
-        if object_id.startswith("B_WNG_"):
+        if object_id.startswith("B_WNG_") or object_id in Part.NOT_MIRROR_PAIRS:
             return Part.get_mirror_part_id(object_id)
         return original(object_id)
     return get_mirror_part_id
