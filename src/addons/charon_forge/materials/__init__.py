@@ -7,6 +7,8 @@
                      pipeline from the game files)
     colouring.py     colouring high res parts through object properties
     colourise.py     a primary tint for colourable materials with no mask
+    station_paint.py the palette onto the painted hull tiles of the station
+                     decorations, which have no colourise mask either
     emission.py      making what glows in game glow in Blender
     packing.py       packing the library's textures into a saved .blend
     samplers.py      keeping materials under EEVEE's 32 texture limit
@@ -27,7 +29,7 @@ docs/MATERIALS.md at the top of the repository explains the whole system.
 import bpy
 
 from . import (colourise, emission, game_data, host, merge, packing, samplers,
-               shaders)
+               shaders, station_paint)
 from .colouring import (apply, apply_many, apply_palette, clear, decode,
                         default_user_data, encode, is_colourable, is_high_res,
                         object_id_of, recolour, recolour_from_user_data,
@@ -49,7 +51,8 @@ from .properties import (COLOURISE_GROUP, MESH_TAG, PROP_FINISH,
 def prepare_materials(materials=None):
     """The per-material pass after assets are appended: take the old finish
     splice out of anything that still has it, tint colourable materials that
-    have no colourise mask, and wire emission where the game draws a glow.
+    have no colourise mask (and the station decorations' painted hull tiles),
+    and wire emission where the game draws a glow.
     Idempotent - each material is tagged once done.
 
     With no argument it walks every material in the file, so inside
@@ -64,6 +67,7 @@ def prepare_materials(materials=None):
     return (strip_legacy_finish_nodes(materials)
             + samplers.ensure_sampler_budget(materials)
             + colourise.ensure_colourise(materials)
+            + station_paint.ensure_station_paint(materials)
             + emission.ensure_emission(materials))
 
 

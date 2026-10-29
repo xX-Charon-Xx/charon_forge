@@ -74,6 +74,7 @@ import bpy
 import mathutils
 
 from .. import materials
+from ..materials import station_paint
 from ..builder import station_library
 from ..utils import collection_utils
 
@@ -549,9 +550,6 @@ def describe(config):
 
 
 # Materials ---
-_averages = {}
-
-
 def _stem(image):
     name = re.sub(r"\.\d{3}$", "", image.name)
     return re.sub(r"\.(webp|png|dds|jpg|tga)$", "", name, flags=re.I).upper()
@@ -561,75 +559,24 @@ def _linear(c):
     return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
 
 
-def _average(image):
-    """The mean linear colour of a layer where it covers (alpha over half)."""
-    key = image.name
-    if key not in _averages:
-        import numpy as np
-        px = np.empty(len(image.pixels), np.float32)
-        image.pixels.foreach_get(px)
-        px = px.reshape(-1, 4)
-        cover = px[:, 3] > 0.5
-        rgb = px[cover, :3] if cover.any() else px[:, :3]
-        if image.colorspace_settings.name.lower() in ("srgb", "srgb - texture"):
-            rgb = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
-        _averages[key] = tuple(float(v) for v in rgb.mean(0))
-    return _averages[key]
-
-
-def _socket(sockets, identifier):
-    return next(s for s in sockets if s.identifier == identifier)
-
-
 def tint_materials(material_list):
     """Put the station palettes into every hull layer of these materials: a
     layer's colour becomes texel + (palette colour - the layer's average), so
     its average lands on the palette colour and its detail stays. The colour
     is read off the object (PROP_COLOUR), so the materials stay shared; an
-    object without it keeps the untinted layer. Idempotent."""
+    object without it keeps the untinted layer. Idempotent. The nodes are
+    materials/station_paint.py's, which tints the station decorations the
+    same way."""
     done = 0
     for mat in material_list:
         if mat is None or not mat.use_nodes or mat.get(PROP_TINTED):
             continue
-        nodes, links = mat.node_tree.nodes, mat.node_tree.links
-        for tex in [n for n in nodes if n.type == "TEX_IMAGE" and n.image]:
+        for tex in [n for n in mat.node_tree.nodes if n.type == "TEX_IMAGE" and n.image]:
             layer = _load().textures.get(_stem(tex.image))
             if layer is None:
                 continue
-            colour = tex.outputs["Color"]
-            targets = [link.to_socket for link in colour.links]
-            if not targets:
-                continue
-            x, y = tex.location
-            attr = nodes.new("ShaderNodeAttribute")
-            attr.attribute_type = "OBJECT"
-            attr.attribute_name = PROP_COLOUR % layer
-            attr.location = (x + 300, y + 250)
-            shift = nodes.new("ShaderNodeVectorMath")
-            shift.operation = "SUBTRACT"
-            shift.inputs[1].default_value = _average(tex.image)
-            shift.location = (x + 500, y + 250)
-            links.new(attr.outputs["Vector"], shift.inputs[0])
-            add = nodes.new("ShaderNodeVectorMath")
-            add.operation = "ADD"
-            add.location = (x + 700, y + 150)
-            links.new(colour, add.inputs[0])
-            links.new(shift.outputs["Vector"], add.inputs[1])
-            floor = nodes.new("ShaderNodeVectorMath")
-            floor.operation = "MAXIMUM"
-            floor.inputs[1].default_value = (0.0, 0.0, 0.0)
-            floor.location = (x + 900, y + 150)
-            links.new(add.outputs["Vector"], floor.inputs[0])
-            # the attribute's alpha is 1 when the object has the colour
-            mix = nodes.new("ShaderNodeMix")
-            mix.data_type = "RGBA"
-            mix.location = (x + 1100, y + 150)
-            links.new(attr.outputs["Alpha"], _socket(mix.inputs, "Factor_Float"))
-            links.new(colour, _socket(mix.inputs, "A_Color"))
-            links.new(floor.outputs["Vector"], _socket(mix.inputs, "B_Color"))
-            for target in targets:
-                links.new(_socket(mix.outputs, "Result_Color"), target)
-            done += 1
+            if station_paint.tint_texture(mat.node_tree, tex, PROP_COLOUR % layer):
+                done += 1
         mat[PROP_TINTED] = True
     return done
 

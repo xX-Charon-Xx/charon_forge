@@ -26,7 +26,7 @@ import json
 
 import bpy
 
-from . import game_data
+from . import game_data, station_paint
 from .finish_nodes import strip_legacy_finish_props
 from .properties import (COLOURISE_GROUP, LEGACY_FINISH_PROPS, MESH_TAG,
                          PROP_FINISH, PROP_READONLY_COLOUR,
@@ -89,7 +89,10 @@ def object_id_of(bpy_object):
 
 
 def is_colourable(bpy_object):
-    """True if any of its materials carries the colourise node group."""
+    """True if any of its materials carries the colourise node group, or has
+    painted hull tiles (station_paint.py)."""
+    if station_paint.is_painted(bpy_object):
+        return True
     for slot in bpy_object.material_slots:
         material_data = slot.material
         if material_data is None or material_data.node_tree is None:
@@ -127,6 +130,7 @@ def apply_palette(bpy_object, palette, finish_index=0):
     for prop_name, slot in zip(SLOT_PROPS, SLOT_ORDER):
         bpy_object[prop_name] = tuple(palette[slot])
     bpy_object[PROP_FINISH] = int(finish_index)
+    station_paint.show_paint_layers(bpy_object)
     # left over from the old hand-tuned finish preview
     for prop in LEGACY_FINISH_PROPS:
         if prop in bpy_object:
@@ -196,6 +200,7 @@ def apply_many(pairs, tag=False, update=False, fresh=False):
         for prop, value in slot_values:
             bpy_object[prop] = value
         bpy_object[PROP_FINISH] = finish_index
+        station_paint.show_paint_layers(bpy_object)
         if not fresh:
             for prop in LEGACY_FINISH_PROPS:
                 if prop in bpy_object:

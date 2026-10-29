@@ -107,6 +107,29 @@ Some colourable materials have no mask at all (`CaveLeaves_Mat` on
 from the pipeline. `materials/colourise.py` multiplies their diffuse by
 `nms_p` when they are loaded, so the whole surface takes the primary colour.
 
+The space station exterior decorations (`STA_01`, `STA_02`, ... in the
+`STATIONBASE` palette group) have no colourable material at all. Their hull is
+procedural tiles: a base tile with painted layers over it, each behind an
+`nms_tex_*` switch. `materials/station_paint.py` gives each painted layer a
+palette slot: texel + (slot colour - the layer's average), so the layer's
+average becomes the palette colour and its detail stays.
+
+| Tiles | Primary | Secondary | Ternary |
+| --- | --- | --- | --- |
+| `LARGETILING1` | PAINTED | ALTPANELS | ACCENTPANELS |
+| `LARGETILING1ALT` | MAINCOLOUR | COLPANELS | STRIPES |
+| `FREIGHTER_PROC` | PAINT1 | PAINT2 | |
+| `WARRIOR*` | PAINT1 / PAINT | PAINTALT | |
+
+The slots are read off the layer names; the game does not say, because in
+game these layers take the station's world palettes. Colouring a decoration
+switches its painted layers on, since they are off on a placed part. That
+covers STA_01, 02, 03, 10, 16, 21, 29, 46 and 50. The creature, robot,
+hologram and slime layers of the other decorations are left as they are, so
+those still do not change colour. Whole stations are untouched: their hull is
+tinted from the seed by `utils/seed_utils.tint_materials`, which uses the same
+nodes.
+
 ---
 
 ## 4. Finishes
@@ -259,8 +282,10 @@ panel keeps working too: its calls reach high-res parts through
 | a save is imported (`importer.import_objects`) | all parts coloured in one pass; textures and node groups deduplicated; all materials prepared |
 | a `.blend` is opened | all materials prepared; lamp boost added to library meshes that lack it |
 
-"Prepared" means the old finish nodes are stripped and glow is wired. Each
-material is tagged (`charon_emission`), so each step is done only once.
+"Prepared" means the old finish nodes are stripped, maskless colourable
+materials and the station decorations' painted tiles are tinted, and glow is
+wired. Each material is tagged (`charon_emission`, `charon_primary_tint`,
+`charon_station_paint`), so each step is done only once.
 
 ---
 
