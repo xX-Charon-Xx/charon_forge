@@ -17637,7 +17637,7 @@
    }
   },
   "B_GEN_4": {
-   "name": "CORVETTE REACTOR MODULE (B_GEN_4)",
+   "name": "LIMOS-CLASS GENERATOR",
    "category": "Corvette",
    "subcategory": "Reactors",
    "variant_of": null,
@@ -17655,51 +17655,7 @@
      ]
     ],
     "product": "B_GEN_4",
-    "name": null,
-    "palette": "BIGGS0"
-   },
-   "colour": {
-    "palette_group": "BIGGS",
-    "station_palette_group": null,
-    "default_palette": "BIGGS0",
-    "default_palette_index": 99,
-    "finish_group": "BIGGS",
-    "can_change_finish": true,
-    "finishes": [
-     "Gloss Finish",
-     "Inverted Gloss Finish",
-     "Weathered Finish",
-     "Metallic Finish"
-    ],
-    "default_finish_index": 0,
-    "finish_visible": true,
-    "lights": 8,
-    "emissive_materials": 1
-   },
-   "source": {
-    "source": "carried"
-   }
-  },
-  "B_GEN_5": {
-   "name": "CORVETTE REACTOR MODULE (B_GEN_5)",
-   "category": "Corvette",
-   "subcategory": "Reactors",
-   "variant_of": null,
-   "show_in_drawer": true,
-   "asset": "assets/B_GEN_5.blend",
-   "icon": "icons/B_GEN_5.png",
-   "kind": "object",
-   "include_message": false,
-   "fossil_part": false,
-   "game": {
-    "groups": [
-     [
-      "BIGGS_CORE",
-      "BIGGS_GENERATOR"
-     ]
-    ],
-    "product": "B_GEN_5",
-    "name": null,
+    "name": "LIMOS-CLASS GENERATOR",
     "palette": "BIGGS0"
    },
    "colour": {
@@ -17719,6 +17675,50 @@
     "finish_visible": true,
     "lights": 0,
     "emissive_materials": 1
+   },
+   "source": {
+    "source": "carried"
+   }
+  },
+  "B_GEN_5": {
+   "name": "VILE PROBOSCIS GENERATOR",
+   "category": "Corvette",
+   "subcategory": "Reactors",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/B_GEN_5.blend",
+   "icon": "icons/B_GEN_5.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "BIGGS_CORE",
+      "BIGGS_GENERATOR"
+     ]
+    ],
+    "product": "B_GEN_5",
+    "name": "VILE PROBOSCIS GENERATOR",
+    "palette": "BIGGS0"
+   },
+   "colour": {
+    "palette_group": "BIGGS",
+    "station_palette_group": null,
+    "default_palette": "BIGGS0",
+    "default_palette_index": 99,
+    "finish_group": "BIGGS",
+    "can_change_finish": true,
+    "finishes": [
+     "Gloss Finish",
+     "Inverted Gloss Finish",
+     "Weathered Finish",
+     "Metallic Finish"
+    ],
+    "default_finish_index": 0,
+    "finish_visible": true,
+    "lights": 0,
+    "emissive_materials": 0
    },
    "source": {
     "source": "carried"
