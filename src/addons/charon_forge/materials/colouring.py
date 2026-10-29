@@ -139,6 +139,7 @@ def apply_palette(bpy_object, palette, finish_index=0):
     # so only the object can carry a per part viewport colour. Primary is the
     # body colour, the one that reads as "what colour is this part".
     bpy_object.color = tuple(palette["p"])
+    show_object_colour()
 
 
 def _write_labels(bpy_object, colour_label, finish_label):
@@ -211,6 +212,8 @@ def apply_many(pairs, tag=False, update=False, fresh=False):
         if tag:
             bpy_object.update_tag()
         applied += 1
+    if applied:
+        show_object_colour()
     if update:
         bpy.context.view_layer.update()
     return applied, unresolved
@@ -310,12 +313,28 @@ def clear(bpy_object):
 
 
 # Viewport ---
-def use_object_colour_in_viewport(enable=True, only_solid=True):
+def show_object_colour():
+    """Make the colour just painted show in Solid shading.
+
+    Run whenever a part is coloured, not only on import: a new file, a new
+    3D view or parts added by the builder's own tools leave Solid shading on
+    Material colour, where every high res part draws its shared material's
+    grey. Only views on Material colour are switched - one the user set to
+    Random, Texture or a single colour is theirs.
+
+    Returns:
+        int: How many viewports were changed.
+    """
+    return use_object_colour_in_viewport(only_from="MATERIAL")
+
+
+def use_object_colour_in_viewport(enable=True, only_solid=True, only_from=None):
     """Point Solid viewport shading at the per object colour.
 
     High res parts share their materials, so under MATERIAL colour they all
     draw the same. OBJECT reads object.color instead, which both systems set.
-    Textured and Rendered shading are unaffected.
+    Textured and Rendered shading are unaffected. `only_from` leaves views
+    on any other colour type than that one alone.
 
     Returns:
         int: How many viewports were changed.
@@ -334,6 +353,8 @@ def use_object_colour_in_viewport(enable=True, only_solid=True):
                     continue
                 shading = space.shading
                 if only_solid and shading.type != "SOLID":
+                    continue
+                if only_from is not None and shading.color_type != only_from:
                     continue
                 if shading.color_type != colour_type:
                     shading.color_type = colour_type
