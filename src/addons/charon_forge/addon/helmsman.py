@@ -6,60 +6,27 @@ from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntPropert
 from . import helmsman_operators, helmsman_presentation
 from ..utils import helmsman_utils
 
-# What a row's slot shows when the save has no corvette left for it. A batch
-# can hold more ships than the save has ship slots, and those rows still get
-# listed rather than dropped - see get_slot_enum_items. Defined in
-# helmsman_utils so the panel can read it without importing this module.
+# a row's slot when the save has no corvette left for it
 NO_SLOT_ID = helmsman_utils.NO_SLOT_ID
 NO_SLOT_LABEL = helmsman_utils.NO_SLOT_LABEL
 
-# kept alive at module level: an EnumProperty items callback must return a
-# list backed by something other than a local, or blender can crash once the
-# strings it built are garbage collected - same reason
-# addon_preferences._theme_enum_items exists.
+# kept at module level: Blender can crash if enum item strings get garbage collected
 _slot_enum_items = []
 
-# The stored number of the "None" entry. Fixed, and far past any real
-# corvette position: it used to be len(corvettes), so a row left on None
-# would silently point at a real corvette once a save with more corvettes
-# was picked.
+# the "None" entry's number, far past any real corvette position
 NO_SLOT_NUMBER = 100000
 
 
 def get_slot_enum_items(self, context):
-    """One entry per corvette in the selected save slot, split into a
-    "Slots Free" group and a "Slots In Use" group, plus a "None" entry to
-    opt the row out of export entirely.
-
-    Keyed by user_data, which is the corvette's position in the player's
-    ship slots - see save_editor_utils.BaseData in the host addon, whose
-    corvette list is already sorted by it. "In use" means another row on
-    the same page already has that slot - see Helmsman.get_page_items;
-    picking one of those bumps the row holding it.
-
-    The row's own current slot stays in the list. Leaving it out looks
-    tempting - re-picking what you already have does nothing - but Blender
-    resolves a row's stored value against these items to draw the dropdown
-    at all, so dropping it breaks both the display and every assignment
-    that passes through it. It is grouped under "Slots Free", since from
-    this row's point of view that is what it is.
-
-    "None" (NO_SLOT_ID) is always present, so a row can be explicitly taken
-    out of the export regardless of whether the save has a free corvette
-    for it. Blender drops an enum value that is not in this list, and
-    without it such a row would silently fall back to the first corvette -
-    the one failure mode worth avoiding here, since it would export a ship
-    over a slot nobody chose.
-    """
+    """One entry per corvette in the save, grouped into free and in use, plus "None".
+    The row's own slot and "None" are always listed, or Blender can't draw or keep the value."""
     global _slot_enum_items
 
     from ..utils import base_builder_utils
 
     helmsman = getattr(context.scene, "charon_helmsman", None) if context.scene else None
 
-    # reads slot_value rather than slot: slot is this same dynamic enum on
-    # every other row too, and resolving it here would re-enter this very
-    # callback for each of them - see BatchShipReviewItem.slot_value.
+    # slot_value, not slot: reading slot would re-enter this callback
     taken_by = {}
     if helmsman is not None:
         for _, item in helmsman.get_page_items():
@@ -67,11 +34,7 @@ def get_slot_enum_items(self, context):
                 continue
             taken_by[item.slot_value] = item.ship_name
 
-    # every entry carries an explicit number, and that number comes from the
-    # corvette's position in the save rather than from where the entry lands
-    # in this list. Blender stores an enum as its number, so letting the
-    # numbers fall out of the list order would silently repoint every row's
-    # stored slot each time the free/in-use split changed under it.
+    # numbers come from the save's order, so stored slots don't shift when the grouping changes
     corvettes = base_builder_utils.get_save_corvettes()
     free_items = []
     used_items = []
@@ -97,9 +60,7 @@ def get_slot_enum_items(self, context):
     return _slot_enum_items
 
 
-# Approve/Pending/Reject as one enum instead of three separate buttons, so
-# a row can only ever be in one of the three states - see
-# BatchShipReviewItem.review_status.
+# one enum, so a row is only ever in one state
 REVIEW_STATUS_ITEMS = [
     ("APPROVE", "", "Approve this ship", "CHECKMARK", 0),
     ("PENDING", "", "Leave this ship pending", "SORTTIME", 1),
@@ -107,20 +68,12 @@ REVIEW_STATUS_ITEMS = [
 ]
 
 
-# Set while Helmsman.assign_slots is writing rows one at a time, so each
-# row's update callback does not steal slots from, or store, a page that is
-# only half assigned yet.
+# set while assign_slots writes rows, so their update callbacks stay quiet
 _assigning_slots = False
 
 
 def _on_slot_changed(self, context):
-    """Bump any other row on the current page off the slot just picked.
-
-    Two rows pointing at the same corvette would silently overwrite each
-    other's ship on export, so a slot picked here is taken away from
-    whichever other row on the page was holding it - see Helmsman.
-    steal_slot_from_other_rows.
-    """
+    """Take the slot just picked away from any other row on the page."""
     if _assigning_slots:
         return
 
@@ -137,43 +90,23 @@ def _on_slot_changed(self, context):
 
 
 class BatchShipReviewItem(bpy.types.PropertyGroup):
-    """One row of the batch ship review list - see Helmsman.load_batch.
-
-    A scene level collection rather than reading the batch file straight
-    into the panel's draw(), the same restriction that rules out doing that
-    for the priority group list - see Optimiser.refresh_priority_part_list.
-    Filled in by the Load File / Load Clipboard operators instead, once per
-    load - see Helmsman.load_batch.
-    """
+    """One row of the batch ship review list, filled in by Helmsman.load_batch."""
 
     ship_id: bpy.props.StringProperty()
     ship_name: bpy.props.StringProperty()
     part_count: IntProperty()
-    # The ship's whole entry from the batch, as JSON - its parts for Export
-    # to Save, and everything else so the exported results carry it back
-    # out unchanged. Kept on the row (so in the .blend) because the clipboard
-    # or file it came from may be gone by then. See get_ship_data.
+    # the ship's whole batch entry as JSON, kept here as its source may be gone by export
     ship_json: bpy.props.StringProperty()
     slot: EnumProperty(items=get_slot_enum_items, name="Slot", update=_on_slot_changed)
-    # Plain-string mirror of slot, kept in sync by _on_slot_changed and
-    # everywhere else slot is assigned directly (assign_slots,
-    # steal_slot_from_other_rows). get_slot_enum_items reads this instead of
-    # slot itself, because slot is this same dynamic enum on every row and
-    # resolving another row's slot from inside this callback would re-enter
-    # it and recurse forever.
+    # plain-string copy of slot, read by get_slot_enum_items so it doesn't recurse
     slot_value: bpy.props.StringProperty()
     review_status: EnumProperty(
         items=REVIEW_STATUS_ITEMS, name="Review Status", default="PENDING"
     )
-    # Whether this row is included at all - unchecked keeps the row visible
-    # but takes it out of export and review, without deleting it from the
-    # batch like Reject would. Defaults on so a fresh import exports as
-    # before unless the user opts a ship out.
+    # unchecked keeps the row but leaves it out of export and review
     included: BoolProperty(default=True)
 
-    # Set for one redraw when another row just stole this row's slot, so the
-    # panel can flag the box it happened to - see
-    # Helmsman.steal_slot_from_other_rows and _on_slot_changed.
+    # set for one redraw when another row took this row's slot
     slot_bumped: BoolProperty(default=False)
 
     # The reviewer's note on this ship, entered through EditShipNote.
@@ -181,12 +114,7 @@ class BatchShipReviewItem(bpy.types.PropertyGroup):
 
 
 def _reassign_slots():
-    """Timer callback - redo the slot assignments after a redraw.
-
-    Registered by Helmsman.request_slot_reassign_if_save_changed, which
-    cannot do the write itself. Returns None so the timer does not repeat.
-    The stored slots belonged to the old save's corvettes, so they go.
-    """
+    """Timer callback: redo the slot assignments for a new save. Runs once."""
     scene = getattr(bpy.context, "scene", None)
     helmsman = getattr(scene, "charon_helmsman", None) if scene else None
     if helmsman is not None and len(helmsman.batch_ship_reviews):
@@ -215,25 +143,16 @@ class Helmsman(bpy.types.PropertyGroup):
     # Whether the batch ship list is showing - set by load_batch.
     batch_list_visible: BoolProperty(default=False)
 
-    # Rows for the batch ship review list - filled in by load_batch, see
-    # BatchShipReviewItem.
+    # rows for the batch ship review list, filled in by load_batch
     batch_ship_reviews: CollectionProperty(type=BatchShipReviewItem)
 
-    # Which save slot the rows' corvette assignments were worked out against,
-    # so a change of save slot can be noticed and the assignments redone -
-    # see reassign_slots_if_save_changed.
+    # the save slot the assignments were made against, to notice a change
     assigned_save_slot: bpy.props.StringProperty()
 
-    # Which page of the batch list is showing - see get_page_count/set_page.
-    # A batch longer than the save has corvettes for is split into pages of
-    # corvette-count ships each, so every page can fill every slot.
+    # the page showing; each page holds as many ships as the save has corvettes
     current_page: IntProperty(default=0, min=0)
 
-    # Every row's slot as JSON, {row index: slot id}, so switching pages
-    # brings a page's slots back as they were left instead of refilling
-    # them. Only the current page's rows hold a slot on the rows themselves
-    # (every page shares the same corvettes), so this is the record for the
-    # rest. Kept up to date by store_page_slots on every slot change.
+    # every row's slot as JSON {row index: slot id}, so pages keep their slots
     stored_slots_json: bpy.props.StringProperty(default="{}")
 
     def toggle_active(self):
@@ -245,11 +164,7 @@ class Helmsman(bpy.types.PropertyGroup):
         return self.steer_count
 
     def load_batch(self, ships):
-        """Rebuild the review rows, one per ship in a validated batch.
-
-        Args:
-            ships (list): From helmsman_utils.parse_batch.
-        """
+        """Rebuild the review rows from helmsman_utils.parse_batch's ships."""
         from ..utils import helmsman_utils
 
         self.batch_ship_reviews.clear()
@@ -279,10 +194,7 @@ class Helmsman(bpy.types.PropertyGroup):
 
     def get_page_size(self):
         """How many ships one page holds - one per corvette in the save.
-
-        0 (no save picked, or no corvettes) means there is nothing to page
-        against, so callers treat that as a single page holding everything.
-        """
+        0 means no paging: one page holds everything."""
         from ..utils import base_builder_utils
 
         return len(base_builder_utils.get_save_corvettes())
@@ -339,21 +251,8 @@ class Helmsman(bpy.types.PropertyGroup):
         return self.get_stored_slots().get(str(index), NO_SLOT_ID)
 
     def assign_slots(self):
-        """Pair each row on the current page with a corvette from the save.
-
-        A row with a stored slot (see stored_slots_json) gets it back, as
-        long as that corvette still exists and no row before it on the page
-        already took it. Every other row gets the first corvette nobody on
-        the page has, in the save's order, so a page seen for the first time
-        fills 1, 2, 3 ... exactly as before. The corvette list is already
-        sorted by user_data (its position in the player's ship slots) over
-        in the host addon.
-
-        Rows outside the current page are left on NO_SLOT_ID - they are not
-        being exported right now, so nothing should point at a corvette
-        that is not theirs to overwrite yet. Their slots live on in
-        stored_slots_json.
-        """
+        """Give each row on the page its stored slot, or the first free corvette in save order.
+        Rows on other pages are left on NO_SLOT_ID; their slots stay in stored_slots_json."""
         global _assigning_slots
         from ..utils import base_builder_utils
 
@@ -380,9 +279,7 @@ class Helmsman(bpy.types.PropertyGroup):
 
         _assigning_slots = True
         try:
-            # slot_value is cleared alongside slot so the free/in-use split in
-            # get_slot_enum_items is worked out against this new assignment
-            # rather than the one it replaced
+            # clear slot_value too, so the free/in-use grouping uses the new assignment
             for item in self.batch_ship_reviews:
                 item.slot_value = NO_SLOT_ID
                 item.slot = NO_SLOT_ID
@@ -400,20 +297,12 @@ class Helmsman(bpy.types.PropertyGroup):
         self.assigned_save_slot = save_data.nms_save_slot if save_data else ""
 
     def steal_slot_from_other_rows(self, changed_item, slot):
-        """Clear `slot` off every other row on the page that was holding it.
-
-        Only one row can point at a given corvette at a time, so picking a
-        slot that another row on the same page already has bumps that row
-        to NO_SLOT_ID instead of leaving two rows silently pointed at the
-        same ship slot - see _on_slot_changed. Flags the bumped row so the
-        panel can call it out for one redraw.
-        """
+        """Clear `slot` off every other row on the page and flag those rows.
+        Two rows on one corvette would overwrite each other on export."""
         for _, item in self.get_page_items():
             if item == changed_item:
                 continue
-            # slot_value, not slot: this runs inside slot's own update
-            # callback, and reading another row's slot would re-enter
-            # get_slot_enum_items - see BatchShipReviewItem.slot_value.
+            # slot_value, not slot: reading slot here would re-enter get_slot_enum_items
             if item.slot_value == slot:
                 item.slot_value = NO_SLOT_ID
                 item.slot = NO_SLOT_ID
@@ -427,15 +316,8 @@ class Helmsman(bpy.types.PropertyGroup):
         )
 
     def request_slot_reassign_if_save_changed(self):
-        """Redo the assignments when the save slot has been changed under us.
-
-        Called from the panel's draw(), which cannot write to the collection
-        itself, so the work is put on a timer that runs once the redraw is
-        over - the same trick the asset browser uses for its own post-draw
-        work. Safe to call on every redraw: it does nothing until the save
-        slot actually differs from the one the rows were assigned against,
-        and the timer is only ever registered once at a time.
-        """
+        """Redo the assignments on a timer once the save slot changes.
+        Called from draw(), which can't write, so the work runs after the redraw."""
         from ..utils import base_builder_utils
 
         save_data = base_builder_utils.get_save_data()

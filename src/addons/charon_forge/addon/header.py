@@ -4,11 +4,7 @@ from bpy.props import BoolProperty, IntProperty, PointerProperty
 from . import header_operators, header_presentation
 
 # State for the hero panel, stored on the scene as scene.charon_header.
-#
-# The theme picker used to live here too, but blender's interface theme is an
-# application setting rather than part of a .blend file - a Scene property
-# forgets it every restart. It now lives on CharonAddonPreferences instead,
-# see addon_preferences.py.
+# The theme picker is in addon_preferences.py, as a scene property forgets it on restart.
 class Header(bpy.types.PropertyGroup):
 
     is_workspace_cleaned: BoolProperty(

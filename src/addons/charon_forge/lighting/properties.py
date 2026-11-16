@@ -1,23 +1,5 @@
 """scene.charon_lighting: every setting of the lighting rig.
-
-Laid out for picking a look, not for tuning one:
-
-    where      Planet / Space (/ Station: space station, freighter, derelict
-               freighter or the Space Anomaly - hidden for now, see
-               STATION_ENABLED)
-    the sky    a picker of the game's own skies with preview swatches - the
-               planet day skies (by biome list and weather) or the 58 space
-               skies (by star colour, in a Sky Style) - plus time of day or
-               the sun's direction
-    lamps      the parts' game lamps, once the lighting is on
-    advanced   Brightness, Sunlight, Glow and the rest, folded away
-
-Each setting's update calls rig.apply, which only changes node values, the
-sun and the view - a slider can be dragged with thousands of parts in the
-scene. Picking where (and the station type) sets the sliders to that place's
-starting values (PLACE_DEFAULTS), so a new scene looks right before anything
-is touched. Presets are in presets.py.
-"""
+Each update calls rig.apply, which only changes values, so sliders stay fast."""
 
 import contextlib
 import random
@@ -80,12 +62,8 @@ def _default_space_sky_number():
     keys = [key for key, _, _, _ in data.space_sky_keys()]
     return keys.index(DEFAULT_SPACE_SKY) if DEFAULT_SPACE_SKY in keys else 0
 
-# the starting values for each place; strengths are first guesses until they
-# are calibrated against in-game screenshots. They never touch the lamps.
-#
-# The lamps are the user's alone (their call, 2026-09-29): only clicking Lamps
-# turns them on. Turning the lighting on always starts them off, switching
-# place leaves them as they are, and presets do not store them.
+# starting values for each place (strengths are first guesses);
+# they never touch the lamps, which only the Lamps button turns on
 PLACE_DEFAULTS = {
     "PLANET": dict(sunlight=3.0, ambient=0.8, brightness=0.0),
     "SPACE": dict(sunlight=3.0, ambient=0.5, brightness=0.0),
@@ -118,10 +96,7 @@ def batch(scene):
 
 
 # Updates ---
-# Always the scene that owns the settings (self.id_data), never
-# context.scene: that is the window's scene, which is another one whenever
-# the settings of a scene not on screen are changed (measured: turning a
-# second scene's lighting on ran the first scene's).
+# use self.id_data, not context.scene, which may be a different scene
 def _apply(self, context):
     if not _batching:
         rig.apply(self.id_data)

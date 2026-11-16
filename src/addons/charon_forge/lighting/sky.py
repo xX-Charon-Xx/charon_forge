@@ -1,33 +1,5 @@
-"""The "Charon Sky" world: the game's skies as one node tree.
-
-Two skies share the tree and a Mix picks one, so switching never rebuilds
-anything - it only changes node values:
-
-    planet   a gradient on the view's height: fog colour below the horizon,
-             HorizonColour at it, SkyColour above, SkyUpperColour at the
-             zenith; plus the sun disc (SunColour) and its halo
-             (SkySolarColour)
-    space    the space entry's Bottom / Mid / Top gradient and its nebula:
-               - the game's nebula dome (spacedome01: R, G, B are three
-                 masks, tinted NebulaColour3, 1 and 2)
-               - clouds: 4D noise, tinted NebulaColour2
-               - wisps: the game's nebulaplasma filaments (alpha) threaded
-                 through the clouds, tinted NebulaColour1
-               - stars: bright ones, a field of faint ones, and a galaxy
-                 band of dust where the faint ones crowd
-               - the sun disc
-             One number, the nebula shape (seed), turns the dome, moves the
-             noise and the wisps and reseeds the stars - every seed with
-             every one of the 58 colour entries is a different sky, the way
-             the game makes its variety from one dome and a few colours.
-
-The same colour lights the scene and is what the camera sees, at two separate
-strengths: Light Path > Is Camera Ray picks `visible` for camera rays and
-`ambient` for everything else.
-
-Every node the rig changes has a fixed name (N_*), and set_* below write
-straight into them. The tree is rebuilt only when SKY_VERSION changes.
-"""
+"""The "Charon Sky" world: planet and space skies in one node tree, picked by a Mix.
+The rig only changes values of the named N_* nodes; rebuilt when SKY_VERSION changes."""
 
 import math
 

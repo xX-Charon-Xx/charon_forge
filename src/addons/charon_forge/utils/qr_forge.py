@@ -1,23 +1,5 @@
-"""Forging a QR code out of parts - The Forge's "Forge a QR Code".
-
-Every dark module of the code (utils/qr_code.py) has to be covered by the
-part without it spilling onto a light one, in as few parts as possible. The
-part - STORAGEPANEL, a flat panel about 2.4 times as long as it is wide - can
-be scaled, which export keeps (Up and At are written with their length, see
-Group.extract_pos_up_at), but only evenly: it always keeps its proportions.
-
-  1. The dark modules are split into all dark rectangles, chosen greedily by
-     how many new modules each covers per part it costs (plan_rectangles).
-     Rectangles may overlap - a module covered twice costs nothing - so the
-     long runs and blocks of a QR code are taken whole.
-  2. Each rectangle is covered by the fewest panels that fit it exactly
-     (plan_panels): scaled to its full height and repeated along it, or
-     scaled to its full length and stacked, whichever of those - either way
-     round - takes fewer. Panels overlap each other rather than overhang.
-
-Everything here is in modules; objects/shapes/qr.py lays the panels out as
-one forged object.
-"""
+"""Forging a QR code out of evenly scaled STORAGEPANEL parts - The Forge's "Forge a QR Code".
+Dark modules are grouped into rectangles, each covered by as few panels as fit it exactly."""
 
 import heapq
 import math
@@ -37,16 +19,8 @@ def _ceil(value):
 
 
 def plan_panels(width, height, ratio):
-    """The fewest panels covering a width x height rectangle exactly.
-
-    Args:
-        width, height (float): The rectangle, in modules.
-        ratio (float): The panel's long side over its short side.
-
-    Returns:
-        list: (centre x, centre y, long side along x, short side) per panel,
-            relative to the rectangle's corner, in modules.
-    """
+    """The fewest panels covering a width x height rectangle exactly, in modules.
+    Returns (centre x, centre y, long side along x, short side) per panel."""
     best = None
     for along_x in (True, False):
         length, across = (width, height) if along_x else (height, width)
@@ -86,12 +60,8 @@ def plan_panels(width, height, ratio):
 
 
 def plan_rectangles(modules, ratio):
-    """All dark rectangles covering every dark module, chosen for the fewest
-    panels between them.
-
-    Returns:
-        list: (x, y, width, height) per rectangle, in modules, y downwards.
-    """
+    """All dark rectangles covering every dark module, chosen for the fewest panels.
+    Returns (x, y, width, height) per rectangle, in modules, y downwards."""
     size = len(modules)
     dark = [[bool(cell) for cell in row] for row in modules]
 

@@ -61,10 +61,7 @@ def _get_user32():
 
 
 def get_process_window_handles():
-    """Every visible top level window this Blender process owns.
-
-    Handles come back as plain ints so they can be compared and kept in a set.
-    """
+    """Every visible top level window this Blender process owns, as int handles."""
     user32 = _get_user32()
     if user32 is None:
         return []
@@ -126,9 +123,8 @@ WINDOW_ICON_PATH = os.path.join(
     "asset_browser_window.ico",
 )
 
-# HICONs are process wide GDI handles. They are loaded once and kept alive for
-# as long as Blender runs - a window keeps referencing its icon, so destroying
-# one after handing it over would blank the title bar.
+# Icons are loaded once and kept alive while Blender runs; destroying one
+# would blank the title bar of a window using it.
 _window_icon_cache = {}
 
 WM_SETICON = 0x0080
@@ -160,10 +156,7 @@ def _load_window_icon(user32, size):
 
 def set_window_icon(hwnd):
     """Give a window the addon's icon in the title bar and in Alt+Tab.
-
-    The taskbar button is not ours to change - Windows groups every window of a
-    process under the application icon, so that stays Blender's.
-    """
+    The taskbar button keeps Blender's icon."""
     user32 = _get_user32()
     if user32 is None or not hwnd:
         return False
@@ -194,9 +187,7 @@ class LaunchAssetBrowserWindow(bpy.types.Operator):
     def execute(self, context):
         
         scene = context.scene
-        # this column count is an addon preference. It used to be assigned to the
-        # AssetBrowser property group, which has no such property, so it silently
-        # went nowhere and the new window never got its wider layout.
+        # this column count is an addon preference
         prefs = get_preferences(context)
         if prefs is not None:
             prefs.asset_browser_number_of_columns_other = 8
@@ -300,11 +291,8 @@ class LaunchAssetBrowserWindow(bpy.types.Operator):
 
         bpy.app.timers.register(switch_tab, first_interval=0.02)
 
-        # The title used to be pushed onto GetForegroundWindow() the moment
-        # window_new() returned. That is the wrong window as often as not - the
-        # OS has not always handed focus over yet - so the rename either landed
-        # on the main Blender window or went nowhere. The new window is found by
-        # diffing the process' window handles instead.
+        # find the new window by diffing the process' window handles, as the
+        # foreground window isn't always the new one yet
         window_title = "Asset Browser"
         # Read off the operator now - the timer outlives execute, and self is
         # not guaranteed to still be around by the time it runs.
@@ -393,9 +381,8 @@ class AssetBrowserObjectSelected(bpy.types.Operator):
                 self.report({'ERROR'}, f"Could not add {self.object_id} to scene")
                 return {'CANCELLED'}
 
-            # A part can fail to build - a missing asset, or one of the override
-            # classes throwing. This used to go straight to item.object and turn
-            # that into an unhandled AttributeError in the operator.
+            # a part can fail to build (a missing asset, or an override class
+            # throwing)
             try:
                 item = charon_builder.add_part(self.object_id)
             except Exception as error:

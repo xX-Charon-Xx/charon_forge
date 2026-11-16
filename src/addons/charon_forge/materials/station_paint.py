@@ -1,42 +1,5 @@
-"""Colouring the space station decorations through their painted hull tiles.
-
-The game lets the station exterior decorations (STA_01, STA_02, ... - the
-STATIONBASE palette group) be recoloured, but none of their hull surfaces is
-flagged _F53_COLOURISABLE or has a colourise mask, so the pipeline gave them
-no NMS_Colourise group and picking a colour did nothing. What they have
-instead are procedural hull tiles: a base tile with painted layers over it,
-each layer its own texture behind a switch read from the object
-(nms_tex_LARGETILING1_PAINTED, ...; see samplers.py for the switches).
-
-Here each painted layer takes a palette slot - the same nms_p / nms_s / nms_t
-the colourise group reads, so the colour panel needs nothing new:
-
-    LARGETILING1      PAINTED -> primary, ALTPANELS -> secondary,
-                      ACCENTPANELS -> ternary
-    LARGETILING1ALT   MAINCOLOUR -> primary, COLPANELS -> secondary,
-                      STRIPES -> ternary
-    FREIGHTER_PROC    PAINT1 -> primary, PAINT2 -> secondary
-    WARRIOR* tiles    PAINT1 / PAINT -> primary, PAINTALT -> secondary
-
-A layer's colour becomes texel + (slot colour - the layer's average), the way
-utils/seed_utils.tint_materials puts a seed's palettes onto a whole station's
-hull: the layer's average lands on the palette colour and its detail stays.
-The palette colours are sRGB (as the game lists them) and are taken to linear
-in the nodes. An object without the slot property keeps the untinted layer.
-
-Which slot each layer takes is read off the layer names; the game does not
-say, because in game these layers take the station's world palettes. The
-creature, robot, hologram and slime layers some decorations also carry are
-left alone.
-
-The layers are off on a placed decoration (the pipeline's default), so
-colouring one switches its painted layers on - show_paint_layers. Station
-library objects are never touched: their materials are tinted from the seed
-by seed_utils, and their switches belong to the station designer.
-
-Done per material, once - the material is tagged, and every placement shares
-it.
-"""
+"""Colours the space station decorations by tinting their painted hull tile layers
+with the palette slots (nms_p / nms_s / nms_t), done once per material."""
 
 import bpy
 
@@ -74,12 +37,8 @@ _averages = {}
 
 
 def ensure_station_paint(materials=None):
-    """Tint the painted layers of every hull tile material in `materials`
-    (every material in the file by default).
-
-    Returns:
-        int: How many materials were changed.
-    """
+    """Tint the painted layers of every hull tile material in `materials` (all by default).
+    Returns how many changed."""
     materials = materials if materials is not None else bpy.data.materials
     changed = 0
     for mat in materials:
@@ -120,13 +79,8 @@ def _has_colourise(mat):
 
 
 def _layer_images(tree):
-    """{image node: layer switch} for each painted layer of a material.
-
-    A layer is drawn as: Attribute ["nms_tex_..."] -> Math (compare) ->
-    Mix (colour) factor, with the layer's image in that Mix's B. Read off the
-    links rather than the image names, which do not always carry the layer's
-    (the STRIPES layer's images are LARGETILING1ALT.STRIP.1 ... 4).
-    """
+    """{image node: layer switch} for each painted layer, read off the links
+    (Attribute -> compare -> Mix factor, image in the Mix's B)."""
     out = {}
     for attr in tree.nodes:
         if attr.type != "ATTRIBUTE":
@@ -171,14 +125,8 @@ def average(image):
 
 
 def tint_texture(tree, tex, attribute_name, linearise=False):
-    """Put the colour an object property holds into one layer texture: its
-    colour becomes texel + (colour - the layer's average), floored at black,
-    where the object has the property (its alpha is 1), else the texel.
-    `linearise` takes an sRGB property to linear first.
-
-    Returns:
-        bool: False when nothing reads the texture's colour.
-    """
+    """Tint one layer texture: texel + (colour - layer average) where the object has
+    the property. Returns False when nothing reads the texture's colour."""
     nodes, links = tree.nodes, tree.links
     colour = tex.outputs["Color"]
     targets = [link.to_socket for link in colour.links]

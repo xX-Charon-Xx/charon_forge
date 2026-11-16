@@ -1,13 +1,5 @@
-"""Tearing the old hand-tuned finish preview out of saved scenes.
-
-An earlier version faked each finish by splicing roughness / metal / tint
-offsets in front of every colourable Principled BSDF, with values tuned by
-hand in finishes.json. The library now carries the game's own finish textures
-behind the `nms_finish` switch (see properties.PROP_FINISH), so those nodes
-would only distort the real thing. A scene saved before the change still has
-them in its materials; this puts back whatever fed each socket and removes
-them. Materials without the marker are never touched.
-"""
+"""Removes the old hand-tuned finish preview nodes from scenes saved before
+the game's finish textures; materials without the marker are untouched."""
 
 import bpy
 
@@ -16,11 +8,7 @@ from .properties import (LEGACY_FINISH_NODE_LABEL, LEGACY_FINISH_NODES_TAG,
 
 
 def strip_legacy_finish_nodes(materials=None):
-    """Remove the old finish splice from materials that carry it.
-
-    Returns:
-        int: How many materials were cleaned.
-    """
+    """Remove the old finish splice from materials that carry it; returns how many."""
     materials = materials if materials is not None else bpy.data.materials
     cleaned = 0
     for mat in materials:
@@ -55,11 +43,8 @@ def _is_legacy_node(node):
 
 
 def _unsplice(socket):
-    """Put back whatever fed `socket` before the old nodes went in.
-
-    Each spliced node carried the original on its first input - inputs[0] of a
-    Math node, "A" of the Mix - so it is read back out of there.
-    """
+    """Put back whatever fed `socket` before the old nodes went in
+    (kept on each spliced node's first input)."""
     if not socket.is_linked:
         return
     spliced = socket.links[0].from_node

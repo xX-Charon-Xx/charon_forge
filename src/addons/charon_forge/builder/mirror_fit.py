@@ -1,30 +1,5 @@
 """Where a mirrored part's twin has to sit to look like the mirror.
-
-The base builder addon mirrors a part by scaling its mesh by -1 along local X
-and giving it the twin's id. A save only carries the id and the transform, so
-the next import places the twin's OWN model with that transform - and that
-only looks the same as the flipped mesh when the twin's model is the source's
-scaled by -1 on X. Measured over the library, of the 267 mirror pairs with
-both models:
-
-  - 109 are exactly that (B_STR_T_NETB / B_STR_T_NWTB).
-  - 118 are the same mirror, turned: the twin is the flipped source rotated
-    about an axis - the corvette _N / _S pairs are turned 180 about up.
-  - 40 are different geometry, with no rigid transform between them.
-
-So a mirrored part shows its twin's own model (see
-HighResBuilderMixin._swap_to_twin), and fit() is what places it: the rigid
-transform that lays the twin's model over the source's X-flipped one, tried
-over the 24 axis-aligned rotations. The addon mirrors the transform to
-W @ M @ Sx (W the world reflection, Sx the local one) and then hands it to
-mirror_correction; appending the fit there (host_patches) makes it
-W @ M @ Sx @ fit, and with the twin's model B that draws as
-
-    W @ M @ Sx @ fit @ B  =  W @ M @ Sx @ Sx @ A  =  W @ M @ A
-
-- the exact mirror of the source A. What is drawn is then what is saved, so it
-comes back the same on the next import.
-"""
+fit() finds the rigid transform laying the twin's model over the source's X-flipped one."""
 
 import itertools
 
@@ -122,13 +97,8 @@ def _measure(source_id, twin_id):
 
 
 def fit(source_id, twin_id):
-    """The mesh space transform that lays twin_id's model over source_id's
-    model flipped on local X.
-
-    Returns:
-        mathutils.Matrix: A 4x4 rigid transform (a copy), or None when either
-            id has no high res model to measure.
-    """
+    """The transform laying twin_id's model over source_id's flipped on local X.
+    None when either id has no high res model."""
     key = (source_id, twin_id)
     if key not in _fits:
         _fits[key] = _measure(source_id, twin_id)

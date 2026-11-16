@@ -23,14 +23,8 @@ _accounts_load_attempted = False
 
 
 def _load_save_accounts():
-    """Timer callback - fill the account list once per session.
-
-    The save editor fills it when its own panel is switched on; Helmsman has
-    no such switch, so this does the same the first time the panel draws
-    (draw() itself cannot write properties). That also installs the lz4
-    module save files are read with, if it is missing - see
-    save_editor_dependencies. Returns None so the timer does not repeat.
-    """
+    """Timer callback: fill the account list once, as draw() can't write properties.
+    Also installs lz4 if it is missing."""
     global _accounts_load_attempted
     _accounts_load_attempted = True
     save_data = base_builder_utils.get_save_data()
@@ -43,10 +37,7 @@ def _load_save_accounts():
 
 
 def draw_save_slot_picker(layout, context):
-    """Account / Save Slot, the same two dropdowns the Save Manager panel
-    has at the top of its own picker - reading and writing Charon Forge's
-    own scene.charon_save_data.
-    """
+    """The Account and Save Slot dropdowns, as in the Save Manager panel."""
     save_data = base_builder_utils.get_save_data()
     if save_data is None:
         layout.label(text="Save Manager unavailable", icon="ERROR")
@@ -69,10 +60,7 @@ def draw_save_slot_picker(layout, context):
 
 
 def is_save_slot_selected(context):
-    """Whether a real save slot is picked - "Default" is the placeholder
-    "Select Save Slot" entry get_save_slots_list() puts at the top of the
-    list in save_editor/save_manager.py, not an actual slot.
-    """
+    """Whether a real save slot is picked; "Default" is the "Select Save Slot" placeholder."""
     save_data = base_builder_utils.get_save_data()
     return save_data is not None and save_data.nms_save_slot != "Default"
 
@@ -128,9 +116,7 @@ class CHARON_PT_helmsman_panel(Panel):
         if not helmsman.batch_list_visible:
             return
 
-        # a change of save slot has to be noticed here: the save manager's
-        # dropdown has no hook of ours to call - see
-        # Helmsman.request_slot_reassign_if_save_changed
+        # the save manager's dropdown has no hook, so a new save slot is noticed here
         helmsman.request_slot_reassign_if_save_changed()
 
         step_3_box = steps_column.box().column(align = True)
@@ -231,9 +217,7 @@ class CHARON_PT_helmsman_panel(Panel):
             reject.row_index = index
             reject.status = "REJECT"
 
-        # pad the last page with empty rows so every page takes up the same
-        # space - otherwise a half-full last page shrinks the panel and the
-        # page tabs above jump around as the user switches between pages
+        # pad the last page with empty rows so the page tabs don't jump around
         page_size = helmsman.get_page_size()
         missing_rows = page_size - len(helmsman.get_page_items())
         for _ in range(max(0, missing_rows)):
@@ -259,5 +243,5 @@ class CHARON_PT_helmsman_panel(Panel):
 
 
 classes = (
-    CHARON_PT_helmsman_panel,
+    # CHARON_PT_helmsman_panel,
 )

@@ -277,11 +277,7 @@ def draw_asset_browser(context, asset_browser_box, scene):
 
 class NMS_UL_asset_browser_category_order(bpy.types.UIList):
     """Rows for reordering categories, with an up/down button per row.
-
-    Favourites and non-favourites are kept in separate contiguous blocks by
-    AssetBrowser.move_category, so a plain up/down swap here can never let a
-    row cross into the other block - see asset_browser_utils.move_category.
-    """
+    Favourites and the rest stay in separate blocks (move_category)."""
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         row = layout.row(align=True)
@@ -320,24 +316,15 @@ SPECIAL_ROW_ICONS = {
     "preset": "ASSET_MANAGER",
 }
 
-# How thin the rule between list rows is. Blender has no divider of its own,
-# so an empty box squashed on the y axis stands in for one - a box is the
-# only thing that paints a border, and with nothing in it all that is left
-# is the border itself.
+# How thin the rule between list rows is; an empty box squashed on y stands in
+# for a divider, which Blender doesn't have.
 ROW_RULE_SCALE_Y = 0.06
 
 
 
 class NMS_UL_asset_browser_category(bpy.types.UIList):
-    """Rows for the main panel's category list.
-
-    Three kinds of row share this list - see AssetBrowser.refresh_category_list:
-    a plain category (with a pin button), one of the three special views
-    (Favourite/Recent/Preset Items), or a blank spacer row separating the
-    two groups. Selecting a row is what activates it - the list's own index
-    drives it, see AssetBrowser.on_category_list_index_changed - so names
-    are plain labels rather than operator buttons.
-    """
+    """Rows for the main panel's category list: categories, the special views
+    and a spacer. Selecting a row activates it, so names are plain labels."""
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         if item.row_kind == "spacer":
@@ -534,7 +521,7 @@ classes = (
     NMS_UL_asset_browser_category,
     
     NMS_PT_asset_browser_properties_panel,
-    #NMS_PT_asset_browser_panel,
+    NMS_PT_asset_browser_panel,
     NMS_PT_asset_browser_new_window_panel_left
 )
         

@@ -1,28 +1,5 @@
-"""One material per distinct material, across every library part appended.
-
-Each library .blend carries its own copies of the materials it shares with
-other parts, so a ship's worth of parts appends hundreds of materials that
-are the same thing. Their number is what makes appending slow: Blender
-revisits every material's node tree on each append, so each asset costs more
-than the last. Measured on a 2339 part corvette (74 assets, Blender 5.1):
-
-    kept as appended     530 materials   appending 5.4 s
-    merged as appended   181 materials   appending 1.9 s + 0.8 s merging
-
-and every import after that into the same file is cheaper too.
-
-A material only merges into another when nothing a render can see tells them
-apart - every editable property of the material and of each node (by name),
-every unlinked socket value, every link, every custom property but the
-pipeline's own bookkeeping, and the images (by file) and node groups (by
-name, which dedupe.py collapses anyway) they point at.
-
-That comparison is made on the material as it was appended, before
-prepare_materials changes it, and stored on it as PROP_KEY. A later asset's
-copy is matched against the stored key, so it merges into one already
-prepared: preparing is decided by the material's own content, so the two
-would come out the same.
-"""
+"""Merges identical materials across appended library parts, which keeps appends fast.
+Two merge only when nothing a render can see tells them apart (stored as PROP_KEY)."""
 
 import hashlib
 import os
@@ -142,10 +119,8 @@ def material_key(mat):
     return hashlib.sha1(repr(parts).encode("utf-8")).hexdigest()
 
 
-# {key: material} for the file's keyed materials, kept between appends; it
-# is rebuilt whenever the file's material count isn't what the last call left
-# it at, which catches a new file, an undo or anything else adding or
-# removing materials
+# {key: material} kept between appends; rebuilt whenever the file's
+# material count changes (new file, undo...)
 _known = {}
 _known_count = -1
 
@@ -169,17 +144,8 @@ def _alive(mat, key):
 
 
 def merge_appended(mesh):
-    """Point a freshly appended mesh's materials at the ones already in the
-    file that are the same, and remove its copies.
-
-    Only materials without a key are looked at - an append always brings
-    fresh copies, so those are exactly the new ones, and nothing but this
-    mesh uses them yet: its slots are repointed directly rather than through
-    user_remap, which would search the whole file for each.
-
-    Returns:
-        int: Materials merged away.
-    """
+    """Point a freshly appended mesh's materials at identical ones already in the file
+    and remove its copies. Returns how many were merged away."""
     global _known_count
     fresh = {mat for mat in mesh.materials
              if mat is not None and mat.library is None and PROP_KEY not in mat}

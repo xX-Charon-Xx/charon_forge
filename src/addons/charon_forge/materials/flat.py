@@ -1,12 +1,5 @@
 """Flat materials - one coloured material in slot 0, for the fbx proxies and
-the line parts.
-
-MaterialProvider has the same methods as the base builder addon's
-MaterialProvider, so the high res routing in mixin.py can go in front of either.
-Override only what you need: the other methods go through self, so replacing
-validate_material() alone changes every material this makes. Keep
-"transparent" in the name of ghosted materials, the ghost toggle looks for it.
-"""
+the line parts. Ghosted materials keep "transparent" in their name."""
 
 import bpy
 
@@ -15,9 +8,7 @@ from ..utils.base_builder_utils import overrides, python_utils, userdata
 from . import colouring, palettes, paths
 from .properties import PROP_READONLY_COLOUR, PROP_READONLY_MATERIAL, PROP_USER_DATA
 
-# Lazy rather than loaded at import time: python_utils now resolves against
-# the base builder addon at call time (see base_builder_utils.py), which is
-# not guaranteed to be loaded yet while blender is still importing addons.
+# loaded lazily: the base builder addon may not be loaded yet at import time
 _ghosted_items = None
 
 
@@ -40,15 +31,7 @@ class MaterialProvider(object):
     """Creates and assigns flat materials."""
 
     def validate_material(self, colour_name, colour_value):
-        """Creates or returns a material based on its name.
-
-        Args:
-            colour_name (str): The name of the material.
-            colour_value (list): RGBA values representing the colour.
-
-        Returns:
-            bpy.Material: The Blender material.
-        """
+        """Get the material by name, or make it with this RGBA colour."""
         colour_material = bpy.data.materials.get(colour_name, None)
         if not colour_material:
             colour_material = bpy.data.materials.new(name=colour_name)
@@ -56,11 +39,7 @@ class MaterialProvider(object):
         return colour_material
 
     def set_material(self, item, material):
-        """Put a material into an item's first slot.
-
-        Returns:
-            bpy.Material: The material, or None if the item takes no materials.
-        """
+        """Put a material into an item's first slot; None if it takes no materials."""
         if not hasattr(item.data, "materials"):
             return
         if not item.data.materials:
@@ -99,11 +78,7 @@ class MaterialProvider(object):
         self.set_material(item, material)
 
     def assign_default_material(self, item, index=0):
-        """Assign the default grey material and UserData index.
-
-        Returns:
-            bpy_types.Material: The material that is applied.
-        """
+        """Assign the default grey material and UserData index."""
         item[PROP_USER_DATA] = str(index)
         material = self.validate_material("default_material", [0.8, 0.8, 0.8, 1.0])
         self.set_material(item, material)
@@ -126,11 +101,7 @@ class MaterialProvider(object):
         )
 
     def assign_material(self, item, colour_index=0, material_index=0):
-        """Assign a colour and finish, and write them into the item's UserData.
-
-        Returns:
-            bpy_types.Material: The material that is applied.
-        """
+        """Assign a colour and finish, and write them into the item's UserData."""
         reference_value = int(item.get(PROP_USER_DATA, 0))
         new_userdata_value = userdata.update_colour_material(
             reference_value, colour_index=colour_index, material_index=material_index
@@ -163,10 +134,7 @@ class MaterialProvider(object):
 
 def optimise_materials():
     """Make flat parts with the same ObjectID and UserData share one mesh.
-
-    Parts with an override class and curve followers are left alone, they
-    manage their own meshes.
-    """
+    Override-class parts and curve followers are left alone."""
     unique_materials = {}
     for obj in bpy.context.scene.objects:
         if "ObjectID" not in obj or obj.get("curve_parent") is not None:
@@ -181,13 +149,8 @@ def optimise_materials():
         if has_override:
             continue
 
-        # high res parts already share one mesh per ObjectID across every
-        # UserData, so there is nothing to gain here and plenty to lose.
-        # Copying them is nearly free in memory while the file is open
-        # (blender shares mesh arrays until they are edited) but the copies
-        # are written out separately: on a 6000 part base this turned an 89 MB
-        # save into 945 MB, and 1225 MB of RAM into 2157 MB on the next open,
-        # worsening with every save/open cycle.
+        # high res parts already share one mesh; copying them bloats the saved
+        # file (89 MB to 945 MB on a 6000 part base)
         if colouring.is_high_res(obj):
             continue
 

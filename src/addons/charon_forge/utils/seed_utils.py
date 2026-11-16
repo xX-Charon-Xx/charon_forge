@@ -1,66 +1,5 @@
-"""Space stations from a system seed, out of the parts in models/space_station.
-
-Give it a system's seed and it builds that system's station the way the game
-does: the same shape, the same modules around it, the same colours. Everything
-here is ported from the planet seed research (The Augur,
-docs/research/SEED_KNOWLEDGE.md, "Space station shape" and "Station colours"),
-which runs the game's own code:
-
-Shape. The station's seed is the first child seed of an RNG on the system seed.
-The game walks the station's descriptor tree from SPACESTATIONTYPEB: per group
-one weighted pick (weight 20, 1 for an xRARE option, 0 for xNEVER), then a
-child seed for each child group list of the picked option and one for each
-scene it references, each walked with its own RNG. Every picked name goes into
-one set, and a group with an option already in it is skipped - that is how the
-hangar inherits the entrance's launch tube, and why every tower of a station is
-the same tower. The research's port of this walk matches the exe on 3000 of
-3000 systems; resources/station_seed.json holds its data.
-
-    interior/STATION_INTERIOR_<TUBE>.blend    the launch tube (_TUBE_)
-    exterior/STATION_EXTERIOR_<TYPE>.blend    the body (_TYPE_)
-    exterior/modules/STATION_MODULE_*.blend   every module slot the picks show
-                                              (module slots, from the station
-                                              library's stations.json), each
-                                              the module variant picked
-
-Colours. The station's palettes come from the ordinary palette generator run on
-the SYSTEM seed with the base palettes (biome 16), not from any planet; checked
-against two docked stations. The hull's textures (LARGETILING1, LARGETILING1ALT)
-are stacks of layers, each tinted from one palette at one of its five colours
-(TkPaletteTexture ColourAlt: Primary = colour 0, Alternative1 = 1, ...):
-
-    BASE          Metal (9)             Primary         always
-    PAINTED       SpaceStationBase (60) Primary         always     LARGETILING1
-    ALTPANELS     SpaceStationBase      Alternative1    70 %
-    ACCENTPANELS  SpaceStationAlt (61)  Alternative1    70 %
-    MAINCOLOUR    SpaceStationAlt       Alternative2    always     LARGETILING1ALT
-    COLPANELS     SpaceStationBase      Alternative1    40 %
-    STRIPES       SpaceStationAlt       Primary         50 %, one of 4
-
-The palette colours are exact. Three things are not predicted, because the
-game rolls them per texture instance (TkPaletteTexture Index -1, layer
-Probability): which of its palette's five colours a layer shows - ColourAlt
-is the default here, but a docked station has shown other colours of the
-same palette, so each layer's colour can be chosen (build_station's
-`colours`); whether a layer with a chance below 100 % shows (here every layer
-at 50 % or more, the data's switches); and how a colour goes onto a layer (the
-layers are Multiply = false with an AverageColour, so the layer's average is
-shifted onto the palette colour, keeping its detail - see tint_materials).
-The layer textures are tint masks the extraction left untinted, which is why
-an untinted hull is teal.
-
-What the files cannot follow: the body and interior files were built with one
-set of their inner choices (the core's skin _TS_, the arms' connectors _CTYPE_,
-the tunnel opening _TOTYPE_, the front panel style _STYLE_, the hangar window,
-the trade hall's props), so a station whose seed picks others differs there.
-build_station() reports each such choice (config["baked"]). The interior's
-base-building pieces keep the colours they were saved with unless a STATIONBASE
-palette is given (station_library.recolour).
-
-Frame: every file's object sits at the origin turned +90 degrees about X, its
-mesh in the game's metres. A module at a slot goes to cursor @ Rx(+90) @ slot
-matrix - the frame the body and the interior share.
-"""
+"""Space stations from a system seed, built the way the game does: shape, modules and colours.
+Ported from the seed research in docs/research/SEED_KNOWLEDGE.md; data in station_seed.json."""
 
 import json
 import math
@@ -107,24 +46,8 @@ SEED_MASK = 0xFFFFFFFFFFFFF     # the game uses the low 52 bits of a system seed
 
 # Data ---
 class _Data:
-    """resources/station_seed.json, read into the shapes the logic walks:
-
-        scene_root, root, exterior   scene names (tree keys are under
-                                     scene_root, without .SCENE.MBIN)
-        tree         {scene: [(group, [(id, weight, [child group lists],
-                     [referenced scenes])])]} - a None reference is a scene
-                     with no descriptor, which still takes a child seed
-        tables       {slot: (mode, [64 sRGB colours])}, the base palettes
-        names        {slot: palette name}
-        dedupe       how close two picked colours may be
-        scenes       the scene at each module slot, by slot index
-        slots        [(scene index, owners, first three matrix rows)]
-        layers       {hull layer: (palette slot, colour 0..4)}
-        textures     {layer texture stem: hull layer}
-        switches     {layer switch: value shown by default}
-        race_groups  the trade hall's prop groups the game swaps for the
-                     system's race
-    """
+    """resources/station_seed.json, read into the shapes the logic walks: descriptor tree,
+    base palettes, module slots, hull layers, layer textures and switches."""
 
     def __init__(self, raw):
         def groups(entries):
@@ -226,18 +149,8 @@ class Rng:
 
 # Addresses ---
 def split_address(address):
-    """The fields of a galactic address as a save stores it (a base's
-    GalacticAddress, int or 0x hex string):
-
-        bits 52..55  planet index (0 for a base in space)
-        bits 40..51  solar system index
-        bits 32..39  galaxy (0 = Euclid)
-        bits 24..31  voxel Y
-        bits 12..23  voxel Z
-        bits  0..11  voxel X
-
-    The low 52 bits are the system seed (research: portal address ->
-    system seed, verified on the Euclid bases of a save)."""
+    """The fields of a galactic address as a save stores it (int or 0x hex string).
+    The low 52 bits are the system seed; the bits above hold the planet index."""
     address = parse_seed(address)
     return {
         "planet": (address >> 52) & 0xF,
@@ -251,12 +164,7 @@ def split_address(address):
 
 
 def parse_address(text):
-    """A galactic address typed in by hand, as a save's GalacticAddress:
-
-        0x40050003AB8C07     a save's address, hex (or decimal)
-        40050003AB8C         12 hex digits: portal glyphs, PSSSYYZZZXXX -
-                             the same fields less the galaxy, so Euclid
-
+    """A galactic address typed by hand: a save's hex/decimal address or 12 portal glyph digits.
     Spaces and dashes are ignored. Raises ValueError on anything else."""
     text = re.sub(r"[\s\-_]", "", str(text or ""))
     if not text:
@@ -274,18 +182,13 @@ def system_seed_from_address(address):
 
 
 def station_seed(system_seed):
-    """The seed the game builds a system's station from: the first child
-    seed of an RNG on the system seed (exe 0x14163f8b0, cGcSpaceStationSpawnData
-    Seed)."""
+    """The seed the game builds a system's station from: the first child seed of an RNG
+    on the system seed."""
     return Rng(parse_seed(system_seed) & SEED_MASK).child_seed()
 
 
 def station_seed_from_address(address):
-    """The station seed of a save's galactic address, e.g. a
-    PlayerSpaceStationBase's GalacticAddress:
-
-        station_seed_from_address(0xFFFF446729A4) == 0x0C63D2AB104B20D6
-    """
+    """The station seed of a save's galactic address."""
     return station_seed(system_seed_from_address(address))
 
 
@@ -299,10 +202,8 @@ def _chosen_name(option_id):
 
 
 def station_choices(system_seed, force=None):
-    """Every descriptor option the game picks for a system's station, in the
-    order picked (upper case). `force` ({group: option id}) makes a group take
-    that option instead - the draw is still made, so everything else stays
-    the seed's."""
+    """Every descriptor option the game picks for a system's station, in order (upper case).
+    `force` ({group: option id}) overrides a group's pick without changing the rest."""
     force = {k.upper(): v.upper() for k, v in (force or {}).items()}
     tree = _load().tree
     chosen, seen = [], set()
@@ -430,9 +331,8 @@ def _skip_palette(rng):
 
 
 def station_palettes(system_seed):
-    """{slot: five sRGB colours} of the station's palettes (named in the data):
-    the palette generator on the system seed, every slot before the ones
-    wanted only stepping the RNG (research palettes(), biome 16)."""
+    """{slot: five sRGB colours} of the station's palettes, from the palette generator
+    on the system seed (biome 16)."""
     tables = _load().tables
     seed = system_seed & SEED_MASK
     root = Rng(seed)
@@ -468,26 +368,8 @@ def hex_colour(colour):
 
 # Config ---
 def station_config(seed=None, interior=None, exterior=None, palette_index=None, force=None):
-    """Everything a system seed makes, without touching the scene.
-
-    seed           the system seed: int, decimal or 0x hex string, or a
-                   save's GalacticAddress (its planet bits are ignored);
-                   None = a random one
-    interior       force the launch tube: ROUND, SQUARE or TRI
-    exterior       force the body: TET, OCT, DISK, EX, TRI or SIMPLE
-    palette_index  a STATIONBASE palette for the interior's base-building
-                   pieces (None keeps the colours they were saved with)
-    force          {group: option id} for any other choices - a station
-                   designed by hand (builder/station_design.py)
-
-    Returns a dict:
-        seed, interior, exterior
-        choices    every option the game picks (upper case)
-        palettes   {slot: five sRGB colours} - named in the data
-        palette    the STATIONBASE palette index, or SAVED_PALETTE
-        modules    [{"slot", "file", "scene", "matrix"}] - the slot's 4x4
-                   in the station's frame, row by row
-    """
+    """Everything a system seed makes, as a dict, without touching the scene.
+    seed None is random; interior, exterior, palette_index and force override the seed."""
     data = _load()
     seed = system_seed_from_address(parse_seed(seed))
     force = dict(force or {})
@@ -560,13 +442,8 @@ def _linear(c):
 
 
 def tint_materials(material_list):
-    """Put the station palettes into every hull layer of these materials: a
-    layer's colour becomes texel + (palette colour - the layer's average), so
-    its average lands on the palette colour and its detail stays. The colour
-    is read off the object (PROP_COLOUR), so the materials stay shared; an
-    object without it keeps the untinted layer. Idempotent. The nodes are
-    materials/station_paint.py's, which tints the station decorations the
-    same way."""
+    """Tint every hull layer of these materials so its average lands on the palette colour.
+    The colour is read off the object (PROP_COLOUR), so materials stay shared. Idempotent."""
     done = 0
     for mat in material_list:
         if mat is None or not mat.use_nodes or mat.get(PROP_TINTED):
@@ -592,9 +469,8 @@ def layer_colours(palettes, colours=None):
 
 
 def apply_colours(objects, palettes, layers=None, colours=None):
-    """Write each hull layer's colour (linear) and the layer switches onto
-    objects - what tint_materials' nodes read. `layers` ({switch: value})
-    goes over the data's default switches, `colours` as layer_colours()."""
+    """Write each hull layer's colour and the layer switches onto objects for tint_materials.
+    `layers` ({switch: value}) goes over the default switches, `colours` as layer_colours()."""
     switches = dict(_load().switches)
     switches.update(layers or {})
     tints = layer_colours(palettes, colours)
@@ -636,13 +512,8 @@ def _append_module(name):
 
 
 def place_modules(context, collection, config, cursor=None):
-    """Put the modules of a station_config() into `collection` (the
-    exterior's), each file appended once and its mesh shared by every slot
-    it fills.
-
-    Returns:
-        (objects, textures with no file)
-    """
+    """Put a station_config()'s modules into `collection`, each file appended once and shared.
+    Returns (objects, textures with no file)."""
     if cursor is None:
         cursor = context.scene.cursor.location.copy()
     place = mathutils.Matrix.Translation(cursor) @ TURN
@@ -681,9 +552,8 @@ def _place_modules(collection, modules, place, loaded, placed, new_materials):
 
 
 def _baked(objects, chosen):
-    """[(scene, group, option in the file, option the seed picks)] for every
-    choice with alternatives that a file was built with and the seed does not
-    pick (the files record their picks in nms_station_picks)."""
+    """[(scene, group, option in the file, option the seed picks)] for every choice a file
+    was built with that the seed doesn't pick."""
     data = _load()
     out, seen = [], set()
     for obj in objects:
@@ -726,31 +596,8 @@ def _tree_scene(key):
 def build_station(context, seed=None, interior=True, exterior=True, modules=True,
                   interior_kind=None, exterior_kind=None, palette_index=None,
                   layers=None, colours=None, replace=True, force=None):
-    """Put a system's station into the scene at the 3D cursor.
-
-    seed            the system seed, as station_config(); None = random
-    interior        bring in the interior (core and runway)
-    exterior        bring in the exterior body
-    modules         with the exterior: the modules around it too
-    interior_kind   force the launch tube (ROUND, SQUARE, TRI)
-    exterior_kind   force the body (TET, OCT, DISK, EX, TRI, SIMPLE)
-    palette_index   a STATIONBASE palette for the interior's base-building
-                    pieces; None keeps their saved colours
-    layers          {switch: value} over the data's default switches, e.g.
-                    {"nms_tex_LARGETILING1ALT_COLPANELS": 1}
-    colours         {layer: 0..4} - which of its palette's colours a hull
-                    layer shows instead of its ColourAlt (the data's hull
-                    layers)
-    replace         take out the station already in the file first
-    force           {group: option id} for any other choices, as
-                    station_config()
-
-    With `replace` False, the station there is changed into this one rather
-    than built again - see update_station.
-
-    Returns:
-        (config, [collections], textures with no file)
-    """
+    """Put a system's station into the scene at the 3D cursor, or change the one there.
+    Returns (config, [collections], textures with no file)."""
     config = station_config(seed, interior_kind, exterior_kind, palette_index, force)
     if replace:
         for collection in station_library.find_stations():
@@ -762,26 +609,8 @@ def build_station(context, seed=None, interior=True, exterior=True, modules=True
 
 def update_station(context, config, interior=True, exterior=True, modules=True,
                    layers=None, colours=None, palette_seed=None):
-    """Make the station in the file the one a station_config() describes,
-    loading only what it lacks: a part is imported again only if it is new
-    or its kind changed, and a module only where its slot is new or takes
-    another module - one already in the file is copied rather than loaded.
-    Colours are properties on the objects, so they change in place. With no
-    station in the file, it is built whole at the 3D cursor.
-
-    interior, exterior, modules, layers, colours   as build_station()
-    palette_seed    colour the hull with this system's palettes instead of
-                    the config's own - a station changed by hand keeps its
-                    address's seed for its shape but can take other colours
-
-    Each part is its own collection, as station_library.import_part makes
-    it (the modules go in the exterior's), so the Forge's station switches,
-    recolouring and removal work on it unchanged.
-
-    Returns:
-        ([collections], textures with no file, [what was loaded, e.g.
-        "exterior", "3 modules"])
-    """
+    """Make the station in the file match a station_config(), loading only what it lacks.
+    Returns ([collections], textures with no file, [what was loaded])."""
     started = time.perf_counter()
     if palette_seed is not None:
         config["palettes"] = station_palettes(palette_seed)
@@ -836,16 +665,8 @@ def update_station(context, config, interior=True, exterior=True, modules=True,
 
 
 def _update_modules(collection, modules, cursor, just_made):
-    """Give the exterior's collection exactly `modules`: a slot keeping its
-    module is left alone, one that is new or takes another module is filled
-    - with a copy where the file already has that module, else appended -
-    and one no longer wanted is taken out. A collection `just_made` is
-    filled out of the view layer, as import_part fills it; one already there
-    isn't, since coming back into it would show what was hidden.
-
-    Returns:
-        (objects placed, textures with no file, module files appended)
-    """
+    """Give the exterior's collection exactly `modules`, filling only new or changed slots.
+    Returns (objects placed, textures with no file, module files appended)."""
     existing = {obj[PROP_SLOT]: obj for obj in collection.objects if PROP_SLOT in obj}
     # modules placed before they carried their file are known by the picks
     old_chosen = set(collection.get(PROP_CHOICES, "").split())
@@ -891,13 +712,8 @@ def find_seed():
 
 
 def recolour_station(seed=None, layers=None, colours=None):
-    """Colour the station in the file again - with another system's palettes
-    (`seed`), other layers shown or other colours per layer - without
-    rebuilding it. None keeps the station's own seed.
-
-    Returns:
-        the palettes used, or None when there is no station
-    """
+    """Recolour the station in the file with another seed's palettes, layers or colours.
+    Returns the palettes used, or None when there is no station."""
     seed = find_seed() if seed is None else parse_seed(seed)
     if seed is None:
         return None

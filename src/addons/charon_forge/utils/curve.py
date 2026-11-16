@@ -44,18 +44,8 @@ class Curve:
 
 
 def get_follower_objects():
-    """Everything in the file that could be following a curve.
-
-    add_objects_to_curve drops every follower it makes into one collection, and
-    move_object_into_collection unlinks them from everywhere else, so that
-    collection is the complete list. Looking there instead of at the whole scene
-    is the difference between walking 60 objects and walking 5000 - the scene
-    scan on its own was 2.4 ms, and dragging a slider pays it every frame.
-
-    The one-shot operations further down (locking, selecting, detaching) still
-    walk the scene. They run once on a click, so the wider net costs nothing and
-    catches anything that ended up outside the collection by hand.
-    """
+    """Every curve follower, from the follower collection rather than the whole scene
+    (60 objects instead of 5000, every slider frame)."""
     collection = bpy.data.collections.get(collection_utils.LINKED_CURVE_OBJ_COL)
     if collection is None:
         # nothing has ever been put on a curve in this file
@@ -64,17 +54,8 @@ def get_follower_objects():
 
 
 def get_curve_children_map(objects=None):
-    """Group every curve follower by the curve it belongs to, in ONE pass.
-
-    update_curve_children otherwise scans once per curve. Building this map costs
-    a single pass no matter how many curves are being rebuilt.
-
-    Args:
-        objects (iterable): Objects to scan. Defaults to the follower collection.
-
-    Returns:
-        dict: {curve name: [child objects]}
-    """
+    """Group every curve follower by its curve in one pass.
+    Returns {curve name: [child objects]}."""
     objects = objects if objects is not None else get_follower_objects()
 
     children_by_curve = {}
@@ -134,10 +115,8 @@ def update_curves(updated_curves, children_by_curve=None):
 
             # Update object counts
             if objects_count_changed:
-                # This adds or removes followers and reflows what is left on the
-                # way out, so the curve is already finished - it used to be sent
-                # through update_curve_children a second time with the same
-                # arguments, doing the whole rebuild twice.
+                # this reflows the followers itself, so the curve doesn't need
+                # another update_curve_children pass
                 duplicate_along_curve(
                     None, curve_obj, new_number_of_objects, new_radius_multiplier,
                     existing_objs=children
@@ -219,9 +198,8 @@ def duplicate_along_curve( bpy_object, curve, number_of_duplicates=10, radius_mu
             curve[Curve.PROP_DUP_IS_GROUP] = False
         
     
-    # Gather all bpy_objects currently following this curve. A caller that has
-    # already grouped the whole scene by curve can hand its list in and skip the
-    # scan, which is 2.7 ms on a 5000 part base.
+    # Gather the objects following this curve; a caller that already grouped
+    # the scene by curve can pass its list in and skip the scan
     if existing_objs is None:
         existing_objs = get_all_curve_children(curve)
     if existing_objs is None:
@@ -243,13 +221,8 @@ def duplicate_along_curve( bpy_object, curve, number_of_duplicates=10, radius_mu
     return existing_objs
 
 def removeobjects_from_curve(number_to_remove, existing_objs):
-    """Take the last few followers back off the curve.
-
-    bpy.data.objects.remove costs about 4 ms a call on a big scene because each
-    one re-syncs the whole thing. batch_remove does the lot in a single pass -
-    dropping 60 objects went from 256 ms to 12 ms - which is what made the count
-    slider stutter on the way down.
-    """
+    """Take the last few followers back off the curve, removed in one batch
+    (60 objects went from 256 ms to 12 ms)."""
     if number_to_remove <= 0:
         return
 
@@ -267,12 +240,8 @@ def add_objects_to_curve(number_to_add, curve, existing_objs, bpy_object = None)
         if len(existing_objs) == 0:
             if bpy_object is not None:
                 new_obj = bpy_object.copy()
-                # An fbx proxy keeps its colour on the mesh's material, so it
-                # needs its own copy - otherwise recolouring the curve would
-                # recolour whatever object was picked to seed it. A high res
-                # part keeps its colour on the object, so it can stay on the one
-                # shared library mesh and every curve made this way stops adding
-                # another copy of it to the file.
+                # an fbx proxy keeps its colour on the mesh, so it needs its own copy;
+                # a high res part keeps it on the object and can share the library mesh
                 if not materials.is_high_res(bpy_object):
                     new_obj.data = bpy_object.data.copy()
                 for constraint in list(new_obj.constraints):
@@ -338,10 +307,8 @@ def is_bezier_or_nurbs_path(curve):
 
         
 def apply_curve_transforms_and_detach(curve):
-    """
-    Bakes the visual transforms created by the FOLLOW_PATH constraint into actual 
-    loc/rot/scale data, then deletes the constraint so objects stay in place.
-    """
+    """Bake the FOLLOW_PATH transforms into loc/rot/scale, then delete the constraint
+    so objects stay in place."""
     if not is_bezier_or_nurbs_path(curve):
         raise TypeError("Please provide a valid curve object.")
     
@@ -561,10 +528,8 @@ def duplicate_curve(curve_obj):
     return new_curve_obj
     
 
-# this function takes two curves as argument
-# iterage over objects of source curve and copy transformations of those objects to their alternatives in target curve
-# this in a way creates eact copy of these curves no matter how much obects have been manupulated by user
-# duping_object_source: the object to duplicate along target_curve, if not the source curve's first
+# copy the transforms of source_curve's objects onto their matches on target_curve;
+# duping_object_source is the object to duplicate, if not the source's first
 def sync_curves(target_curve, source_curve, duping_object_source = None):
 
     target_curve[Curve.PROP_CURVE_ID] = str(uuid.uuid4())
@@ -596,9 +561,8 @@ def sync_curves(target_curve, source_curve, duping_object_source = None):
         apply_color(target_curve, source_curve.get(Curve.PROP_DUP_USER_DATA,0))
         
     
-    # these curves are almost identical
-    # blender stores bpy.context.scene.objects in sorted order, so duplicated objects will alsmo match that order.
-    # objects on same index will have save transformations
+    # objects are stored in sorted order, so duplicates on the same index
+    # match and get the same transform
     for index,source in enumerate(source_dupe_objects):
         if index >= len(target_dupe_obejcts):
             break

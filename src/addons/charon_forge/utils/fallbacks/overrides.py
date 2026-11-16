@@ -1,10 +1,5 @@
-"""Which part class builds which object id - the base builder addon's
-builder/overrides.py, without its part classes.
-
-The special parts (cables, turrets, fossils, message modules) are that
-addon's own classes, so without it every part is built as a plain part.
-Other addons can still register their own classes here.
-"""
+"""Which part class builds which object id, without the base builder addon's part classes.
+Without that addon every part is a plain part; other addons can still register classes."""
 
 _REGISTERED_BY_ID = {}
 

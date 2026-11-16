@@ -44,9 +44,8 @@ class ImportShipFile(bpy.types.Operator, ImportHelper):
             {"Objects": objects, "BaseVersion": base_version}
         )
 
-        # a .nmsship's ship record and customisation are kept for Export,
-        # which writes them back out around the scene's parts. A .json/.txt
-        # has none, so whatever was kept before stays.
+        # keep a .nmsship's ship record and customisation for export;
+        # a .json/.txt has none, so the old ones stay
         if ship is not None:
             context.scene.charon_crossing.store_ship(ship, customisation, file_name)
 
@@ -224,9 +223,8 @@ def _changes_collection(name, color_tag):
 
 
 class ImportShipChanges(bpy.types.Operator):
-    """Import only what changed in game since the scene was exported: parts
-    placed or changed in game go into their own collection, and parts
-    changed or deleted in game are moved into another"""
+    """Import only what changed in game since the scene was exported: new or changed parts go
+    into one collection, and the scene's changed or deleted parts move into another"""
 
     bl_idname = "object.charon_import_changes"
     bl_label = "Import Changes"

@@ -1,29 +1,5 @@
-"""Turning the panel's settings into the scene's lighting.
-
-    enable(scene)    put the rig in, remembering what it replaces
-    disable(scene)   take it out, giving everything back
-    apply(scene)     settings -> the Charon Sky world, the Charon Sun and the
-                     view exposure; only values change - no material, no part -
-                     so it runs on every slider step with any number of parts
-    apply_game_lights(scene)   the game lamp layer on or off (kept out of
-                     apply: it touches every mesh)
-
-Where the light comes from:
-
-    PLANET     a day entry (by biome list, weather and sky), blended with the
-               dusk and night entries by time of day, using the game's own
-               fade thresholds (MinSunsetFade.., MinNightFade..)
-    SPACE      a space sky entry (58, common and rare) - its gradient, nebula
-               colours and LightColour - drawn in one of the Sky Styles
-    STATION    (hidden for now, properties.STATION_ENABLED) a dark starry sky
-               with no colours, lit by the game's SpaceLightColour; the rooms
-               by the parts' game lamps. DERELICT swaps the sky for
-               AbandonedFreighterFogColour, dim.
-
-Every colour and the fade thresholds are the game's. The absolute strengths
-(sunlight W/m2, sky light, sun disc) are first guesses, to be calibrated
-against in-game screenshots; they are the Advanced sliders.
-"""
+"""Turning the panel's settings into the scene's world, sun and view.
+Colours are the game's; strengths are first guesses (the Advanced sliders)."""
 
 import math
 
@@ -37,13 +13,16 @@ RIG_COLLECTION = "Charon Lighting"
 SAVED_PROP = "charon_lighting_saved"
 
 STATION_PLACES = {"STATION", "FREIGHTER", "DERELICT", "ANOMALY"}
+
+# Space's starting sky (properties.DEFAULT_SPACE_SKY - not imported, as
+# properties imports this module) and the white sun it gets
+DEFAULT_SPACE_SKY = "r37"
+NEUTRAL_SUN = (1.0, 1.0, 1.0)
 WEATHER_LISTS = {"NORMAL": "day", "FIRESTORM": "day_firestorm",
                  "GRAVSTORM": "day_gravstorm"}
 
-# what each space Sky Style does to the sky's layers: x nebula, x clouds,
-# x stars, star field strength, galaxy band strength, x gradient brightness.
-# The dark styles are dark in display terms: sRGB lifts a linear 0.04 to a
-# visible 22% grey, so their nebula runs at a few percent (measured).
+# what each Sky Style does: x nebula, x clouds, x stars, star field, galaxy band,
+# x gradient. Dark styles keep the nebula at a few percent, sRGB lifts it a lot
 STYLE_LAYERS = {
     "NEBULA": dict(nebula=1.0, clouds=1.0, stars=1.0, field=0.4, band=0.0, dark=1.0),
     "STORM": dict(nebula=1.4, clouds=2.8, stars=0.5, field=0.2, band=0.0, dark=1.3),
@@ -71,9 +50,8 @@ def enable(scene):
             "gamma": view.gamma,
             "viewports": viewports.remember(scene),
         }
-        # the sky tables hold display colours: Standard shows them as they
-        # are, where Blender's default AgX washes a blue sky out to grey
-        # (measured on the same render). Changeable in Advanced.
+        # the sky tables hold display colours; Standard shows them as they are,
+        # AgX washes a blue sky out to grey
         try:
             view.view_transform = "Standard"
             view.look = "None"
@@ -154,10 +132,8 @@ def _sun_direction(elevation_deg, heading_deg):
 
 
 def _planet_path(time_of_day, heading_deg, max_elevation_deg):
-    """The sun's direction over the day. The game turns the sun about one
-    axis (SunRotationAxis, X); here that circle is tilted so noon peaks at
-    `max_elevation_deg` and then turned by the heading. 0.25 is sunrise,
-    0.5 noon, 0.75 sunset."""
+    """The sun's direction over the day, peaking at `max_elevation_deg` at noon.
+    0.25 is sunrise, 0.5 noon, 0.75 sunset."""
     a = (time_of_day - 0.25) * 2.0 * math.pi
     tilt = math.radians(90.0 - max_elevation_deg)
     v = mathutils.Vector((math.cos(a), -math.sin(a) * math.sin(tilt),
@@ -259,6 +235,10 @@ def _apply_space(world, s, place):
             sky.set_star_style(world, 0.8 * s.stars / 2.0, 0.0, grey)
 
     light_colour = station_light or lin("LightColour")
+    if station_light is None and s.space_sky == DEFAULT_SPACE_SKY:
+        # the default sky is a red star system, whose game light is pink;
+        # the scene a user starts in gets plain white sunlight instead
+        light_colour = NEUTRAL_SUN
     sky.set_sun(world, toward, light_colour,
                 light_colour if station_light else lin("CloudColour"),
                 s.sun_size * 0.4, s.sun_glow, s.sun_halo * 0.5, halo_power=400.0)

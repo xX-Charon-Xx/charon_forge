@@ -1,12 +1,5 @@
 """Offering a base's own space station when a space station base comes in.
-
-A PlayerSpaceStationBase is built inside a system's station, and its
-GalacticAddress says which system. When the base builder addon hands us one
-to build (HighResBuilderMixin.deserialise_from_data), the address is checked
-and, if it gives a station, the Forge's station popup opens on its Galactic
-Address tab with the address filled in - so the base can be built in the
-station it belongs to.
-"""
+Its galactic address opens the station popup, so the base can be built in its station."""
 
 import bpy
 
@@ -47,9 +40,7 @@ def station_address(data):
 
 
 def stored_address(scene):
-    """The galactic address of the base the base builder addon holds in the
-    scene (scene.nms_base_tool, filled on import) - if it is a space station
-    base whose address gives a station - else None."""
+    """The galactic address of the scene's space station base if it gives a station, else None."""
     tool = getattr(scene, "nms_base_tool", None)
     if tool is None:
         return None
@@ -60,9 +51,7 @@ def stored_address(scene):
 
 
 def offer_station(data):
-    """After a space station base is imported, open the station popup with
-    its address. Nothing happens for any other base, or an address that
-    gives no station."""
+    """After a space station base is imported, open the station popup with its address."""
     text = station_address(data)
     if text is None:
         return

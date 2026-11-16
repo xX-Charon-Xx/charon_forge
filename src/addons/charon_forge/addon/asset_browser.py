@@ -16,12 +16,7 @@ load_stored_list = asset_browser_utils.load_stored_list
 
 class NMSCategoryOrderItem(bpy.types.PropertyGroup):
     """One row of the category reorder list, and of the main category list.
-
-    row_kind is only meaningful on the main category list (category_list) -
-    the reorder popup's own list (category_order_list) holds nothing but
-    real categories, so it never sets it and every row there keeps the
-    default. See AssetBrowser.refresh_category_list.
-    """
+    row_kind is only set on the main list; reorder rows keep the default."""
 
     category_name: bpy.props.StringProperty()
     is_fav: bpy.props.BoolProperty()
@@ -38,11 +33,7 @@ SPECIAL_LIST_ROWS = (
 
 
 def _refresh_category_list():
-    """Timer callback - build the category rows after a redraw.
-
-    Registered by AssetBrowser.request_category_list_refresh, which cannot
-    do the write itself. Returns None so the timer does not repeat.
-    """
+    """Timer callback that builds the category rows after a redraw; runs once."""
     scene = getattr(bpy.context, "scene", None)
     asset_browser = getattr(scene, "nms_asset_browser", None) if scene else None
     if asset_browser is not None:
@@ -51,13 +42,8 @@ def _refresh_category_list():
 
 
 class AssetBrowser(bpy.types.PropertyGroup):
-    """The asset browser's Blender state.
-
-    The data work - building the category tree, searching it, and keeping the
-    favourites and recents file - lives in utils/asset_browser_utils.py. This
-    holds what Blender needs: the properties, the enum callbacks and the caches
-    those callbacks read from.
-    """
+    """The asset browser's Blender state: properties, enum callbacks and their caches.
+    The data work lives in utils/asset_browser_utils.py."""
 
     enum_categories = []
     enum_sub_categories = []
@@ -126,9 +112,8 @@ class AssetBrowser(bpy.types.PropertyGroup):
     category_order_list: bpy.props.CollectionProperty(type=NMSCategoryOrderItem)
     category_order_list_index: bpy.props.IntProperty()
 
-    # Rows for the main panel's category template_list, kept in step with
-    # the categories enum by refresh_categories. Picking a row is what
-    # selects a category - see on_category_list_index_changed.
+    # Rows for the main panel's category list, kept in step with the categories enum.
+    # Picking a row selects a category (on_category_list_index_changed).
     category_list: bpy.props.CollectionProperty(type=NMSCategoryOrderItem)
     category_list_index: bpy.props.IntProperty(
         update=lambda self, context: self.on_category_list_index_changed(),
@@ -141,9 +126,8 @@ class AssetBrowser(bpy.types.PropertyGroup):
 
     categories_data = {}
     search_results = {}
-    # Sub category enum entries, kept per category. Blender needs the strings a
-    # dynamic enum hands back to stay alive for as long as it might use them, so
-    # the same list object is returned every time rather than a fresh one.
+    # Sub category enum entries per category; the same list is returned each time
+    # so Blender's dynamic enum strings stay alive.
     sub_categories_by_category = {}
 
     def initialise_asset_browser(self):
@@ -162,17 +146,7 @@ class AssetBrowser(bpy.types.PropertyGroup):
 
     def refresh_categories(self):
         """Rebuild the category enum, favourites first in their saved order.
-
-        Called on first use and again whenever a category's favourite state or
-        order changes, so the categories enum and the reorder list stay in
-        sync with what is actually stored.
-
-        Note:
-            Rebuilt in place rather than appended to. The class attribute
-            outlives unregister, so running this again after an addon
-            disable/enable used to leave the category list doubled - 16
-            categories became 32.
-        """
+        Rebuilt in place, as the class attribute outlives unregister."""
         categories_data = self.get_categories_data()
         favourite_categories = self.get_favourite_categories()
         ordered_categories = asset_browser_utils.order_categories(
@@ -182,30 +156,13 @@ class AssetBrowser(bpy.types.PropertyGroup):
             ordered_categories
         )
 
-        # NOT called directly: refresh_categories can itself run from the
-        # categories enum's own items callback - get_categories, below,
-        # called while blender is drawing - and a scene collection cannot be
-        # written to from there. Every caller of refresh_categories has to
-        # go through request_category_list_refresh instead, timer and all,
-        # even the ones that are themselves already safe (an operator's
-        # execute), so there is exactly one path in and no risk of a second
-        # caller reintroducing the crash this used to hit on file load.
+        # Always via the timer: this can run while Blender draws, where a scene
+        # collection can't be written to.
         self.request_category_list_refresh()
 
     def refresh_category_list(self):
-        """Rebuild the main panel's category rows from the categories enum.
-
-        Kept as a scene collection rather than read straight out of
-        enum_categories in the panel, because that is what a template_list
-        needs. Only ever called from the timer callback below - never
-        directly, see refresh_categories.
-
-        Favourite Items/Recent Items/Presets sit at the top as their own
-        row_kind, a blank spacer row separating them from the real
-        categories below - see NMS_UL_asset_browser_category.draw_item for
-        how each row_kind is drawn, and on_category_list_index_changed for
-        how a click on one is told apart from a category pick.
-        """
+        """Rebuild the main panel's category rows; only called from the timer.
+        Favourites, Recents and Presets come first, then a spacer, then the categories."""
         favourite_categories = self.get_favourite_categories()
 
         self.category_list.clear()
@@ -229,29 +186,14 @@ class AssetBrowser(bpy.types.PropertyGroup):
         self.sync_category_list_index()
 
     def request_category_list_refresh(self):
-        """Queue refresh_category_list to run once it is safe to.
-
-        A scene collection cannot be written to from a panel's draw(), and
-        refresh_categories - the only place that decides the rows are out of
-        date - can itself run from there (see the comment in it), so the
-        write always goes through a timer, never a direct call, regardless
-        of who is asking.
-        """
+        """Queue refresh_category_list on a timer, since it can't run from a draw()."""
         if bpy.app.timers.is_registered(_refresh_category_list):
             return
         bpy.app.timers.register(_refresh_category_list, first_interval=0.0)
 
     def sync_category_list_index(self):
-        """Point the highlighted row at whatever the panel is showing.
-
-        Which row that is depends on the view: Favourite Items, Recent
-        Items and Presets each have a row of their own, and anything else
-        means a category is being shown, so the row for the selected
-        category is the one to highlight. Keying this off the category
-        alone used to drag the highlight back onto the last category
-        whenever the list was rebuilt while one of the other three views
-        was up - see refresh_category_list, which calls this every time.
-        """
+        """Highlight the row for what the panel shows: Favourites, Recents,
+        Presets, or else the selected category."""
         display_what = self.enum_asset_browser_what_to_display
 
         for index, item in enumerate(self.category_list):
@@ -274,18 +216,8 @@ class AssetBrowser(bpy.types.PropertyGroup):
                 return
 
     def on_category_list_index_changed(self):
-        """Act on whatever row was clicked.
-
-        A category row selects that category. Favourite Items/Recent
-        Items/Presets switch the display the same way their own buttons
-        used to. The spacer row does nothing - there is nothing to select
-        it for other than to put a gap in the list.
-
-        Guarded against the reverse direction for a category row:
-        sync_category_list_index moves this index to follow the selected
-        category, and without the check that write would bounce straight
-        back into setting the category again.
-        """
+        """Act on the clicked row: select a category or switch the view.
+        The spacer row does nothing."""
         index = self.category_list_index
         if not (0 <= index < len(self.category_list)):
             return
@@ -295,12 +227,8 @@ class AssetBrowser(bpy.types.PropertyGroup):
             if item.category_name != self.asset_browser_caterogies:
                 self.asset_browser_caterogies = item.category_name
             else:
-                # Same category as before, so the assignment above would not
-                # fire on_category_selected and the panel would stay on
-                # whatever special view was up - leaving a category row
-                # clicked but Favourite/Recent/Presets still showing, which
-                # sync_category_list_index then "corrects" by dragging the
-                # highlight back off the row just clicked.
+                # Same category, so on_category_selected won't fire on its own;
+                # call it to leave the special view.
                 self.on_category_selected()
         elif item.row_kind == "fav":
             self.show_favourite_obejcts()
@@ -317,11 +245,7 @@ class AssetBrowser(bpy.types.PropertyGroup):
 
 
     def get_grid_sizes(self):
-        """Icon size and column count for the current view mode.
-
-        These live on the addon preferences. This used to read them off self,
-        where they do not exist, so any call raised AttributeError.
-        """
+        """Icon size and column count for the current view mode, from the addon preferences."""
         icon_size_prop, number_of_columns_prop = self.get_grid_size_prop_string()
         return asset_browser_utils.get_grid_settings(
             bpy.context, icon_size_prop, number_of_columns_prop
@@ -347,14 +271,8 @@ class AssetBrowser(bpy.types.PropertyGroup):
         return self.extract_enum_sub_categories()
 
     def extract_enum_sub_categories(self):
-        """Sub category enum entries for the category that is selected.
-
-        This is on the enum item callback path, so it runs on every redraw. It
-        used to rebuild the whole category tree from the parts definition each
-        time - 4.7 ms a call against 0.0007 ms for the cached lookup - and hand
-        back a brand new list of strings every time, which is exactly what a
-        dynamic enum is not supposed to do.
-        """
+        """Sub category enum entries for the selected category.
+        Runs on every redraw, so it uses the cached list."""
         prop_caterogies = self.asset_browser_caterogies
 
         cached = AssetBrowser.sub_categories_by_category.get(prop_caterogies)
@@ -410,9 +328,8 @@ class AssetBrowser(bpy.types.PropertyGroup):
     _quick_search_cache = (None, {}, 0)
 
     def get_quick_search_results(self, limit=8):
-        """The header menu's search results: ({object id: part data}, how
-        many matched). Worked out again only when the query changes, since
-        the menu redraws all the time."""
+        """The header menu's search results: ({object id: part data}, match count).
+        Only recomputed when the query changes."""
         query = self.quick_search_query.strip()
         cached_query, results, total = AssetBrowser._quick_search_cache
         if query != cached_query:

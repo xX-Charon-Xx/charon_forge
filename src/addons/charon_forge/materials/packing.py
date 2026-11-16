@@ -1,16 +1,5 @@
-"""Packing the library's textures into the .blend when it is saved.
-
-A part's images only point at the PNGs in this addon's install
-(asset_browser/textures). A .blend shared with someone else then shows them
-pink - the path is to a folder on the sender's machine. Packed, the texture
-data travels inside the .blend and the file opens correctly anywhere, with or
-without Charon Forge.
-
-Only images from the library are packed; anything else in the file is left
-as the user has it. Each image is packed once - an image already packed is
-skipped, so after the first save only textures new since the last one cost
-anything. The addon preference pack_textures_on_save turns it off.
-"""
+"""Packs the library's textures into the .blend on save so it opens anywhere.
+Only library images, each packed once; turned off by the pack_textures_on_save preference."""
 
 import os
 
@@ -39,12 +28,7 @@ def _library_texture_path(image):
 
 
 def pack_library_textures():
-    """Pack every library image not packed yet.
-
-    Returns:
-        (int, int): images packed, and images whose file could not be found
-            or read (left unpacked).
-    """
+    """Pack every library image not packed yet; returns (packed, failed)."""
     packed = failed = 0
     for image in bpy.data.images:
         if image.packed_file is not None or image.library is not None:
@@ -68,18 +52,8 @@ def pack_library_textures():
 
 
 def relink_library_textures():
-    """Point every image whose file is missing at the same texture in this
-    install's library, by file name, and reload it.
-
-    What a .blend opened on another machine (or after the addon moved)
-    needs: its images still name the textures, but by a path to a folder
-    that is not there. Packed images and images from linked libraries are
-    left alone - they have their data already, or are not this file's.
-
-    Returns:
-        (int, int): images relinked, and images still missing because the
-            library has no texture of that name.
-    """
+    """Point images with missing files at the same texture in this install's library, by name.
+    Returns (relinked, still missing)."""
     if not os.path.isdir(TEXTURES_PATH):
         return 0, 0
     by_name = {name.lower(): os.path.join(TEXTURES_PATH, name)
@@ -107,18 +81,8 @@ def relink_library_textures():
 
 
 def reload_library_textures():
-    """Read every texture that comes from this install again, as it is on
-    disk now - the parts' (asset_browser/textures) and the space station's
-    (models/space_station/textures).
-
-    A packed texture holds the pixels it had when it was packed, so one whose
-    file is here is unpacked back onto that file first; saving packs it
-    again, fresh (see pack_library_textures). Anything else in the file - the
-    user's own images, linked ones - is left alone.
-
-    Returns:
-        int: Textures reloaded.
-    """
+    """Reload every texture from this install as it is on disk now (parts and space station).
+    Returns how many were reloaded."""
     folders = [TEXTURES_PATH, STATION_TEXTURES_PATH]
     by_name = {}
     for folder in folders:

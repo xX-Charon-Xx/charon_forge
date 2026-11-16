@@ -1,30 +1,5 @@
 """Charon Forge's part colouring, finishes and glow.
-
-    paths.py         where the colour data is on disk
-    properties.py    names shared with the asset files, shaders and objects
-    game_data.py     the game's palettes, finishes and per part groups
-                     (resources/colours.json, written by the extraction
-                     pipeline from the game files)
-    colouring.py     colouring high res parts through object properties
-    colourise.py     a primary tint for colourable materials with no mask
-    station_paint.py the palette onto the painted hull tiles of the station
-                     decorations, which have no colourise mask either
-    emission.py      making what glows in game glow in Blender
-    packing.py       packing the library's textures into a saved .blend
-    samplers.py      keeping materials under EEVEE's 32 texture limit
-    shaders.py       how many shaders EEVEE compiles for a set of materials
-    finish_nodes.py  tearing the old hand-tuned finish preview out of old files
-    palettes.py      DT_Palettes.csv, for the flat proxy materials only
-    dedupe.py        collapsing the textures and node groups appends duplicate
-    deferral.py      running those whole-library passes once per bulk build
-    flat.py          MaterialProvider - flat materials for proxies and lines
-    mixin.py         HighResMaterialsMixin - high res parts routed to
-                     colouring.py, layered onto any provider class
-    host.py          the same, onto the base builder addon's MaterialProvider,
-                     for its set_material_provider() hook
-
-docs/MATERIALS.md at the top of the repository explains the whole system.
-"""
+docs/MATERIALS.md at the top of the repository explains the whole system."""
 
 import bpy
 
@@ -49,18 +24,8 @@ from .properties import (COLOURISE_GROUP, MESH_TAG, PROP_FINISH,
 
 
 def prepare_materials(materials=None):
-    """The per-material pass after assets are appended: take the old finish
-    splice out of anything that still has it, tint colourable materials that
-    have no colourise mask (and the station decorations' painted hull tiles),
-    and wire emission where the game draws a glow.
-    Idempotent - each material is tagged once done.
-
-    With no argument it walks every material in the file, so inside
-    defer_shared_data() it waits for the end of the block.
-
-    Returns:
-        int: Materials changed.
-    """
+    """Per-material pass after appending: remove old finish nodes, tint maskless colourable
+    materials and station tiles, wire emission. Returns materials changed."""
     if materials is None and should_defer():
         return 0
     # the tint goes in before emission, so a glow copies the tinted colour

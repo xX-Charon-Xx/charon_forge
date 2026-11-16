@@ -1,15 +1,5 @@
-"""Collapsing the whole-library passes of a bulk build into one each.
-
-dedupe.dedupe_appended_data() and the no-argument form of
-materials.prepare_materials() both walk every material node tree in the
-file. That is the right cost to pay once at the end of an import, and the
-wrong one to pay per part: placing a part calls all of them, so a scene wide
-rebuild - a proxy quality switch, a batch replace - spends most of its time
-rescanning a library that only the last pass could have changed.
-
-Inside defer_shared_data() they record that they were wanted and return
-immediately, and leaving the block runs each of them once.
-"""
+"""Runs the whole-library passes (dedupe, prepare_materials) once per bulk build
+instead of once per part."""
 
 import contextlib
 
@@ -19,15 +9,8 @@ _defer_pending = False
 
 @contextlib.contextmanager
 def defer_shared_data():
-    """Collapse the whole-library passes inside a bulk build into one each.
-
-    Nests: only the outermost block runs the deferred passes, so a caller can
-    wrap a batch without caring whether something inside it does the same.
-
-    Nothing is deferred that a caller asked for explicitly - passing a
-    materials list to prepare_materials() still does exactly that work, since
-    that form is already scoped to what changed.
-    """
+    """Defer the whole-library passes to the end of the outermost block.
+    Calls given an explicit materials list still run right away."""
     global _defer_depth, _defer_pending
     _defer_depth += 1
     try:
@@ -39,11 +22,8 @@ def defer_shared_data():
             # imported here, both of them import this module
             from . import colourise, dedupe, emission, finish_nodes, samplers
 
-            # dedupe first, so the surviving shared materials are the ones
-            # that get prepared rather than copies about to be thrown away -
-            # the same order a bulk import uses. (prepare_materials itself
-            # would see the deferral still pending, so its passes are
-            # called directly, in its order.)
+            # dedupe first so the surviving shared materials get prepared,
+            # same order as a bulk import
             dedupe.dedupe_appended_data()
             finish_nodes.strip_legacy_finish_nodes()
             samplers.ensure_sampler_budget()
@@ -61,16 +41,6 @@ def should_defer():
 
 
 def note_appended_data():
-    """Record that an asset was appended, for whatever tidy up comes next.
-
-    Appending brings its own copies of the asset's textures and of the
-    colourise node group with it, and both have to be collapsed onto the ones
-    already in the file before the finish nodes are spliced in. Inside
-    defer_shared_data() this is what schedules that single pass at the end.
-
-    Outside one it deliberately does nothing: the callers that append without
-    deferring - builder placement and the bulk importer - already run the
-    passes themselves, and running them here as well would put the per asset
-    cost back that deferring exists to remove.
-    """
+    """Schedule the post-append tidy up inside defer_shared_data().
+    Does nothing outside one: those callers run the passes themselves."""
     should_defer()

@@ -1,9 +1,5 @@
-"""The high resolution asset library - which .blend holds which part, and
-getting its mesh into bpy.data.
-
-Nothing here makes objects or knows about builders; it only hands out mesh
-datablocks. See placement.py for turning those into parts.
-"""
+"""The high res asset library: which .blend holds which part, and loading its mesh.
+Only hands out mesh datablocks; placement.py turns them into parts."""
 
 import os
 import time
@@ -17,67 +13,36 @@ from ..utils import loading_overlay, variant_map
 from ..utils.base_builder_utils import blend_utils
 from . import paths
 
-# An earlier build of the library shipped some ids as several style variants,
-# named <ID>__<STYLE>.blend, because two styles cannot live in one file without
-# breaking the one-object-per-file rule. The current library is flat - one file
-# per id, no suffixes - so nothing hits this any more, but it is kept so a
-# styled file dropped into the folder still resolves instead of being ignored.
-# Order of preference, chosen by matching each variant's bounding box against
-# the fbx proxy: Builders won 16 of the 17 pairs tested, Exterior all 3 corvette
-# cockpits. An id whose styles are all outside this list is left out of the
-# index on purpose and falls back to the fbx proxy - that was the FRE_ROOM_*
-# room kits, where no single piece is the room and picking one would be wrong.
+# Style preference for old <ID>__<STYLE>.blend files; the current library has none,
+# and an id with no listed style falls back to the fbx proxy.
 STYLE_PRIORITY = ("Builders", "Exterior")
 
-# Appended meshes are cached in bpy.data under this prefix so a second import in
-# the same session (or after a reload) reuses them instead of touching the disk.
-# The tag written alongside it is what marks a part as belonging to the new
-# colour system - it lives in materials/properties.py so the flat material code
-# can read it without importing the builder.
+# Appended meshes are cached in bpy.data under this prefix and tagged with
+# MESH_TAG, which marks a part as using the new colour system.
 MESH_PREFIX = "NMS_HR_"
 MESH_TAG = materials.MESH_TAG
 
-# True builds a "reproducible" variant (utils/variant_map.py) out of its root's
-# mesh instead of placing its own asset. That was for the base builder addon's
-# old library, where many corvette variants shipped the wrong mesh. Every id in
-# this library is extracted from the game on its own, and measured against it
-# the rebuild was wrong for 84 of the 444 variants - B_STR_T_NWTB is its root
-# B_STR_T_NETB mirrored, and a rotation (rot_z_180) can never make a mirror, so
-# it sat 3 m from where the game puts it. The fbx proxies are no better off:
-# a variant's own fbx matched the high res asset more often than the rebuilt
-# one. So every id is placed from its own asset.
+# Off: every id is placed from its own asset, as rebuilding variants from their
+# root's mesh was wrong for 84 of 444 (mirrors can't be made by rotation).
 REBUILD_VARIANTS = False
 
-# What the extraction pipeline stamps an asset's mesh with: the id it is the
-# model of. A variant rebuilt by an earlier version is a copy of its root's
-# mesh, so it carries the root's id here - which is how one saved in a file is
-# told apart from the variant's own asset, see _is_stale_rebuild.
+# The id an asset's mesh is the model of; used to spot stale rebuilt variants.
 ASSET_ID_TAG = "nms_id"
 
-# Strip the doubled geometry a lot of the library ships with as each asset is
-# appended - see _remove_duplicate_faces below for what it is and why it only
-# shows up in Cycles. The extraction pipeline now does this when it builds an
-# asset and tags the mesh (CLEAN_TAG), so this only runs for assets without
-# the tag - a library built before that. Runs once per part per session, on
-# the shared mesh every placement then points at.
+# Remove doubled faces (black patches in Cycles) from assets the pipeline
+# hasn't already cleaned; runs once per part per session.
 CLEAN_DUPLICATE_FACES = True
 
-# Two faces count as facing the same way when their normals agree at least
-# this closely. Well above anything a rounding difference produces, and well
-# below the angle a genuine back face sits at.
+# Normals agreeing at least this closely count as facing the same way.
 FACING_TOLERANCE = 0.9
 
-# On a library mesh: the pipeline already removed its duplicate faces
-# (pipeline/blend/dupfaces.py), so appending it skips the clean below. A mesh
-# without it - an older library - is still cleaned here.
+# Set on meshes the pipeline already cleaned of duplicate faces.
 CLEAN_TAG = "nms_faces_clean"
 
 # Set once per session by get_asset_index().
 _asset_index = None
 
-# Seconds spent in each stage of loading assets, and how many were loaded,
-# since the last reset_load_stats() - the importer prints them after a build
-# so a slow import shows where its time went.
+# Time spent per loading stage since reset_load_stats(), printed after an import.
 _load_stats = {"assets": 0, "append": 0.0, "merge": 0.0, "clean": 0.0, "glow": 0.0}
 
 
@@ -91,25 +56,8 @@ def get_load_stats():
 
 
 def _find_duplicate_faces(coords, normals, loop_starts, loop_totals, loop_vertices, precision=5):
-    """The faces that sit exactly on top of an earlier face pointing the same way.
-
-    Pure numpy over flat arrays, so it can be checked without Blender - see
-    _remove_duplicate_faces for what the duplicates are and why they go.
-
-    A face's key is the sorted set of its vertices' positions, rounded to
-    `precision` decimals the way int() truncates. Faces sharing a key are
-    compared in index order: each one is dropped if it faces the same way as
-    one already kept, and kept otherwise (a genuine back face).
-
-    Args:
-        coords: vertex positions, flat (x, y, z, x, y, z, ...).
-        normals: face normals, flat.
-        loop_starts, loop_totals: per face, its first loop and loop count.
-        loop_vertices: per loop, its vertex index.
-
-    Returns:
-        list: Indices of the faces to remove, ascending.
-    """
+    """Indices of faces lying exactly on an earlier face that points the same way.
+    Pure numpy over flat arrays; opposite-facing coincident faces are kept."""
     face_count = len(loop_totals)
     if face_count < 2:
         return []
@@ -177,41 +125,8 @@ def _find_duplicate_faces(coords, normals, loop_starts, loop_totals, loop_vertic
 
 
 def _remove_duplicate_faces(mesh, precision=5):
-    """Drop faces that sit exactly on top of another face pointing the same way.
-
-    A lot of the models-high-res library was built by joining two source meshes
-    without merging where they overlapped - T_WALL_Q_H1 ships 76 such pairs,
-    B_WNG_B nearly 20,000. Two faces at the same depth are a coin flip for a ray
-    tracer, and because the duplicates carry their own custom split normals the
-    losing pick shades black: the part renders with black patches in Cycles
-    while the viewport and EEVEE, whose rasteriser breaks the tie consistently,
-    look perfectly fine.
-
-    Only exact duplicates go: the same set of vertex positions AND facing the
-    same way. Faces that coincide but point in opposite directions are how
-    decals, holograms, foliage and glass are modelled all through the library -
-    BLD_PLANET_HOLO is 16,848 of them against 96 real duplicates - and those
-    have to survive untouched.
-
-    Positions rather than vertex indices, because the joined halves bring their
-    own vertices: the duplicated faces in T_WALL_Q_H1 sit on 820 coincident but
-    separate vertices, so nothing about the indices gives the overlap away.
-
-    The search is numpy (_find_duplicate_faces): it runs over every face of
-    every mesh appended, a few hundred thousand on the big corvette parts,
-    which in plain python was most of the time it took to place one.
-
-    This is specific to how models-high-res was generated, so unlike
-    add_to_scene/select/and so on it has no equivalent in the base builder
-    addon and stays implemented here rather than resolved through it.
-
-    Args:
-        mesh (bpy.types.Mesh): The mesh to clean, edited in place.
-        precision (int): Decimal places a position is compared at.
-
-    Returns:
-        int: How many faces were removed.
-    """
+    """Drop exact duplicate faces, which render as black patches in Cycles.
+    Returns how many were removed; back-to-back faces (decals, glass) are kept."""
     face_count = len(mesh.polygons)
     if face_count < 2:
         return 0
@@ -302,20 +217,14 @@ def _cached_mesh(object_id):
 
 
 def load_high_res_mesh(object_id, asset_index=None, _leftovers=None):
-    """The shared mesh datablock for an object id, appending it on first use.
-
-    Returns:
-        bpy.types.Mesh: The mesh, or None when the library doesn't cover the id.
-    """
+    """The shared mesh for an id, appended on first use; None if the library lacks it."""
     asset_index = asset_index if asset_index is not None else get_asset_index()
 
     cached = _cached_mesh(object_id)
     if cached is not None and not _is_stale_rebuild(cached, object_id):
         return cached
 
-    # A variant rebuilt before REBUILD_VARIANTS was turned off, saved with the
-    # file: out of the cache's way, then everything using it moved onto the
-    # asset, so a saved scene heals as soon as the id is placed or imported
+    # a stale rebuilt variant saved in the file: move its users onto the real asset
     stale = cached
     if stale is not None:
         stale.name = "OLD_" + stale.name
@@ -331,10 +240,7 @@ def load_high_res_mesh(object_id, asset_index=None, _leftovers=None):
 
 
 def _is_stale_rebuild(mesh, object_id):
-    """A cached variant mesh that was rebuilt out of its root's asset, while
-    this library no longer rebuilds. Matched on the root's id rather than on
-    any id that differs - an alternate form's asset (B_HAB_A_OPEN) carries
-    the id of the part it is a form of."""
+    """A cached variant mesh rebuilt from its root's asset, now that rebuilding is off."""
     if REBUILD_VARIANTS:
         return False
     rebuild = variant_map.get_rebuild(object_id)
@@ -342,10 +248,7 @@ def _is_stale_rebuild(mesh, object_id):
 
 
 def _load_uncached_mesh(object_id, asset_index, _leftovers):
-    # A reproducible variant is built out of the mesh it is a variant of rather
-    # than out of its own asset - most of the corvette variants ship the wrong
-    # mesh, and the transform in objects_map.json is measured, so this is the
-    # more trustworthy of the two. See nms/utils/variant_map.py.
+    # with REBUILD_VARIANTS on, a reproducible variant is built from its root's mesh
     if REBUILD_VARIANTS:
         mesh = rebuild_variant_mesh(object_id, asset_index, _leftovers)
         if mesh is not None:
@@ -365,16 +268,8 @@ def _load_uncached_mesh(object_id, asset_index, _leftovers):
 
 
 def load_high_res_meshes(object_ids, asset_index=None):
-    """The shared mesh of every id at once - what a bulk import asks for.
-
-    Every asset the ids need is appended in one go before anything is built,
-    variants' roots first, and whatever the appends leave over (the asset
-    files' own objects) is removed in a single batch_remove at the end rather
-    than one rescan of the file per asset.
-
-    Returns:
-        dict: {object_id: mesh, or None when the library doesn't cover it}
-    """
+    """{object_id: mesh or None} for many ids at once, for bulk imports.
+    Leftover appended objects are removed in one batch at the end."""
     asset_index = asset_index if asset_index is not None else get_asset_index()
     leftovers = []
     meshes = {}
@@ -388,13 +283,8 @@ def load_high_res_meshes(object_ids, asset_index=None):
 
 
 def _append_asset(object_id, blend_path, leftovers):
-    """Append an id's asset and make its mesh the id's shared mesh.
-
-    Only the mesh is wanted: each placement gets a fresh object. An asset
-    holding the one mesh has just that appended; any other shape of file has
-    its objects appended, the first mesh object's mesh kept, and the objects
-    added to `leftovers` for the caller to remove in one batch.
-    """
+    """Append an id's asset and make its mesh the shared one.
+    Any appended objects go into `leftovers` for the caller to remove."""
     started = time.perf_counter()
     with bpy.data.libraries.load(blend_path, link=False) as (source, target):
         if len(source.meshes) == 1:
@@ -433,27 +323,14 @@ def _append_asset(object_id, blend_path, leftovers):
     # materials/emission.py
     materials.emission.stamp_glow(mesh, object_id)
     _load_stats["glow"] += time.perf_counter() - cleaned
-    # The append brought this asset's own copies of its textures and of the
-    # colourise node group with it. A caller inside a deferred block is not
-    # going to call the collapse itself, so tell it there is now something to
-    # collapse - see materials.note_appended_data.
+    # the append brought its own textures and node groups; flag them for collapsing
     materials.note_appended_data()
     return mesh
 
 
 def rebuild_variant_mesh(object_id, asset_index=None, _leftovers=None):
-    """Build a variant's mesh by transforming the mesh of its root part.
-
-    Only reproducible variants come back with anything - for everything else
-    this returns None and the caller loads the id's own asset as usual. The
-    result is cached and tagged exactly like an appended mesh, so from here on
-    it is shared across placements and picked up by the cache in
-    load_high_res_mesh like any other.
-
-    Returns:
-        bpy.types.Mesh: The rebuilt mesh, or None when the id is not a
-            reproducible variant or its root has no asset to build from.
-    """
+    """Build a reproducible variant's mesh by transforming its root's mesh.
+    Returns None for any other id, or when the root has no asset."""
     rebuild = variant_map.get_rebuild(object_id)
     if rebuild is None:
         return None
@@ -478,16 +355,8 @@ def rebuild_variant_mesh(object_id, asset_index=None, _leftovers=None):
 
 
 def transformed_copy(mesh, matrix):
-    """A copy of a mesh with a mesh space matrix baked into it.
-
-    Always a copy - the mesh being read here is the shared datablock every
-    placement of the root part is pointing at, and transforming that in place
-    would move every one of them.
-
-    Returns:
-        bpy.types.Mesh: The new mesh. Unnamed and untagged - the caller owns
-            both, because the two libraries name their caches differently.
-    """
+    """A copy of a mesh with a matrix baked in, never the shared mesh itself.
+    Left unnamed and untagged for the caller."""
     copied = mesh.copy()
     copied.transform(matrix)
 
@@ -499,19 +368,8 @@ def transformed_copy(mesh, matrix):
 
 
 def reimport_library_meshes():
-    """Append every library part in the file again from its asset, as it is
-    on disk now, and move everything that used the old mesh onto the new one
-    - placed parts, and the part copies the Forge's objects hold. What the
-    old version brought in (its materials, textures, node groups) is removed
-    once nothing uses it.
-
-    Groups are merged meshes of their own and are rebuilt separately - see
-    Group.switch_scene_proxy_quality(force=True).
-
-    Returns:
-        (int, int): parts reimported, and parts whose asset could not be
-            loaded (left as they were).
-    """
+    """Reload every library part in the file from its asset on disk and drop unused old data.
+    Returns (reimported, failed); groups are rebuilt separately."""
     old_meshes = [mesh for mesh in bpy.data.meshes
                   if MESH_TAG in mesh and mesh.library is None
                   and mesh.name.startswith(MESH_PREFIX)]
@@ -565,8 +423,7 @@ def reimport_library_meshes():
 
 
 def _remove_unused(old_materials):
-    """Remove old materials nothing uses now, then the textures and node
-    groups only they used - again until nothing more comes free."""
+    """Remove old materials nothing uses, then textures and node groups freed by that."""
     candidates = set()
     for mat in old_materials:
         if mat.node_tree is not None:

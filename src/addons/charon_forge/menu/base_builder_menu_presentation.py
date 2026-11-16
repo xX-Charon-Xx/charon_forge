@@ -8,18 +8,14 @@ from .. import addon_preferences
 from ..addon import asset_browser_presentation
 from ..utils import base_builder_utils, icon_utils
 
-# The clipboard import/export and the save editor are features of the addon
-# this menu was ported from that Charon Forge doesn't have yet. The I/O
-# dropdown draws their parts only once they exist, so it lights up by itself
-# when they are added rather than raising from every redraw until then.
+# clipboard import/export isn't in Charon Forge yet; the I/O dropdown draws it
+# only once the operators exist
 CLIPBOARD_IMPORT_OP = "object.nms_import_nms_data"
 CLIPBOARD_EXPORT_OP = "object.nms_export_nms_data"
 EXPORT_PINNED_BASE_OP = "object.export_pinned_base"
 
-# The save manager - its scene.nms_save_data, the pin/import/export
-# operators and the UI drawing them - is the base builder addon's. Charon
-# Forge's save_editor copy only reads and writes save files for the
-# Helmsman, and registers none of that.
+# the save manager is the base builder addon's; Charon Forge's save_editor
+# only reads and writes saves for the Helmsman
 SAVE_EDITOR_PRESENTATION = "save_editor.save_editor_presentation"
 
 
@@ -36,9 +32,7 @@ QUICK_ACCESS_ICON_SIZE = 3
 
 
 def draw_empty_rows(layout, count):
-    """`count` rows of blank space, each as tall as a row of asset tiles -
-    a QUICK_ACCESS_ICON_SIZE icon over a line for its name (see
-    asset_browser_presentation.draw_grid_element) - with no box drawn."""
+    """`count` blank rows, each as tall as a row of asset tiles."""
     for _ in range(max(count, 0)):
         row = layout.row(align=True)
         for _ in range(QUICK_ACCESS_COLUMNS):
@@ -56,9 +50,8 @@ def operator_exists(idname):
 
 
 def get_save_editor_presentation():
-    """The base builder addon's save editor presentation module, or None
-    while that addon isn't loaded. Looked up in sys.modules each time, so it
-    is picked up once the addon is enabled - and never imported from here."""
+    """The base builder addon's save editor presentation module, or None while
+    that addon isn't loaded."""
     return base_builder_utils.get_module(SAVE_EDITOR_PRESENTATION)
 
 
@@ -95,9 +88,7 @@ def get_pinned_base(context):
 
 
 def draw_save_manager(layout, context):
-    """Picking a save, and a base or corvette in it to import, export or pin -
-    the bottom of the Charon dropdown. The pinned base itself is with the
-    import/export."""
+    """Pick a save, and a base or corvette in it to import, export or pin."""
     save_editor_presentation = get_save_editor_presentation()
     save_data = getattr(context.scene, "nms_save_data", None)
     if save_editor_presentation is None:
@@ -198,10 +189,8 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
         pcoll = icon_utils.get_asset_icons_pcoll()
         
         
-        # Drawn as two operators rather than as the enum itself: the switch
-        # has to run as an operator to have its scene edits stick and be
-        # undoable, so the enum only records which one was last used and
-        # `depress` makes the pair read as an expanded enum.
+        # two operators rather than the enum, so the switch is undoable;
+        # `depress` makes them look like an expanded enum
         quality = context.scene.enum_proxy_quality
         proxy_box = layout.column(align=True)
         proxy_box.label(text="Proxy Quality")
@@ -226,9 +215,7 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
             note.label(text="Simple Proxies need the", icon="INFO")
             note.label(text=f"{base_builder_utils.HOST_ADDON_NAME} addon", icon="BLANK1")
 
-        # Drawn straight off the preferences rather than mirrored onto the
-        # scene: whether opening a file re-switches it is a per-user choice
-        # that has to outlive the file it was toggled in.
+        # from the preferences, not the scene: it's a per-user choice
         prefs = addon_preferences.get_addon_preferences()
         if prefs is not None:
             proxy_box.prop(prefs, "auto_switch_on_open")
@@ -246,9 +233,8 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
         recent_data = asset_browser.get_recent_objects_data()
         fav_data = asset_browser.get_favourite_objects_data()
 
-        # an icon grid of asset_data ({label: object ids}), or "No Items" -
-        # always QUICK_ACCESS_ROWS tall, so the dropdown keeps its size
-        # whatever is showing
+        # an icon grid of asset_data ({label: object ids}), always
+        # QUICK_ACCESS_ROWS tall so the dropdown keeps its size
         def draw_assets(container, asset_data):
             shown = 0
             if asset_data:
@@ -269,9 +255,8 @@ class VIEW3D_PT_nms_base_builder(bpy.types.Panel):
                 container.label(text="No Items")
             draw_empty_rows(container, QUICK_ACCESS_ROWS - math.ceil(shown / QUICK_ACCESS_COLUMNS))
 
-        # The search box and the Favourites/Recent switch share a row, and
-        # the grid under them shows whichever is in use - the search's
-        # results while there is anything typed, else the tab picked.
+        # the grid shows the search results while anything is typed, else the
+        # picked tab
         layout.separator()
         quick_access_column = layout.column(align = True)
         quick_access_column.label(text = "Quick Access")

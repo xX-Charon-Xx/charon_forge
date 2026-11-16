@@ -10,6 +10,7 @@ from .addon import helmsman
 from .addon import optimiser
 from .addon import the_forge
 from .addon import the_watchtower
+from .addon import variants
 from .addon_preferences import CharonAddonPreferences
 from .menu import base_builder_menu, base_builder_menu_operators
 from .objects import preset
@@ -78,6 +79,7 @@ def _register():
     header.register()
     optimiser.register()
     the_forge.register()
+    variants.register()
     the_watchtower.register()
     crossing.register()
     helmsman.register()
@@ -104,6 +106,7 @@ def _unregister(ignore_errors=False):
         asset_browser.unregister,
         materials.unregister,
         the_watchtower.unregister,
+        variants.unregister,
         the_forge.unregister,
         crossing.unregister,
         helmsman.unregister,

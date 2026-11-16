@@ -1,22 +1,5 @@
-"""The Watchtower's text overlay in the 3D viewport.
-
-Charon Forge's own version of the base builder addon's viewport_overlay.py,
-drawn as blocks of text in the bottom or top left corner of the viewport:
-
-  - Base: the base or corvette the scene was imported from, its type
-    (planet base, corvette, freighter, space base, space station base...)
-    and the part count, the parts inside groups included.
-  - Active Part: what the selected object is - a part, a group, a shape
-    made in The Forge (sphere, circle...), a prefab or a curve, whichever
-    addon made it - with its id, name, colour and material. A prefab says
-    whether it is one of your saved presets or came in from another project.
-  - Over the ship's primary cockpit and landing bay (the optimiser panel's
-    picks), a floating label naming each.
-
-It reads nothing of that addon's but, when it is loaded, the base its
-importer brought in (scene.nms_base_tool), so it works on its own. What is
-shown, and where, is in the addon preferences - see the Watchtower panel.
-"""
+"""The Watchtower's text overlay in the 3D viewport: the base, the active part,
+and labels over the primary cockpit and landing bay."""
 
 import os
 import re
@@ -213,9 +196,8 @@ def part_label(object_id):
     return f"{name} ({object_id})" if name else object_id
 
 
-# Prefabs are the presets both this addon and the base builder addon save, to
-# the one folder they share. Looking them up lists that folder, so what it
-# holds is kept for a moment rather than listed again every redraw.
+# Prefabs are listed from the shared presets folder, so the listing is kept
+# for a moment rather than redone every redraw
 PREFAB_CACHE_SECONDS = 2.0
 _prefab_cache = {"time": -PREFAB_CACHE_SECONDS, "presets": {}}
 

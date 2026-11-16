@@ -1,20 +1,5 @@
-"""The game's lighting data: resources/lighting/lighting.json and its textures.
-
-Written by the extraction pipeline (pipeline/outputs/lighting.py) from the
-game's sky tables - nothing in it is tuned by hand:
-
-    globals.sky         gcskyglobals: day / dusk / night / space light colours,
-                        the sunset and night fade thresholds, the ambient factor
-    globals.planet_sky  the planet sun disc
-    globals.graphics    gcgraphicsglobals: tonemap exposure, model renderer light
-    planet.<list>       day / dusk / night / day_firestorm / day_gravstorm sky
-                        entries, generic ('Generic', 'Dark') and per biome
-    space.common/rare   spaceskycolours / spacerareskycolours entries
-    spacedome           the space nebula masks (R, G, B are separate masks)
-    nebulaplasma        the tiling nebula wisps (filaments in alpha)
-
-Loaded on first use and cached.
-"""
+"""resources/lighting/lighting.json and its textures, written by the pipeline
+from the game's sky tables. Loaded on first use and cached."""
 
 import json
 import os

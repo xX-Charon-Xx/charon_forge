@@ -1,8 +1,5 @@
-"""Placing parts on surface frames.
-
-A frame is a point with three directions: `along` and `up` on the surface,
-`normal` out of it. Pure numpy, no Blender.
-"""
+"""Placing parts on surface frames: a point with `along` and `up` on the surface
+and `normal` out of it. Pure numpy, no Blender."""
 
 import math
 
@@ -12,9 +9,8 @@ FULL_TURN = 2 * math.pi
 
 
 def arc(start, end):
-    """(start, sweep) for the angles from `start` anticlockwise round to
-    `end` - past 360° and back round if `end` is the smaller. The same start
-    and end go all the way round."""
+    """(start, sweep) going anticlockwise from `start` to `end`, wrapping past 360°.
+    The same start and end make a full turn."""
     start = start % FULL_TURN
     sweep = (end - start) % FULL_TURN
     return start, (FULL_TURN if sweep < 1e-6 else sweep)
@@ -27,14 +23,8 @@ def unit(vectors):
 
 
 def stretch(centres, normals, along, axes):
-    """Frames on a surface, carried onto that surface stretched by `axes`:
-    points move with the stretch and a part's sides turn with the surface
-    under it - directions along a surface stretch like it, the one out of it
-    by the inverse - so it still lies flat on it.
-
-    Returns:
-        (centres, normals, along, up)
-    """
+    """Carry frames onto their surface stretched by `axes`, keeping parts flat on it.
+    Returns (centres, normals, along, up)."""
     axes = np.asarray(axes, dtype=np.float64)
     out = unit(normals / axes)
     stretched = along * axes
@@ -43,18 +33,8 @@ def stretch(centres, normals, along, axes):
 
 
 def place(centres, normals, along, up, turn, centre, scale):
-    """Positions and rotations for parts laid on frames.
-
-    Args:
-        centres (N x 3): where each part's centre goes.
-        turn (3x3): the part's rotation into a frame (x along, y up, z out),
-            its local rotation included.
-        centre (3): the part's centre in that frame, put on the frame's point.
-        scale (float or N): every part's scale, or each one's.
-
-    Returns:
-        (N x 3, N x 3 x 3): where each part's origin goes, and its rotation.
-    """
+    """Origins and rotations for parts laid on frames; `turn` rotates a part into a
+    frame (x along, y up, z out) and `centre` is put on the frame's point."""
     frames = np.stack([along, up, normals], axis=-1)
     rotations = frames @ np.asarray(turn, dtype=np.float64)
     offsets = frames @ np.asarray(centre, dtype=np.float64)

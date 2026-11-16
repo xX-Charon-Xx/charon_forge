@@ -13,16 +13,8 @@ from .base_builder_menu_presentation import (EXPORT_PINNED_BASE_OP,
 
 @bpy.app.handlers.persistent
 def apply_default_proxy_quality(_dummy):
-    """Match the file just opened to the preferences page's default quality.
-
-    Runs on every blend file load - including File > New, which fires
-    load_post the same as opening a saved file - so a scene never sits at the
-    "wrong" proxy quality (and the base builder addon at the "wrong" active
-    builder) for what the user configured in Charon Forge's preferences.
-
-    Does nothing while the "Auto Switch on Open" toggle is off, leaving an
-    opened file at whatever quality it was saved at.
-    """
+    """Switch every opened file (and File > New) to the default proxy quality.
+    Does nothing while "Auto Switch on Open" is off."""
     prefs = addon_preferences.get_addon_preferences()
     if prefs is None or not prefs.auto_switch_on_open:
         return
@@ -41,9 +33,8 @@ def apply_default_proxy_quality(_dummy):
               + base_builder_menu_operators.simple_proxies_message())
         return
 
-    # Low res can't keep The Forge's shapes. The switch waits for a popup
-    # offering to split them first - declining leaves the file as it is -
-    # since nothing can be asked from inside a file load.
+    # low res can't keep The Forge's shapes, so a popup offers to split them
+    # first; nothing can be asked from inside a file load
     if not target_high_res and base_builder_menu_operators.get_scene_shapes(scene):
         base_builder_menu_operators.offer_switch_to_low()
         return
@@ -90,11 +81,8 @@ def register_menu():
         default = "fav"
     )
 
-    # Which quality this scene was last switched to. Written by
-    # base_builder_menu_operators.set_proxy_quality rather than driving it:
-    # an update callback here would have to run the switch from inside a
-    # property write, where blender does not let an operator's edits stick.
-    # The two buttons in the Base Builder dropdown are drawn from it instead.
+    # the quality this scene was last switched to, written by set_proxy_quality;
+    # no update callback, since edits made inside a property write don't stick
     bpy.types.Scene.enum_proxy_quality = EnumProperty(
         name="Proxy Quality",
         description="Which mesh source placed parts use, in the scene and for anything built afterwards",

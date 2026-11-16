@@ -5,11 +5,7 @@ from ..utils import helmsman_utils, loading_overlay
 
 
 def _load_batch_text(operator, context, text, source):
-    """Validate a batch and fill the review list from it.
-
-    Nothing is changed when it fails validation - the list the user already
-    has stays as it was.
-    """
+    """Validate a batch and fill the review list from it; an invalid batch changes nothing."""
     try:
         ships = helmsman_utils.parse_batch(text)
     except helmsman_utils.BatchError as error:
@@ -117,16 +113,8 @@ class ExportToSave(bpy.types.Operator):
     bl_label = "Export to Save"
 
     def _get_writable_rows(self, helmsman):
-        """Rows that have a ship slot to be written to.
-
-        Approve/Reject is only a review result for Export Results to
-        Clipboard - it has no say in what is written here. An unchecked row
-        is skipped outright.
-
-        Reads slot_value rather than slot: slot is a dynamic enum stored as
-        a number, and after the save's corvettes change that number can
-        point at a different corvette until the rows are reassigned.
-        """
+        """Checked rows with a ship slot, whatever their review status. Reads slot_value,
+        as slot's stored number can point at another corvette after a save change."""
         from ..utils import helmsman_utils
 
         return [

@@ -1,30 +1,10 @@
 """The batch ship list the helmsman panel loads, and the results it writes.
-
-Split out the same way optimiser_utils.py is: this is entirely about the
-batch format, nothing Blender specific.
-
-A batch is a JSON array, from the clipboard or a .json/.txt file:
-
-    [{
-      "id": "9f34d533-...-1fa5a26610d2",
-      "name": "TYN | Drake Golem MK-3",
-      "part_count": 844,
-      "objects": [ ...the ship's parts... ],
-      "approval_status": "pending",
-      "note": ""
-    }, ...]
-
-"objects" is the ship's parts English keyed (ObjectID/Position/Up/At/
-Timestamp/UserData) - the shape save_translation.translate_to_obf_data
-expects, so it can go straight into a save file without reshaping.
-"""
+A batch is a JSON array of {"id", "name", "part_count", "objects", "approval_status", "note"}."""
 
 import json
 
-# What a review row's slot sits on when the save has no corvette left for
-# it - see helmsman.get_slot_enum_items. Here rather than in helmsman.py so
-# helmsman_presentation.py can read it too without importing helmsman.py,
-# which imports it back.
+# A review row's slot when the save has no corvette left for it; here so
+# helmsman_presentation.py can read it without importing helmsman.py
 NO_SLOT_ID = "NONE"
 NO_SLOT_LABEL = "None"
 
@@ -82,17 +62,7 @@ def _validate_ship(index, ship, errors):
 
 
 def parse_batch(text):
-    """The ships in a batch, validated.
-
-    Args:
-        text (str): The clipboard or file contents.
-
-    Returns:
-        list: The batch's ship dicts, exactly as given.
-
-    Raises:
-        BatchError: What is wrong with it, naming the ships and fields.
-    """
+    """The ships in a batch, validated. Raises BatchError naming the ships and fields."""
     if not text or not text.strip():
         raise BatchError("it is empty")
 
@@ -132,16 +102,8 @@ def get_review_status(ship):
 
 
 def build_results(rows):
-    """The review results as a batch, for Export to clipboard/file.
-
-    Args:
-        rows: (ship dict, review_status, note) for every row, in list order.
-
-    Returns:
-        list: The approved and rejected ships only, each as
-            {"id", "approval_status"} plus "note" when one was written.
-            Pending ships are left out entirely.
-    """
+    """The approved and rejected ships as a batch for export, each as
+    {"id", "approval_status"} plus "note" when written."""
     results = []
     for ship, review_status, note in rows:
         status = REVIEW_TO_APPROVAL.get(review_status)

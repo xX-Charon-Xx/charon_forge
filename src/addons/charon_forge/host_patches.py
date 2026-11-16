@@ -164,6 +164,16 @@ def _wrap_curve_apply_color(original, curve_module):
     return apply_color
 
 
+def _wrap_update_curves(original):
+    # the addon's asset browser window adds parts from its own thread, where
+    # bpy.context has no active_object; no curve was edited there, so skip
+    def update_curves(*args, **kwargs):
+        if not hasattr(bpy.context, "active_object"):
+            return None
+        return original(*args, **kwargs)
+    return update_curves
+
+
 def _wrap_apply_colour(original, curve_module):
     def apply_colour(self, colour_index=0, material=0):
         result = original(self, colour_index=colour_index, material=material)
@@ -293,6 +303,7 @@ def install():
     if curve_module is not None:
         done &= _patch(curve_module, "apply_color",
                        lambda f: _wrap_curve_apply_color(f, curve_module))
+        done &= _patch(curve_module, "update_curves", _wrap_update_curves)
     else:
         done = False
 

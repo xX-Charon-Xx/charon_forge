@@ -1,10 +1,5 @@
-"""User lighting presets: every setting of scene.charon_lighting, as JSON in
-~/CharonForge/lighting_presets/<name>.json, usable in any scene.
-
-Neither `enabled` nor the lamps are saved: loading a preset never turns the
-rig or the game lamps on or off - the lamps are only ever turned on by the
-Lamps button.
-"""
+"""User lighting presets as JSON in ~/CharonForge/lighting_presets/.
+They never store `enabled` or the lamps."""
 
 import json
 import os

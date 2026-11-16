@@ -1,31 +1,5 @@
-"""Reading and writing ship files: .nmsship, and plain .json/.txt parts.
-
-A .json or .txt ship is just its parts, either as a bare array or inside
-an object's "Objects" array - {"Objects": [...]}, or a whole base export
-with BaseVersion, GalacticAddress and the rest beside it. The shapes the
-game tools and the builder write.
-
-A .nmsship is one corvette, as a zip of three JSON files, each UTF-8 with a
-byte order mark:
-
-    objects.json   the ship's parts, English keyed (ObjectID/Position/Up/At/
-                   Timestamp/UserData) - the same shape the builder's
-                   serialise() writes and deserialise_from_data() reads
-    so.json        the game's ShipOwnership entry: name, model and seed,
-                   inventories, layout
-    ccd.json       its character customisation data
-
-Only objects.json is anything Blender builds. so.json and ccd.json come
-through untouched from the file a ship was imported from, or from
-resources/nmsship_template.json (a corvette with empty inventories, given a
-fresh seed) for a ship that was not.
-
-In so.json, Resource.Filename is the ship's type (BIGGS/BIGGS.SCENE.MBIN is
-a corvette) and Resource.Seed, [valid, "0x..."], is what the game generates
-that ship from. Name may carry the game's colour tags, <PETS1>...</>.
-
-Nothing Blender specific.
-"""
+"""Reading and writing ship files: .nmsship (a zip of objects.json, so.json and
+ccd.json) and plain .json/.txt parts. Nothing Blender specific."""
 
 import json
 import os
@@ -41,10 +15,8 @@ TEMPLATE_JSON = os.path.join(
 )
 
 
-# The BaseVersion parts are placed as when a file does not say - the one
-# the builder's own serialise() writes, and what corvettes use. Below 5 the
-# builder places parts with the older orientation, see
-# Builder.deserialise_from_data.
+# The BaseVersion used when a file doesn't say, the one serialise() writes;
+# below 5 the builder places parts with the older orientation
 DEFAULT_BASE_VERSION = 8
 
 FORMAT_NMSSHIP = "NMSSHIP"
@@ -69,14 +41,7 @@ def _is_vector(value):
 
 def validate_parts(parts, source):
     """Check a parts list is something the builder can place.
-
-    Every part needs an ObjectID and a Position/Up/At of three numbers;
-    Timestamp and UserData, when there, must be whole numbers, and Message
-    text.
-
-    Raises:
-        NmsShipError: Naming the parts and fields at fault.
-    """
+    Raises NmsShipError naming the parts and fields at fault."""
     if not isinstance(parts, list):
         raise NmsShipError(f"{source} must be an array of parts")
     if not parts:
@@ -125,15 +90,8 @@ def _read_json(archive, name):
 
 
 def read(path):
-    """The three parts of a .nmsship file, validated.
-
-    Returns:
-        (list, dict, dict): parts, ship record (so.json), customisation
-            (ccd.json).
-
-    Raises:
-        NmsShipError: What is wrong with it.
-    """
+    """The parts, ship record (so.json) and customisation (ccd.json) of a .nmsship,
+    validated. Raises NmsShipError."""
     try:
         archive = zipfile.ZipFile(path)
     except (OSError, zipfile.BadZipFile) as error:
@@ -153,16 +111,8 @@ def read(path):
 
 
 def read_parts_text(text):
-    """The parts in a .json/.txt ship, validated - a bare array of parts, or
-    an object holding them in "Objects".
-
-    Returns:
-        (list, int): the parts, and the file's BaseVersion (or
-            DEFAULT_BASE_VERSION when it has none).
-
-    Raises:
-        NmsShipError: What is wrong with it.
-    """
+    """(parts, BaseVersion) of a .json/.txt ship, a bare array or {"Objects": [...]},
+    validated. Raises NmsShipError."""
     if not text or not text.strip():
         raise NmsShipError("it is empty")
     try:
@@ -184,17 +134,8 @@ def read_parts_text(text):
 
 
 def read_any(path):
-    """Any ship file, told apart by its contents rather than its extension:
-    a zip is a .nmsship, anything else is read as .json/.txt parts.
-
-    Returns:
-        (list, dict or None, dict or None, int): parts, the ship record and
-            customisation when it was a .nmsship, and the BaseVersion to
-            place the parts as.
-
-    Raises:
-        NmsShipError: What is wrong with it.
-    """
+    """(parts, ship record, customisation, BaseVersion) of any ship file, told apart by
+    its contents: a zip is a .nmsship, else .json/.txt. Raises NmsShipError."""
     if zipfile.is_zipfile(path):
         return read(path) + (DEFAULT_BASE_VERSION,)
 
@@ -225,12 +166,8 @@ def new_seed():
 
 
 def load_template():
-    """(ship record, customisation) for a ship that has none of its own.
-
-    The template was taken from a real ship, so it is given a seed of its
-    own each time - Resource.Seed is what the game generates a ship from,
-    and every template export would otherwise share that one ship's.
-    """
+    """(ship record, customisation) from the template, for a ship that has none,
+    given a fresh seed each time."""
     with open(TEMPLATE_JSON, "r", encoding="utf-8") as template_file:
         template = json.load(template_file)
     ship = template["so"]
@@ -249,11 +186,8 @@ def _encode(data, indent):
 
 
 def write(path, objects, ship, customisation):
-    """Write a .nmsship file, replacing any file already at `path`.
-
-    Written beside it first and moved into place, so a failure part way
-    through never leaves a broken file where a good one was.
-    """
+    """Write a .nmsship file, written beside `path` first and moved into place
+    so a failure never leaves a broken file."""
     temp_path = path + ".tmp"
     try:
         with zipfile.ZipFile(temp_path, "w", zipfile.ZIP_DEFLATED) as archive:

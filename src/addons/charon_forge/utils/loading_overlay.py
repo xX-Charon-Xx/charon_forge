@@ -1,27 +1,5 @@
-"""A loading card in the middle of the 3D viewport while heavy work runs.
-
-Blender draws nothing while an operator runs, so an import or a save file
-write just freezes the window. Work wrapped in loading() can put a card up
-over every 3D viewport - a title, what it is doing now and a bar - and keep it
-moving:
-
-    with loading_overlay.loading("Importing ship"):
-        for index, part in enumerate(parts):
-            loading_overlay.step("Placing parts", fraction=index / len(parts))
-            ...
-
-The card only comes up once the work has run for DELAY seconds, so quick
-work never flashes it. It can only be drawn from inside the work, so step()
-is what shows and redraws it: call it in loops (it is cheap, and redraws at
-most every MIN_INTERVAL), and with show=True right before a single long call
-that can't be stepped through - reading a save file, say - so the card is up
-before the wait rather than after it. The bar fills to `fraction` when there
-is one, and slides back and forth when there isn't.
-
-Nested loading() blocks share the outer card, the inner title reading as the
-detail line under it. Outside of any loading() block step() does nothing, so
-library code can call it freely.
-"""
+"""A loading card over the 3D viewport while heavy work runs inside loading().
+step() shows and redraws it; outside a loading() block it does nothing."""
 
 import functools
 import math
@@ -143,14 +121,8 @@ def loading(title, delay=DELAY):
 
 
 def step(detail=None, fraction=None, show=False):
-    """Say how the work is getting on, and show or redraw the card when due.
-
-    Args:
-        detail (str): What is being done now, the line under the title.
-        fraction (float): How far through, 0 to 1, or None to leave it.
-        show (bool): Put the card up now, delay or not, and redraw it - for
-            right before one long call that can't be stepped through.
-    """
+    """Update the card's detail line and bar (fraction 0-1), and redraw it when due.
+    show=True puts it up now, for right before one long call."""
     state = _state
     if state is None:
         return

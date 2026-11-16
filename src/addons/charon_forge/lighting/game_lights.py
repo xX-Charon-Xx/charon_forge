@@ -1,23 +1,5 @@
-"""The game's own lamps as Blender lights, in one managed collection.
-
-A part stays one object with no children. Its lamps - the LIGHT nodes of its
-game scenes, which the pipeline already copies into resources/colours.json
-(objects.<id>.lights: matrix, colour, intensity, radius, fov) - are made as
-separate light objects in the "Charon Game Lights" collection. Each follows
-its part through a Child Of constraint, not a parent, so moving the part moves
-its lamps, and the whole layer can be deleted or rebuilt at any time
-(`rebuild`).
-
-Why real lights and not only glowing surfaces (materials/emission.py): EEVEE
-does not light a room from emission unless raytracing is on, and even then
-a lamp's few square centimetres of glowing surface are noisy. A point / spot
-light does both engines the same way. While the layer is on, the emission
-boost is switched off (emission.set_lamps) so a lamp is not counted twice.
-
-Power: a game light reaches `intensity / d^2`; a Blender point light of P
-watts matches that at P = 4 pi x intensity - the same scale the emission
-boost uses. `power` (the panel's Glow) scales all of them at once.
-"""
+"""The parts' game lamps as Blender lights in the "Charon Game Lights" collection,
+each following its part with a Child Of constraint. P = 4 pi x intensity."""
 
 import math
 
@@ -92,11 +74,7 @@ def _light_data(object_id, light, power):
 
 
 def rebuild(scene, power=1.0):
-    """Every Charon part's game lamps, and nothing else, in the collection.
-
-    Returns:
-        int: How many lights were made.
-    """
+    """Rebuild every Charon part's game lamps; returns how many were made."""
     clear(scene)
     coll = _collection(scene, create=True)
     made = 0

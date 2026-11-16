@@ -1,19 +1,5 @@
-"""Collapsing the datablocks that appending assets duplicates.
-
-Appending is per file, and Blender has no idea that two asset files reference
-the same texture on disk or carry the same node group - it just appends both
-copies and renames the second one .001. Over a whole base that is the single
-biggest source of wasted memory, because textures are ~98% of the scene.
-
-Measured on 100 distinct assets / 6000 placed parts:
-  without dedupe   692 images, 67 node groups, 2580 MB, 6.96s to load textures
-  with dedupe      333 images,  1 node group,  1092 MB, 2.51s to load textures
-
-So it is worth roughly 2.4x the RAM and 2.8x the texture load time, for about
-a second of work at the end of an import. Materials are deliberately left
-alone - they are cheap once they share their images, and two same named
-materials from different assets are not guaranteed to be identical.
-"""
+"""Collapsing the images and node groups that appending assets duplicates
+(about 2.4x less RAM on a big base). Materials are left alone."""
 
 import os
 
@@ -24,15 +10,8 @@ from .properties import COLOURISE_GROUP
 
 
 def dedupe_appended_data():
-    """Collapse the datablocks the appends duplicated.
-
-    Call this once, after a whole batch of assets is appended, never per asset
-    - the cost is one walk over every material node tree, so doing it once for
-    100 assets is 100x cheaper than doing it as they arrive.
-
-    Returns:
-        tuple: (images removed, node groups removed)
-    """
+    """Collapse the duplicated datablocks; call once per batch, not per asset.
+    Returns (images removed, node groups removed)."""
     if should_defer():
         return 0, 0
 
@@ -52,11 +31,7 @@ def dedupe_appended_data():
 
 
 def dedupe_images():
-    """Collapse image datablocks that point at the same file on disk.
-
-    Returns:
-        int: How many duplicate image datablocks were removed.
-    """
+    """Collapse images that point at the same file. Returns how many were removed."""
     image_map = _plan_image_dedupe()
     if not image_map:
         return 0
@@ -66,13 +41,7 @@ def dedupe_images():
 
 def dedupe_node_groups():
     """Collapse every appended copy of the colourise node group into one.
-
-    Every asset file carries its own copy, so appending N assets leaves
-    NMS_Colourise.001 ... .00N behind. They are identical by construction.
-
-    Returns:
-        int: How many duplicate groups were removed.
-    """
+    Returns how many were removed."""
     group_map = _plan_node_group_dedupe()
     if not group_map:
         return 0
@@ -113,12 +82,8 @@ def _plan_node_group_dedupe(prefix=COLOURISE_GROUP):
 
 
 def _repoint_nodes(image_map, group_map):
-    """Swap every duplicate reference in every material for its canonical.
-
-    One pass handles images and node groups together, because the walk itself
-    is the expensive part - the node trees of a hundred appended assets are a
-    few thousand nodes and every attribute read crosses into Blender.
-    """
+    """Swap every duplicate reference in every material for its canonical,
+    images and node groups in one walk."""
     for material_data in bpy.data.materials:
         node_tree = material_data.node_tree
         if node_tree is None:
@@ -136,12 +101,8 @@ def _repoint_nodes(image_map, group_map):
 
 
 def _collect_dead(duplicate_map):
-    """List the duplicates nothing points at any more.
-
-    Anything the node walk didn't reach - a fake user, a reference from
-    somewhere outside the material trees - is handed to user_remap first, so a
-    datablock is never dropped while something still needs it.
-    """
+    """List the duplicates nothing points at any more, remapping any users the
+    node walk missed first."""
     dead = []
     for duplicate, canonical in duplicate_map.items():
         if duplicate.users:
@@ -152,15 +113,8 @@ def _collect_dead(duplicate_map):
 
 
 def _remove_dead(duplicate_map):
-    """Drop every duplicate nothing points at any more.
-
-    batch_remove() rather than a remove() per datablock: removing one at a time
-    rescans the whole file for users each time, which costs 0.54s for the ~400
-    duplicates a 100 asset base leaves behind, against 0.006s for the batch.
-
-    Returns:
-        int: How many datablocks were removed.
-    """
+    """Drop every unused duplicate in one batch_remove (far faster than one at a
+    time). Returns how many were removed."""
     if not duplicate_map:
         return 0
     dead = _collect_dead(duplicate_map)

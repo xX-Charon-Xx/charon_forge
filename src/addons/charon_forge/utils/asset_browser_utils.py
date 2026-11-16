@@ -1,16 +1,5 @@
-"""Helpers behind the asset browser.
-
-Everything in here is plain data work - reading the addon preferences, keeping
-the favourites and recents file, turning the parts definition into a category
-tree, filtering, sorting, and working out which slice of it a panel should
-show. None of it touches the AssetBrowser property group, which is left to
-hold the Blender state and call in here.
-
-Keeping the two apart matters for more than tidiness: most of this runs from
-enum item callbacks and panel draw code, where an unhandled exception means a
-panel silently renders nothing, so these functions are written to return
-something usable rather than to raise.
-"""
+"""Plain data helpers behind the asset browser: preferences, favourites, the category tree.
+Most of it runs from draw code, so it returns something usable rather than raising."""
 
 import json
 import os
@@ -22,40 +11,30 @@ import bpy
 from . import dictionary
 from .. import addon_preferences
 
-# The addon key in bpy.context.preferences.addons. Read off
-# addon_preferences.py (charon_forge's own root) rather than derived from
-# __package__, so it stays right regardless of how deep this module sits.
+# the addon key in bpy.context.preferences.addons
 ADDON_ID = addon_preferences.ADDON_ID
 
-# How many recently used parts to remember. The list is rewritten every time a
-# part is added, so it cannot be allowed to grow forever.
+# how many recently used parts to remember
 RECENTS_LIMIT = 60
 
-# Used when the preferences cannot be reached, so a panel still draws something
-# instead of throwing and leaving the region blank.
+# used when the preferences cannot be reached
 FALLBACK_ICON_SIZE = 3
 FALLBACK_COLUMNS = 3
 
-# Favourites and recents are kept in a file of our own rather than in the addon
-# preferences. Blender stores preferences per version, under the addon that
-# wrote them, so anything kept there is lost when the addon is reinstalled or
-# when a new Blender version is set up. This file sits outside all of that.
+# favourites and recents live in our own file, so they survive reinstalls and
+# new Blender versions
 APP_DIRECTORY_NAME = "CharonForge"
 STORE_DIRECTORY_NAME = "asset_browser"
 STORE_FILE_NAME = "asset_browser.json"
 STORE_VERSION = 1
 
-# Point this at a folder to keep the store somewhere else - a synced drive, or
-# a scratch folder while testing.
+# point this at a folder to keep the store somewhere else
 DATA_DIRECTORY_ENV = "NMS_BASE_BUILDER_DATA_DIR"
 
-# What the store holds. These were preference names first, and the keys were
-# kept the same so the migration is a straight copy.
+# what the store holds; same names as the old preferences
 STORE_KEYS = ("favourite_objects", "favourite_categories", "recent_objects", "category_order")
 
-# The file is read on every redraw through the panels, so it is held in memory
-# and only re-read when it changes underneath us - another Blender running at
-# the same time, or the user editing it by hand.
+# cached in memory, re-read only when the file changes on disk
 _store_cache = None
 _store_mtime = None
 
@@ -70,36 +49,14 @@ GRID_SIZE_PROPERTIES = {
 # --- preferences -------------------------------------------------------------
 
 def get_preferences(context=None):
-    """The addon preferences, or None when they are not available.
-
-    Every read used to be a bare
-    ``bpy.context.preferences.addons[ADDON_ID].preferences``. That raises
-    KeyError whenever the addon is not registered through the addon system -
-    while it is still registering, when the module is loaded directly for
-    development, or before the user has enabled it - and several of those sit
-    inside enum item callbacks and panel draw code, where one exception stops
-    the whole browser from drawing.
-
-    Args:
-        context: Context to read from. Defaults to the current one.
-
-    Returns:
-        The preferences, or None.
-    """
+    """The addon preferences, or None when the addon isn't registered."""
     context = context if context is not None else bpy.context
     addon = context.preferences.addons.get(ADDON_ID)
     return addon.preferences if addon is not None else None
 
 
 def load_json_preference(name):
-    """Read one of the json list preferences, whatever state it is in.
-
-    Args:
-        name (str): The preference attribute to read.
-
-    Returns:
-        list: The decoded list, empty if it is missing or unreadable.
-    """
+    """Read one of the json list preferences; empty if missing or unreadable."""
     prefs = get_preferences()
     if prefs is None:
         return []
@@ -115,12 +72,7 @@ def load_json_preference(name):
 
 
 def save_preferences():
-    """Flush the preferences to disk, without making a fuss if it fails.
-
-    Nothing important is lost when this does not work - Blender writes the
-    preferences out on exit anyway when auto-save is on - and it is not worth
-    failing an operator over.
-    """
+    """Flush the preferences to disk, ignoring failures."""
     try:
         bpy.ops.wm.save_userpref()
     except RuntimeError:
@@ -128,16 +80,7 @@ def save_preferences():
 
 
 def push_recent(recent_ids, object_id, limit=RECENTS_LIMIT):
-    """Move `object_id` to the front of a most-recently-used list.
-
-    Args:
-        recent_ids (list): The current list, oldest last.
-        object_id (str): The part just used.
-        limit (int): How many to keep.
-
-    Returns:
-        list: A new list, most recent first, no longer than `limit`.
-    """
+    """Move `object_id` to the front of a recents list, keeping at most `limit`."""
     entries = [entry for entry in recent_ids if entry != object_id]
     entries.insert(0, object_id)
     return entries[:limit]
@@ -146,16 +89,7 @@ def push_recent(recent_ids, object_id, limit=RECENTS_LIMIT):
 # --- the on disk store -------------------------------------------------------
 
 def get_user_data_directory():
-    """The folder holding everything that has to outlive the addon.
-
-    Windows puts it in %APPDATA%, macOS in Application Support and Linux in
-    $XDG_DATA_HOME, which is where each platform expects an application to keep
-    this sort of thing. None of them are inside Blender's per-version
-    configuration, which is the whole point.
-
-    Returns:
-        str: The directory path. It may not exist yet.
-    """
+    """The per-platform folder for data that outlives the addon (may not exist yet)."""
     override = os.environ.get(DATA_DIRECTORY_ENV)
     if override:
         return override
@@ -205,12 +139,7 @@ def _read_store_file(path):
 
 
 def _migrate_from_preferences():
-    """Bring across whatever the preferences were holding, once.
-
-    Anyone who used the browser before it kept its own file has their
-    favourites and recents sitting in the addon preferences. This is the only
-    thing that still reads them.
-    """
+    """Copy favourites and recents over from the old addon preferences, once."""
     store = _empty_store()
     for key in STORE_KEYS:
         store[key] = load_json_preference(key)
@@ -218,11 +147,7 @@ def _migrate_from_preferences():
 
 
 def read_store():
-    """The store, from memory when it has not changed on disk.
-
-    Returns:
-        dict: The store contents. Always has every key in STORE_KEYS.
-    """
+    """The store, from memory when it has not changed on disk."""
     global _store_cache, _store_mtime
 
     path = get_store_path()
@@ -249,14 +174,7 @@ def read_store():
 
 
 def write_store(store):
-    """Save the store, without risking the old one if the write fails.
-
-    Args:
-        store (dict): The contents to write.
-
-    Returns:
-        bool: True if it reached the disk.
-    """
+    """Save the store safely; True if it reached the disk."""
     global _store_cache, _store_mtime
 
     path = get_store_path()
@@ -296,42 +214,19 @@ def clear_store_cache():
 
 
 def load_stored_list(name):
-    """One of the stored lists.
-
-    Args:
-        name (str): One of STORE_KEYS.
-
-    Returns:
-        list: A copy, so callers cannot edit the cache by accident.
-    """
+    """A copy of one of the stored lists."""
     return list(read_store().get(name, ()))
 
 
 def save_stored_list(name, value):
-    """Replace one of the stored lists and write the file.
-
-    Args:
-        name (str): One of STORE_KEYS.
-        value (list): The list to store.
-
-    Returns:
-        bool: True if it reached the disk.
-    """
+    """Replace one of the stored lists and write the file."""
     store = dict(read_store())
     store[name] = list(value)
     return write_store(store)
 
 
 def toggle_stored_list(name, value):
-    """Add `value` to a stored list, or take it out if it is already there.
-
-    Args:
-        name (str): One of STORE_KEYS.
-        value (str): The entry to toggle.
-
-    Returns:
-        list: The list as it now stands.
-    """
+    """Add `value` to a stored list, or remove it if already there."""
     entries = load_stored_list(name)
     if value in entries:
         entries.remove(value)
@@ -345,28 +240,12 @@ def toggle_stored_list(name, value):
 # --- grid sizing -------------------------------------------------------------
 
 def get_grid_size_properties(view_mode):
-    """The preference names holding the icon size and columns for a view mode.
-
-    Args:
-        view_mode (str): "Grid", "List" or "Other".
-
-    Returns:
-        tuple: (icon size property name, column count property name)
-    """
+    """The preference names holding the icon size and columns for a view mode."""
     return GRID_SIZE_PROPERTIES.get(view_mode, GRID_SIZE_PROPERTIES["Grid"])
 
 
 def get_grid_settings(context, icon_size_prop, columns_prop):
-    """Icon size and column count, or sane defaults if preferences are missing.
-
-    Args:
-        context: Context to read the preferences from.
-        icon_size_prop (str): Preference holding the icon size.
-        columns_prop (str): Preference holding the column count.
-
-    Returns:
-        tuple: (icon size, number of columns)
-    """
+    """Icon size and column count, or sane defaults if preferences are missing."""
     prefs = get_preferences(context)
     if prefs is None:
         return FALLBACK_ICON_SIZE, FALLBACK_COLUMNS
@@ -377,20 +256,8 @@ def get_grid_settings(context, icon_size_prop, columns_prop):
 # --- the category tree -------------------------------------------------------
 
 def build_category_tree(favourite_ids=None, nice_names=None):
-    """Turn the parts definition into categories, sub categories and parts.
-
-    Variants are folded into their family's entry rather than getting one of
-    their own - see dictionary.get_variant_roots for how a family is found.
-
-    Args:
-        favourite_ids (list): Part ids to mark as favourites. Read from the
-            preferences when not given.
-        nice_names (dict): The nice name lookup, to skip parts that cannot be
-            built. Read from the dictionary when not given.
-
-    Returns:
-        dict: {category: {sub category: {object id: part data}}}
-    """
+    """The parts definition as {category: {sub category: {object id: part data}}}.
+    Variants are folded into their family's root entry."""
     favourite_ids = (favourite_ids if favourite_ids is not None
                      else load_stored_list("favourite_objects"))
     nice_names = (nice_names if nice_names is not None
@@ -430,19 +297,7 @@ def build_category_tree(favourite_ids=None, nice_names=None):
 
 def order_categories(categories, favourite_categories, stored_order=None):
     """All category names, favourites first, each group in its saved order.
-
-    A category that has never been placed - a new one, or the very first time
-    this runs - is appended to its group in `categories`'s own order, so
-    nothing goes missing just because it predates a reorder.
-
-    Args:
-        categories (iterable): Every category name that currently exists.
-        favourite_categories (iterable): Names currently marked favourite.
-        stored_order (list): The last saved order. Read from disk when None.
-
-    Returns:
-        list: Category names, favourites first.
-    """
+    Categories missing from the saved order are appended."""
     if stored_order is None:
         stored_order = load_stored_list("category_order")
 
@@ -460,20 +315,8 @@ def order_categories(categories, favourite_categories, stored_order=None):
 
 
 def move_category(categories, favourite_categories, category, direction):
-    """Move a category up or down within its favourite/other group.
-
-    A move is refused rather than crossing into the other group - favourites
-    stay above everything else no matter how far either side is nudged.
-
-    Args:
-        categories (iterable): Every category name that currently exists.
-        favourite_categories (iterable): Names currently marked favourite.
-        category (str): The category to move.
-        direction (str): "UP" or "DOWN".
-
-    Returns:
-        list: The resulting order. Saved to disk when the move happened.
-    """
+    """Move a category up or down within its favourite/other group, and save the order.
+    Never moves it across into the other group."""
     order = order_categories(categories, favourite_categories)
     if category not in order:
         return order
@@ -494,27 +337,12 @@ def move_category(categories, favourite_categories, category, direction):
 
 
 def build_enum_entries(names):
-    """Blender enum entries for a list of names.
-
-    Args:
-        names (iterable): The names.
-
-    Returns:
-        list: [(name, name, name), ...]
-    """
+    """Blender enum entries for a list of names."""
     return [(name, name, name) for name in names]
 
 
 def build_sub_category_entries(categories_data, category):
-    """Sub category enum entries for one category, "All" first.
-
-    Args:
-        categories_data (dict): The category tree.
-        category (str): The category to list.
-
-    Returns:
-        list: [(name, name, name), ...]
-    """
+    """Sub category enum entries for one category, "All" first."""
     entries = [("All", "All", "All")]
     entries.extend(build_enum_entries(categories_data.get(category, ())))
     return entries
@@ -522,20 +350,7 @@ def build_sub_category_entries(categories_data, category):
 
 def resolve_sub_categories(categories_data, category, sub_category):
     """The slice of the tree a panel should draw for a selection.
-
-    These were plain dict lookups in the panels. An enum holds on to whatever
-    string it last had, so an empty value on the very first draw, a category
-    that has gone away since, or a sub category left over from a different
-    category all raised KeyError and took the panel down with them.
-
-    Args:
-        categories_data (dict): The category tree.
-        category (str): The selected category, which may be stale or empty.
-        sub_category (str): The selected sub category, same.
-
-    Returns:
-        dict: {sub category: {object id: part data}}
-    """
+    Copes with stale or empty enum values instead of raising."""
     if not categories_data:
         return {}
 
@@ -554,19 +369,7 @@ def resolve_sub_categories(categories_data, category, sub_category):
 # --- searching and slicing ---------------------------------------------------
 
 def filter_objects(categories_data, search_filter):
-    """Parts whose id or name contains `search_filter`, grouped by category.
-
-    The ids and names are compared in lower case, so the query is lowered too -
-    typing a capital letter used to return nothing at all ("wall" found 137
-    parts, "Wall" found none).
-
-    Args:
-        categories_data (dict): The category tree.
-        search_filter (str): What the user typed.
-
-    Returns:
-        dict: {category: {object id: part data}}
-    """
+    """Parts whose id or name contains `search_filter` (case-insensitive), by category."""
     search_filter = (search_filter or "").strip().lower()
     if not search_filter:
         return {}
@@ -585,16 +388,8 @@ def filter_objects(categories_data, search_filter):
 
 
 def quick_search(categories_data, search_filter, limit=8):
-    """The best `limit` parts for a query, for the header menu's search.
-
-    Parts whose name starts with the query come first, then those whose id
-    does, then anything containing it - each group in the category tree's
-    order.
-
-    Returns:
-        (dict, int): {object id: part data} for the parts shown, and how many
-            parts matched in all.
-    """
+    """The best `limit` parts for a query, and how many matched in all.
+    Name prefix matches first, then id prefix, then anything containing it."""
     query = (search_filter or "").strip().lower()
     if not query:
         return {}, 0
@@ -617,14 +412,7 @@ def quick_search(categories_data, search_filter, limit=8):
 
 
 def iter_all_parts(categories_data):
-    """Every part in the tree, as (object id, part data) pairs.
-
-    Args:
-        categories_data (dict): The category tree.
-
-    Yields:
-        tuple: (object id, part data)
-    """
+    """Every part in the tree, as (object id, part data) pairs."""
     for sub_categories in categories_data.values():
         for objects_list in sub_categories.values():
             for obj_id, obj_data in objects_list.items():
@@ -632,15 +420,7 @@ def iter_all_parts(categories_data):
 
 
 def apply_favourites(categories_data, favourite_ids):
-    """Stamp `is_fav` across the tree and collect the favourites.
-
-    Args:
-        categories_data (dict): The category tree, modified in place.
-        favourite_ids (list): The part ids marked as favourite.
-
-    Returns:
-        dict: {object id: part data} for the favourites.
-    """
+    """Stamp `is_fav` across the tree and return the favourites."""
     favourites = {}
     for obj_id, obj_data in iter_all_parts(categories_data):
         is_fav = obj_id in favourite_ids
@@ -651,17 +431,7 @@ def apply_favourites(categories_data, favourite_ids):
 
 
 def collect_recent_objects(categories_data, recent_ids):
-    """The part data for a list of recently used ids, in that order.
-
-    Ids that are no longer in the tree are dropped rather than raising.
-
-    Args:
-        categories_data (dict): The category tree.
-        recent_ids (list): Part ids, most recent first.
-
-    Returns:
-        dict: {object id: part data}
-    """
+    """The part data for recently used ids, in order; missing ids are dropped."""
     all_objects = dict(iter_all_parts(categories_data))
     return {obj_id: all_objects[obj_id]
             for obj_id in recent_ids
@@ -669,11 +439,7 @@ def collect_recent_objects(categories_data, recent_ids):
 
 
 def build_presets_data():
-    """The presets, shaped like the part entries so the same drawing code works.
-
-    Returns:
-        dict: {preset name: preset data}
-    """
+    """The presets, shaped like the part entries so the same drawing code works."""
     # imported here rather than at the top: preset pulls in part and the material
     # utils, and this module is imported from inside utils itself
     from ..objects.preset import Preset

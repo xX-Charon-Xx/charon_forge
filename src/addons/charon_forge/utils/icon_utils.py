@@ -7,9 +7,7 @@ import bpy.utils.previews
 ADDON_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 ICONS_JSON = os.path.join(ADDON_PATH, "images", "icon_definitions.json")
 
-# One PNG per object id, named <object_id>.png - the asset browser's per-part
-# thumbnails, scanned rather than listed in icon_definitions.json since there
-# are thousands of them.
+# one PNG per object id, <object_id>.png - the asset browser's thumbnails, scanned not listed
 ASSET_ICONS_PATH = os.path.join(ADDON_PATH, "asset_browser", "icons")
 
 preview_collections = {}
@@ -51,11 +49,7 @@ _missing_icons = set()
 
 def get_icon_id(name):
     """Return the icon_id for a registered icon, for use with icon_value.
-
-    0 - no icon - when it isn't there: its image is missing from images/ or
-    the icons aren't loaded. Panels call this from draw code, where raising
-    would leave the whole panel blank.
-    """
+    0 when it's missing, since panels call this from draw code."""
     pcoll = preview_collections.get("ui_icons")
     if pcoll is not None and name in pcoll:
         return pcoll[name].icon_id
@@ -66,11 +60,7 @@ def get_icon_id(name):
 
 
 def load_asset_icons():
-    """Scan ASSET_ICONS_PATH for PNGs and load them into a preview collection.
-
-    One icon per object id, named <object_id>.png - what the asset browser's
-    grid looks each part up by.
-    """
+    """Load every <object_id>.png in ASSET_ICONS_PATH into a preview collection."""
     pcoll = bpy.utils.previews.new()
 
     if not os.path.exists(ASSET_ICONS_PATH):

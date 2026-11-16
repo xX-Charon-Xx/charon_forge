@@ -1,12 +1,5 @@
-"""A QR code encoder - text in, a grid of dark and light modules out.
-
-Blender's Python has no QR library, so this is a small one of our own, byte
-mode only (any text, as UTF-8), following ISO/IEC 18004: the smallest version
-that fits, Reed-Solomon error correction, and the mask with the lowest
-penalty. The Forge builds the grid out of parts - see utils/qr_forge.py.
-
-    modules = encode("https://example.com", "M")   # list of rows of bools
-"""
+"""A small byte-mode QR code encoder (ISO/IEC 18004), since Blender's Python has none.
+encode(text, level) gives rows of bools, True for a dark module."""
 
 ERROR_LEVELS = ("L", "M", "Q", "H")
 
@@ -326,15 +319,8 @@ class _Matrix(object):
 
 
 def encode(text, level="M"):
-    """The QR code for `text`, as rows of booleans - True is a dark module.
-
-    Args:
-        text (str): What the code says.
-        level (str): Error correction, "L", "M", "Q" or "H".
-
-    Raises:
-        QRCodeError: When the text doesn't fit in any version.
-    """
+    """The QR code for `text` at error correction level L/M/Q/H, as rows of booleans.
+    Raises QRCodeError when the text doesn't fit in any version."""
     if level not in ERROR_LEVELS:
         raise QRCodeError(f"unknown error correction level {level!r}")
     version = choose_version(text, level)

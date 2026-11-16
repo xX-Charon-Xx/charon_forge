@@ -1,25 +1,12 @@
-"""The old fbx proxy library, cached the way the high res meshes are.
-
-One base mesh per object id, imported once and kept in bpy.data under
-PROXY_MESH_PREFIX so a second pass over the same id in the same session never
-touches the disk.
-
-Unlike a high res mesh this one cannot be shared by the parts that use it: a
-proxy's colour is a flat material in slot 0, so a placement needs its own copy
-of the mesh per UserData. What the cache saves is the fbx import itself, which
-is by far the expensive half.
-
-Every function takes the `catalog` to find fbx files through - anything with
-get_obj_path(), which every builder has. Left out, the default Charon builder
-is used.
-"""
+"""The fbx proxy library: one cached base mesh per id, copied per UserData
+because a proxy's colour is a flat material."""
 
 import os
 
 import bpy
 
 from ..objects.part import Part
-from ..utils import variant_map
+from ..utils import mesh_utils, variant_map
 from .. import materials
 from ..utils.base_builder_utils import blend_utils
 from . import asset_library
@@ -27,16 +14,12 @@ from . import asset_library
 PROXY_MESH_PREFIX = "NMS_LR_"
 PROXY_MESH_TAG = "nms_proxy_id"
 
-# Written onto each per (ObjectID, UserData) copy taken off a base mesh, so a
-# later pass can find the one it made last time instead of taking another. A
-# scene switched back to high res leaves all of these with no users, and
-# without this every switch back down would copy a whole fresh set.
+# Tags each (ObjectID, UserData) copy so later passes reuse it instead of
+# making a fresh copy every time the scene switches back to proxies.
 PROXY_PLACEMENT_TAG = "nms_proxy_placement"
 
-# The custom properties utils.materials.assign_material writes onto an object
-# when it paints a proxy. They belong to the (ObjectID, UserData) pair rather
-# than to the placement, so a second placement of the same pair can be given
-# them wholesale instead of running the whole paint again.
+# Properties painting a proxy writes; copied straight onto later placements
+# of the same (ObjectID, UserData) instead of painting again.
 PROXY_CARRIED_PROPS = (
     Part.PROP_USER_DATA,
     materials.PROP_READONLY_COLOUR,
@@ -53,27 +36,15 @@ def _resolve_catalog(catalog):
 
 
 def load_proxy_mesh(object_id, catalog=None):
-    """Get the uncoloured fbx proxy mesh for an id, importing it on first use.
-
-    The mesh comes back with no materials on it - the caller is expected to
-    copy it per UserData and let utils.materials.restore_material paint the copy.
-
-    Returns:
-        bpy.types.Mesh: The base mesh, or None when there is no fbx for the
-            id, in which case the caller should leave whatever it has alone
-            rather than substituting anything.
-    """
+    """The uncoloured fbx proxy mesh for an id, imported on first use.
+    None when the id has no fbx."""
     mesh_name = PROXY_MESH_PREFIX + object_id
     cached = bpy.data.meshes.get(mesh_name)
     if cached is not None and cached.get(PROXY_MESH_TAG) == object_id:
         return cached
 
-    # Same rebuild the high res side does, under the same switch - which is
-    # off: the table is wrong for 84 variants, and even where it is right a
-    # variant's own fbx matched the high res asset more often than the
-    # rebuilt one (see asset_library.REBUILD_VARIANTS). The proxies are stored
-    # in the same space as the high res assets, so the transform out of
-    # objects_map.json would apply to them unchanged.
+    # same variant rebuild as the high res side, under the same (off) switch -
+    # see asset_library.REBUILD_VARIANTS
     if asset_library.REBUILD_VARIANTS:
         mesh = rebuild_variant_proxy_mesh(object_id, catalog)
         if mesh is not None:
@@ -83,12 +54,11 @@ def load_proxy_mesh(object_id, catalog=None):
     if not fbx_path or not os.path.isfile(fbx_path):
         return None
 
-    # Every new object the import brought in, not just the one it happened to
-    # hand back: an fbx that carries an armature or an empty alongside its mesh
-    # would otherwise leave the extras behind in the scene.
+    # every object the import brought in, so extras like armatures or empties
+    # don't stay behind in the scene
     objects_before = set(bpy.data.objects)
     try:
-        bpy.ops.import_scene.fbx(filepath=fbx_path)
+        mesh_utils.import_model(fbx_path)
     except RuntimeError:
         return None
     imported = [item for item in bpy.data.objects if item not in objects_before]
@@ -109,15 +79,8 @@ def load_proxy_mesh(object_id, catalog=None):
 
 
 def rebuild_variant_proxy_mesh(object_id, catalog=None):
-    """Build a variant's fbx proxy by transforming its root part's proxy.
-
-    The proxy twin of asset_library.rebuild_variant_mesh - same table, same
-    transform, only the cache it lands in differs.
-
-    Returns:
-        bpy.types.Mesh: The rebuilt base mesh, or None when the id is not a
-            reproducible variant or there is no fbx for its root.
-    """
+    """Build a variant's fbx proxy by transforming its root's proxy, or None.
+    The proxy twin of asset_library.rebuild_variant_mesh."""
     rebuild = variant_map.get_rebuild(object_id)
     if rebuild is None:
         return None
@@ -137,11 +100,8 @@ def rebuild_variant_proxy_mesh(object_id, catalog=None):
 
 
 def _find_proxy_placement_mesh(key):
-    """The proxy mesh already cut for one (ObjectID, UserData), if there is one.
-
-    Matched on the tag rather than on the name alone, so a mesh of the user's
-    own that happens to be called CUBEROOM_1 is never mistaken for one of ours.
-    """
+    """The proxy mesh already made for one (ObjectID, UserData), if any.
+    Matched on the tag, so a user's mesh with the same name is never picked."""
     mesh = bpy.data.meshes.get("%s_%s" % key)
     if mesh is not None and mesh.get(PROXY_PLACEMENT_TAG) == "%s/%s" % key:
         return mesh
@@ -149,24 +109,8 @@ def _find_proxy_placement_mesh(key):
 
 
 def apply_proxy_mesh(bpy_object, object_id, user_data, cache=None, catalog=None):
-    """Point an existing object at the fbx proxy mesh for one (id, UserData).
-
-    Nothing but the mesh and the colour is touched, so this is also the whole
-    of what it takes to turn a placed high res part back into a proxy.
-
-    Args:
-        bpy_object (bpy.types.Object): The object to point at the proxy.
-        object_id (str): The part it is a placement of.
-        user_data: The packed UserData value for this placement.
-        cache (dict): Optional {(object id, UserData): (mesh, properties,
-            colour)} carried across a batch of placements, so the paint is
-            paid for once per pair rather than once per placement.
-        catalog: Where to find the fbx files.
-
-    Returns:
-        bool: False when there is no fbx for the id, in which case the object
-            is left exactly as it was.
-    """
+    """Point an object at the fbx proxy mesh for one (id, UserData), touching only
+    mesh and colour. False (object unchanged) when the id has no fbx."""
     if user_data is None:
         user_data = Part.DEFAULT_USER_DATA
     key = (object_id, str(user_data))
@@ -175,9 +119,7 @@ def apply_proxy_mesh(bpy_object, object_id, user_data, cache=None, catalog=None)
     if entry is not None:
         mesh, carried, colour = entry
         bpy_object.data = mesh
-        # the palette properties drive the high res colourise node group and
-        # mean nothing to a flat material, so an object that keeps them reads
-        # as half converted to anything that inspects it afterwards
+        # drop the high res palette properties, which mean nothing to a proxy
         materials.clear(bpy_object)
         for name, value in carried.items():
             bpy_object[name] = value
@@ -193,8 +135,7 @@ def apply_proxy_mesh(bpy_object, object_id, user_data, cache=None, catalog=None)
         # a private copy per pair, because painting it writes into its slot 0
         mesh = base_mesh.copy()
         mesh.name = "%s_%s" % key
-        # the copy is a placement mesh, not the cached import it came from -
-        # it must not answer to load_proxy_mesh's tag
+        # the copy must not answer to load_proxy_mesh's tag
         if PROXY_MESH_TAG in mesh:
             del mesh[PROXY_MESH_TAG]
         mesh[PROXY_PLACEMENT_TAG] = "%s/%s" % key
@@ -219,19 +160,9 @@ def apply_proxy_mesh(bpy_object, object_id, user_data, cache=None, catalog=None)
 
 
 def new_proxy_object(object_id, user_data, cache=None, catalog=None):
-    """Make a bare object over an fbx proxy mesh, coloured for one UserData.
-
-    No part properties are set beyond the ones painting writes - that is the
-    caller's job, the same as for placement.new_high_res_object.
-
-    Returns:
-        bpy.types.Object: The new object, or None when there is no fbx for the
-            id, so the caller can decide what to do about it.
-    """
-    # The object has to be born over some mesh before it can be pointed at the
-    # right one - an object made with no data is an Empty, and an Empty cannot
-    # be given a mesh afterwards. load_proxy_mesh is cached, so asking for the
-    # base here and again inside apply_proxy_mesh costs one dict lookup.
+    """A bare object over an fbx proxy mesh, coloured for one UserData.
+    None when the id has no fbx; part properties are the caller's job."""
+    # created over the base mesh, as an object made with no data is an Empty
     base_mesh = load_proxy_mesh(object_id, catalog)
     if base_mesh is None:
         return None

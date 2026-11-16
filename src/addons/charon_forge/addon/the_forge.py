@@ -142,9 +142,8 @@ RIM_STYLES = [
 ]
 
 
-# The settings of an object The Forge made, stored on it as
-# object.charon_forged - see objects/shapes/forged.py. `form` says which kind it is
-# (objects/shapes/sphere.py, objects/shapes/shape.py) and is empty on anything else.
+# The settings of a Forge-made object, stored as object.charon_forged.
+# `form` says which kind it is, and is empty on anything else.
 class CharonForged(bpy.types.PropertyGroup):
 
     form: StringProperty()
@@ -196,8 +195,7 @@ class CharonForged(bpy.types.PropertyGroup):
     )
 
     # Spheres ---
-    # True while rings and segments follow the radius; typing either one in
-    # holds them until the radius changes again
+    # True while rings and segments follow the radius
     counts_from_radius: BoolProperty(default=True)
     # how closely typed-in counts are spaced - see Sphere.record_density
     ring_density: FloatProperty()
@@ -478,9 +476,8 @@ class CharonForged(bpy.types.PropertyGroup):
     )
 
 
-# State for The Forge panel, stored on the scene as scene.charon_the_forge.
-# The station switches keep nothing themselves - they read and set whether
-# the station's objects are hidden, so they always match the viewport.
+# State for The Forge panel, stored as scene.charon_the_forge. The station
+# switches read and set the station objects' visibility directly.
 class TheForge(bpy.types.PropertyGroup):
     station_selectable: BoolProperty(
         name="Selectable",

@@ -1,17 +1,5 @@
-"""Colouring the colourable materials that have no colourise mask.
-
-The pipeline gives a material the NMS_Colourise group only when the game
-material has a colourise mask texture to feed it. Some are flagged
-_F53_COLOURISABLE with no mask at all (BASE_CAVE2's CaveLeaves_Mat, the lava
-of BASE_CAVE5, ...) and came out of the pipeline with no colour nodes, so
-recolouring those parts did nothing.
-
-With no mask there is nothing to pick the secondary, ternary or quaternary
-regions, so the whole surface takes the primary colour: the diffuse is
-multiplied by the object's nms_p, the same property the colourise group
-reads. Done per material, once - the material is tagged, and every placement
-shares it.
-"""
+"""Tints colourable materials that have no colourise mask: the whole surface
+takes the object's primary colour (nms_p). Done once per material."""
 
 import bpy
 
@@ -26,11 +14,7 @@ TINT_LABEL = "Charon primary tint"
 
 
 def ensure_colourise(materials=None):
-    """Tint every colourable library material that has no colourise group.
-
-    Returns:
-        int: How many materials were changed.
-    """
+    """Tint every colourable library material with no colourise group; returns how many changed."""
     materials = materials if materials is not None else bpy.data.materials
     changed = 0
     for mat in materials:

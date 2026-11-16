@@ -7,37 +7,25 @@ from ..utils import base_builder_utils
 
 ADDON_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-# The high resolution library. One .blend per object id, each holding exactly
-# one mesh object with the real game materials and textures on it.
-# Textures are referenced relatively from assets/ into textures/, so the two
-# have to stay siblings.
+# The high res library: one .blend per object id. Its textures are referenced
+# relatively into textures/, so the two folders must stay siblings.
 HIGH_RES_PATH = os.path.join(ADDON_PATH, "asset_browser", "assets")
 
-# The old fbx proxy library, one folder per category. Charon Forge doesn't ship
-# one - models/ is an empty placeholder so the catalog still has somewhere to
-# look, and every part is served from HIGH_RES_PATH instead (or, for the
-# "Simple Proxies" switch, from get_host_model_path() below).
+# The old fbx proxy library, an empty placeholder: parts come from HIGH_RES_PATH,
+# or for "Simple Proxies" from get_host_model_path().
 MODEL_PATH = os.path.join(ADDON_PATH, "models")
 
 USER_PATH = os.path.join(os.path.expanduser("~"), "CharonForge")
 MODS_PATH = os.path.join(USER_PATH, "mods")
 
-# Presets are shared with the base builder addon: its folder, where it saves
-# them (its builder/paths.py), so each addon lists, adds and saves the same
-# presets rather than keeping two apart.
+# Presets are shared with the base builder addon's folder, so both list the same ones.
 HOST_USER_PATH = os.path.join(os.path.expanduser("~"), "NoMansSkyBaseBuilder")
 PRESET_PATH = os.path.join(HOST_USER_PATH, "presets")
 
 
 def get_host_model_path():
     """The base builder addon's fbx model folder, or None when it isn't loaded.
-
-    MODEL_PATH above is an empty placeholder, so on its own the "Simple
-    Proxies" switch has nothing to switch a part down to. That addon ships the
-    whole fbx library and is already a hard requirement of ours, so its copy is
-    what the proxies are served from. Laid out the same way MODEL_PATH is -
-    one folder per category, one fbx per object id.
-    """
+    Serves the "Simple Proxies" switch, since MODEL_PATH is empty."""
     addon_module = base_builder_utils.get_addon_module_name()
     if addon_module is None:
         return None

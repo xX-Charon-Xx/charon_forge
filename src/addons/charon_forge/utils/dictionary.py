@@ -1,9 +1,4 @@
-"""Human readable names and categories for object ids.
-
-Ported from the reference addon's utils/dictionary.py. No host equivalent -
-that addon reads its own nice_names.json inline in part.py/group.py rather
-than through a dedicated module, so this stays Charon's own code.
-"""
+"""Human readable names and categories for object ids."""
 
 import csv
 import os
@@ -32,11 +27,7 @@ def to_title_case(text):
 
 def get_nice_names_diictionary():
     """{object id: nice name}, read from nice_names.json on first use.
-
-    Loaded lazily rather than at import time: python_utils resolves against
-    the base builder addon at call time (see base_builder_utils.py), which is
-    not guaranteed to be loaded yet while blender is still importing addons.
-    """
+    Lazy, as the base builder addon may not be loaded yet at import time."""
     global nice_name_dictionary
 
     if not nice_name_dictionary:
@@ -63,12 +54,8 @@ def get_parts_definition():
 
 
 def export_object_id(row_id):
-    """The object id a part definition row places, saves and exports as.
-
-    Usually the row's own id. An alternate form row - `B_HAB_A_OPEN`, the hab
-    with its room walls open - has a model of its own but IS `B_HAB_A`: its
-    13th column, `ObjectID`, names that. Older files have no such column.
-    """
+    """The object id a row exports as: its own id, or for an alternate form
+    (B_HAB_A_OPEN) the base id from its 13th column."""
     row_id = row_id.replace("^", "")
     row = get_parts_definition().get("^" + row_id)
     if row is not None and len(row) > 12 and row[12].strip():
@@ -76,8 +63,7 @@ def export_object_id(row_id):
     return row_id
 
 
-# A nice name's trailing "(NE)", "(Y_NW3)"... - what sets the members of one
-# family apart
+# a nice name's trailing "(NE)", "(Y_NW3)"... that sets family members apart
 _NAME_SUFFIX = re.compile(r"\s*\([^)]*\)\s*$")
 
 _variant_roots = None
@@ -88,20 +74,8 @@ def _base_name(nice_name):
 
 
 def get_variant_roots():
-    """{object id: the id of the family it belongs to}, one entry per part.
-
-    What the asset browser groups variants by. The parts definition's
-    VariantOf column is not always one step to a root:
-
-      - B_STR_V_NWTB2 names B_STR_V_NWTB, itself a variant of B_STR_V_NETB,
-        so the chain is followed to the end.
-      - B_STR_W_NETB and B_STR_W_NWTB each name themselves, leaving the
-        family with two roots. A root whose mirror twin is also a root of
-        the same name is folded into it (NE takes NW) - the rest of the
-        corvette families already have their NW parts under the NE one.
-
-    Without this the browser showed a family twice, once per root.
-    """
+    """{object id: its family's root id}; follows VariantOf chains to the end
+    and folds a mirror twin root of the same name into one (NE takes NW)."""
     global _variant_roots
     if _variant_roots is not None:
         return _variant_roots
@@ -143,6 +117,32 @@ def get_variant_roots():
         object_id: merged.get(root, root) for object_id, root in roots.items()
     }
     return _variant_roots
+
+
+_variant_families = None
+
+
+def get_variant_family(object_id):
+    """Buildable members of `object_id`'s family, root first.
+    [object_id] when it has no variants, [] when it isn't a part."""
+    global _variant_families
+    if _variant_families is None:
+        nice_names = get_nice_names_diictionary()
+        families = {}
+        for member, root in get_variant_roots().items():
+            if member in nice_names:
+                families.setdefault(root, []).append(member)
+        for root, members in families.items():
+            if root in members:
+                members.remove(root)
+                members.insert(0, root)
+        _variant_families = families
+
+    object_id = (object_id or "").replace("^", "")
+    root = get_variant_roots().get(object_id)
+    if root is None:
+        return []
+    return list(_variant_families.get(root) or [object_id])
 
 
 def get_category_vise_objects():

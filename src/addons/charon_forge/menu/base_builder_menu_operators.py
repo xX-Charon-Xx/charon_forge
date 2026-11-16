@@ -1,11 +1,5 @@
-"""Operators behind the "Proxy Quality" section of the Base Builder menu.
-
-Switches every placed part and group in the scene between the high res
-library and the old fbx proxies from the models folder, in place - same
-transform, parent, collections and colour, just a different mesh source.
-Group conversion itself lives in nms/group.py, next to the rest of the group
-cache machinery it depends on.
-"""
+"""Proxy Quality operators: switch every part and group in the scene between the
+high res library and the old fbx proxies, in place."""
 
 import contextlib
 import sys
@@ -22,11 +16,7 @@ from ..utils import base_builder_utils, collection_utils, loading_overlay
 
 
 def _addon_module():
-    """The addon's top level package module.
-
-    This module sits one level under it (charon_forge.menu), so one rsplit of
-    __package__ gets back to the addon itself.
-    """
+    """The addon's top level package module."""
     return sys.modules[__package__.rsplit(".", 1)[0]]
 
 
@@ -72,29 +62,8 @@ def _preserve_selection(context):
 
 
 def _switch_scene_parts(context, target_high_res, proxy_cache):
-    """Point every ungrouped part in the scene at the other library's mesh.
-
-    Nothing is rebuilt. Which library a part belongs to is entirely a property
-    of the mesh datablock it points at, so switching one is a data assignment
-    and a recolour: the object keeps its name, transform, parent, children,
-    collections, selection and every custom property it had. That is not only
-    far cheaper than replacing every object in the scene - one shared mesh per
-    object id is looked up once and handed to every placement of it - it is
-    also why a switch no longer disturbs anything else that referred to them.
-
-    Groups carry a GroupID rather than an ObjectID, so they never match here -
-    Group.switch_scene_proxy_quality handles those separately.
-
-    Args:
-        context: The context to read the scene from.
-        target_high_res (bool): True to switch to the high res library, False to
-            switch to the old fbx proxies.
-        proxy_cache (dict): Carried across the whole switch - see
-            builder.apply_proxy_mesh.
-
-    Returns:
-        tuple: (parts switched, parts the target library has no model for).
-    """
+    """Point every ungrouped part at the other library's mesh, keeping the object.
+    Returns (parts switched, parts the target library has no model for)."""
     switched = 0
     missing_ids = []
     to_colour = []
@@ -109,9 +78,7 @@ def _switch_scene_parts(context, target_high_res, proxy_cache):
             continue
         if Group.PROP_GROUP_ID in source_object:
             continue
-        # Only something with a mesh has a mesh to swap. The power line and
-        # pipeline parts are curves, and handing one of those a mesh datablock
-        # is an error rather than a switch.
+        # power lines and pipelines are curves, with no mesh to swap
         if source_object.type != "MESH":
             continue
         if materials.is_high_res(source_object) == target_high_res:
@@ -136,10 +103,7 @@ def _switch_scene_parts(context, target_high_res, proxy_cache):
         loading_overlay.step("Switching parts", index / len(candidates))
         if target_high_res:
             new_mesh = high_res_meshes.get(model_id)
-            # An id the high res library does not cover - one of the ones it
-            # still misses, or a mirrored part whose twin has no model of its
-            # own. Left exactly as it is rather than swapped for something that
-            # is not the part.
+            # no high res model for this id: left as it is
             if new_mesh is None:
                 missing_ids.append(model_id)
                 continue
@@ -172,31 +136,12 @@ def _switch_scene_parts(context, target_high_res, proxy_cache):
 
 def _switch_scene_proxies(context, target_high_res):
     """Switch every part and group in the scene to the requested quality.
-
-    Runs with the addon's depsgraph handler detached and the selection held, so
-    neither pass fires a curve resync per object touched or leaves the user's
-    selection somewhere else when it is done.
-
-    Args:
-        context: The context to read the scene from.
-        target_high_res (bool): True to switch to the high res library, False to
-            switch to the old fbx proxies.
-
-    Returns:
-        tuple: (parts switched, groups switched, parts and groups that could
-            not be switched).
-    """
-    # One cache for both passes: a group child and a placed part of the same
-    # (ObjectID, UserData) want the same proxy mesh, so sharing it imports and
-    # paints the fbx behind it once for the pair rather than once each. Across
-    # calls the meshes themselves are found again by tag, so switching back and
-    # forth does not cut a fresh set every time - see builder.apply_proxy_mesh.
+    Returns (parts switched, groups switched, failures)."""
+    # one cache for both passes, so parts and group children share proxy meshes
     proxy_cache = {}
 
-    # every collection a part or group sits in, and the one rebuilt groups'
-    # children are made in, go out of the view layer while their meshes are
-    # swapped - inside _preserve_selection, so the selection is put back
-    # after they are back in the view layer
+    # the parts' and groups' collections leave the view layer while meshes are
+    # swapped; the selection is put back after they return
     collections = {collection
                    for obj in context.scene.objects
                    if Part.PROP_OBJECT_ID in obj or Group.PROP_GROUP_ID in obj
@@ -205,9 +150,7 @@ def _switch_scene_proxies(context, target_high_res):
     collections.discard(context.scene.collection)
 
     with _suspend_scene_updates(), _preserve_selection(context),             collection_utils.excluded_from_view_layer(*collections):
-        # The library-wide dedupe and finish passes are worth doing once for
-        # the whole scene and are pure waste per part - see
-        # materials.defer_shared_data.
+        # dedupe and finish passes once for the whole scene, not per part
         with materials.defer_shared_data():
             parts, missing = _switch_scene_parts(
                 context, target_high_res, proxy_cache
@@ -218,23 +161,16 @@ def _switch_scene_proxies(context, target_high_res):
             )
 
         if target_high_res and (parts or groups):
-            # Solid shading colours by MATERIAL out of the box and high res
-            # parts share their materials, so without this whatever was just
-            # switched is one flat grey mass until its textures load.
+            # high res parts share materials, so Solid shading would show them
+            # flat grey until textures load
             materials.use_object_colour_in_viewport()
 
     return parts, groups, missing + failed
 
 
 def _switch_builder_hook(target_high_res):
-    """Match the base builder addon's active builder to the requested quality.
-
-    Its own tools - the ones that place new parts, not just these two buttons -
-    go through get_builder(), so this makes anything built afterwards follow
-    the same quality that was just applied to the scene: our builder with the
-    high res library layered on, or the addon's own builder for the plain fbx
-    proxies it already knows how to place.
-    """
+    """Match the base builder addon's active builder to the requested quality,
+    so parts built afterwards follow it."""
     if target_high_res:
         host_builder = charon_builder.create_host_builder()
         if host_builder is not None:
@@ -267,19 +203,8 @@ def _report_switch(operator, parts, groups, skipped, quality):
 
 
 def set_proxy_quality(context, target_high_res):
-    """Switch the scene and the base builder addon's active builder together.
-
-    Shared by the two operators below and by the load_post handler in
-    base_builder_menu.py that applies the preferences page's default quality
-    whenever a blend file is opened.
-
-    The result is recorded on scene.enum_proxy_quality, which is what the two
-    buttons in the Base Builder dropdown show as pressed.
-
-    Returns:
-        tuple: (parts switched, groups switched, parts and groups that could
-            not be switched) - see _switch_scene_proxies.
-    """
+    """Switch the scene and the base builder addon's active builder together,
+    and record the result on scene.enum_proxy_quality."""
     parts, groups, skipped = _switch_scene_proxies(context, target_high_res)
     _switch_builder_hook(target_high_res)
 
@@ -295,9 +220,7 @@ SIMPLE_PROXIES = "Simple Proxies"
 
 
 def simple_proxies_available():
-    """True when there are fbx proxies to switch down to. Charon Forge ships
-    none of its own - they are the base builder addon's (see
-    paths.get_host_model_path)."""
+    """True when the base builder addon's fbx proxies are there to switch to."""
     return paths.get_host_model_path() is not None
 
 
@@ -305,13 +228,8 @@ def simple_proxies_message():
     return base_builder_utils.missing_host_message(SIMPLE_PROXIES)
 
 
-# Shapes ---
-#
-# Simple proxies hand the base builder addon its own builder back (see
-# _switch_builder_hook), and that builder knows nothing of The Forge's shapes:
-# it takes them for groups with no parts, so a save exported at low res would
-# lose them without a word. Switching to low res therefore offers to split
-# every shape into its parts first, and doesn't switch if that is declined.
+# Shapes --- the base builder addon's own builder drops The Forge's shapes on
+# export, so switching to low res offers to split them into parts first
 
 
 def get_scene_shapes(scene):
@@ -320,13 +238,8 @@ def get_scene_shapes(scene):
 
 
 def split_shapes(context, shapes):
-    """Split shapes into their parts, each shape's parts gathered into a
-    collection of their own - named after the shape, where the shape was - so
-    they can still be picked out, moved or hidden as one later.
-
-    Returns:
-        tuple: (parts made, collections made).
-    """
+    """Split shapes into parts, each shape's parts in a collection named after it.
+    Returns (parts made, collections made)."""
     builder_object = charon_builder.get_builder()
     part_count = 0
     collections = []
@@ -354,9 +267,8 @@ def split_shapes(context, shapes):
 
 
 def offer_switch_to_low(delay=0.2):
-    """Ask, in a popup, whether to split the scene's shapes and switch to
-    low res - for switches that start without a window to ask in, like the
-    one run when a file is opened."""
+    """Ask in a popup whether to split the shapes and switch to low res, for
+    switches with no window to ask in (like on file open)."""
     def open_popup():
         window_manager = bpy.context.window_manager
         for window in window_manager.windows:
@@ -464,9 +376,8 @@ class NMS_OT_fix_broken_textures(bpy.types.Operator):
         from ..builder import asset_library
         from ..materials import packing
 
-        # proxies first: switching to high res appends assets, whose images
-        # already point at this install, and relinking afterwards then only
-        # has the file's own broken images left to fix
+        # proxies first, so relinking only has the file's own broken images
+        # left to fix
         target_high_res = context.scene.enum_proxy_quality == "high"
         low_res_unavailable = not target_high_res and not simple_proxies_available()
         if low_res_unavailable:

@@ -6,16 +6,13 @@ from ..utils import icon_utils, loading_overlay, optimiser_utils
 from . import asset_browser_presentation
 
 
-# Roughly 400px at blender's default ui scale - narrower than the add row
-# popup, this one is a plain read out plus a rename field rather than
-# something to search in.
+# Width of the edit popup.
 EDIT_POPUP_WIDTH = 800
 
 # How many rows the part list inside the edit popup shows before scrolling.
 PART_LIST_ROWS = 15
 
-# Roughly 700px at blender's default ui scale, which is what invoke_popup
-# takes - it has no dpi aware unit, unlike a popover's bl_ui_units_x.
+# Width of the add row popup, in pixels at the default ui scale.
 ADD_ROW_POPUP_WIDTH = 700
 
 
@@ -71,10 +68,8 @@ class PriorityListMove(bpy.types.Operator):
         return {"FINISHED"}
 
 
-# The edit popup that is open, if any: which group it edits, and whether
-# that group has been deleted from inside it. A button in the popup leaves it
-# open, and with the group gone its index would point at the next group - so
-# OK must not write anything once this says deleted.
+# The open edit popup's group, and whether it was deleted from inside it.
+# Once deleted, OK must not write anything, as the index now points at another group.
 _edit_session = {"index": None, "deleted": False}
 
 
@@ -115,20 +110,14 @@ class PriorityListDeletePart(bpy.types.Operator):
 
         optimiser = context.scene.charon_optimiser
 
-        # a no-op if this id was never staged (it was an already saved part
-        # being removed) - but if it was, the row rebuilt below would only
-        # come back on OK unless it is dropped here too
+        # drop it from the staged additions too, if it was staged
         for staged_index, staged in enumerate(optimiser.priority_staged_additions):
             if staged.object_id == self.object_id:
                 optimiser.priority_staged_additions.remove(staged_index)
                 break
 
-        # the edit popup's list is a scene collection, not read live off
-        # disk each draw (see PriorityPartItem) - rebuild it so the removed
-        # row is actually gone rather than just gone from the saved file.
-        # Rebuilding from disk drops every staged preview row along with it,
-        # so they are added back in - refresh_priority_part_list has no way
-        # to know about staged, unsaved parts on its own.
+        # rebuild the popup's list so the removed row is gone, then add the
+        # staged preview rows back
         optimiser.refresh_priority_part_list(self.index)
         for staged in optimiser.priority_staged_additions:
             preview = optimiser.priority_part_list.add()
@@ -142,11 +131,7 @@ class PriorityListDeletePart(bpy.types.Operator):
 
 
 class PriorityListStagePart(bpy.types.Operator):
-    """Move one search result into the group being edited
-
-    Staged only - the priority list on disk is not touched until the edit
-    popup's OK is pressed, see PriorityListEdit.execute.
-    """
+    """Move one search result into the group being edited. Saved when OK is pressed"""
 
     bl_idname = "object.charon_priority_list_stage_part"
     bl_label = "Add Part"
@@ -166,15 +151,7 @@ class PriorityListStagePart(bpy.types.Operator):
 
 
 def _priority_search_category_items(self, context):
-    """Reuse AssetBrowser's own category enum items.
-
-    Both browser drop-downs the search side of the edit popup draws are
-    read only views into whichever category/sub-category are already
-    selected in the asset browser itself - the update happens once
-    selection is confirmed, via PrioritySearchSelectCategory/SubCategory's
-    execute rather than the browser's own update callbacks, so the search
-    results collection is written from an operator rather than draw().
-    """
+    """Reuse AssetBrowser's own category enum items."""
     asset_browser = context.scene.nms_asset_browser
     return asset_browser.get_categories()
 
@@ -236,9 +213,7 @@ class PriorityListEdit(bpy.types.Operator):
     bl_options = {"INTERNAL"}
 
     index: IntProperty()
-    # No update callback: invoke_props_dialog gives a real OK/Cancel, so
-    # typing here only edits the operator's own copy - execute() is the one
-    # place that writes it out, and only OK reaches execute at all.
+    # no update callback: execute() saves it, and only OK reaches execute
     group_name: StringProperty(name="Name")
 
     def invoke(self, context, event):
@@ -248,10 +223,7 @@ class PriorityListEdit(bpy.types.Operator):
                 priority_list[self.index]
             )
 
-        # has to happen here rather than in draw(): draw() runs during
-        # popup redraws, where blender does not let a scene collection's
-        # writes stick - the same restriction that ruled out a UIList for
-        # the group list this popup is opened from.
+        # filled here, not in draw(): writes to a scene collection from draw() don't stick
         optimiser = context.scene.charon_optimiser
         optimiser.refresh_priority_part_list(self.index)
         optimiser.clear_priority_search()
@@ -304,9 +276,7 @@ class PriorityListEdit(bpy.types.Operator):
             layout.label(text="This group no longer exists", icon="ERROR")
             return
 
-        # One row at a time across both halves, so the group's side and the
-        # search side stay level: titles, then fields, then a status line,
-        # then the two lists at the same height.
+        # one row at a time across both halves, so the two sides stay level
         def halves():
             split = layout.split(factor=0.5)
             return split.column(align=True), split.column(align=True)

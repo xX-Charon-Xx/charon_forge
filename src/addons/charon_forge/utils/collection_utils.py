@@ -1,11 +1,5 @@
-"""Mostly the base builder addon's utils.collection_utils, forwarded rather
-than duplicated - see base_builder_utils's module docstring.
-
-set_collection_visibility() is the one function the host addon does not have,
-so it stays implemented here; everything else (get_collection,
-move_object_into_collection, and so on) is a straight passthrough - to
-utils/fallbacks/collection_utils.py while the host addon isn't loaded.
-"""
+"""Forwards to the base builder addon's utils.collection_utils (or the fallback),
+plus the few collection helpers the host addon doesn't have."""
 
 import contextlib
 
@@ -15,8 +9,7 @@ from .base_builder_utils import get_module
 
 _RELATIVE_PATH = "utils.collection_utils"
 
-# Matches the host addon's own names for these, so curve.py (ported alongside
-# it) can keep referring to collection_utils.LINKED_CURVE_OBJ_COL unchanged.
+# same names as the host addon's, so curve.py can use them unchanged
 LINKED_CURVE_OBJ_COL = "Linked Curve Objects"
 UNLINKED_CURVE_OBJ_COL = "Unlinked Curve Objects"
 
@@ -26,13 +19,7 @@ def get_collection(collection_name):
 
 
 def set_collection_visibility(collection_name="Collection", visible=True):
-    """Whether a collection is included in the active view layer.
-
-    Args:
-        collection_name (str): Target collection's name.
-        visible (bool): True to show/include in the view layer, False to
-            hide/exclude it.
-    """
+    """Include or exclude a collection from the active view layer."""
     target_collection = get_collection(collection_name)
     if not target_collection:
         return
@@ -52,21 +39,8 @@ def _layer_collections(layer_collection):
 
 @contextlib.contextmanager
 def excluded_from_view_layer(*collections):
-    """Keep collections out of the active view layer while a block builds
-    into them, then put each back the way it was.
-
-    Objects linked into an excluded collection are not evaluated, drawn or
-    synced to the view layer as they arrive; that happens once, when the
-    block ends, instead of after each one. Anything excluded before the block
-    stays excluded after it.
-
-    Hiding (H), selection and the active object belong to the view layer, and
-    Blender drops them for objects that leave it - so they are read before
-    and written back after, for every object in these collections.
-
-    Nothing inside the block can select, hide or make active an object that
-    is only in these collections - those need the view layer.
-    """
+    """Exclude collections from the view layer while a block builds into them, so the
+    sync happens once; hiding, selection and the active object are restored after."""
     view_layer = bpy.context.view_layer
     wanted = {collection for collection in collections if collection is not None}
     previous = []

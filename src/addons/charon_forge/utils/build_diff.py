@@ -1,17 +1,5 @@
 """What changed between the scene and a build brought back from the game.
-
-The scene and the game's parts are matched record for record: two records
-are the same part when their ObjectID and UserData match and they sit in the
-same place, facing the same way, within TOLERANCE. Timestamps are not
-compared - a Forge shape stamps its parts with the time of the export, so
-the game's copies carry a different one than the scene would give them now.
-
-- A game record with no match in the scene was placed or changed in game.
-  It counts only when its Timestamp is no older than the scene's oldest part,
-  so a scene holding one piece of a bigger base doesn't pull the rest in.
-- A scene object with a record that has no match in the game was changed or
-  deleted in game. A group or Forge shape counts when any one of its parts has.
-"""
+Records match on ObjectID, UserData and placement within TOLERANCE; timestamps aren't compared."""
 
 import math
 
@@ -19,9 +7,7 @@ from ..objects.group import Group
 from ..objects.part import Part
 from ..objects.shapes.forged import Forged
 
-# how far apart, in metres and in Up/At components, two records can be and
-# still be the same part - well above the float noise of a round trip through
-# Blender and the game, well below any move made on purpose
+# how far apart two records can be (metres and Up/At components) and still match
 TOLERANCE = 0.01
 
 # the side of a cell in the spatial lookup; a match is always in the record's
@@ -114,13 +100,8 @@ def _as_list(serialised):
 
 
 def scene_records(builder):
-    """Every scene object that saves parts, with the records it saves.
-
-    Returns:
-        (list, int or None): [(object, [record])], and the oldest Timestamp
-            among plain parts and groups - Forge shapes stamp theirs with
-            the time they are saved, so they would always read as new.
-    """
+    """[(object, [record])] for every scene object that saves parts, and the
+    oldest Timestamp among plain parts and groups."""
     owners = []
     oldest = None
 
@@ -157,13 +138,8 @@ def scene_records(builder):
 
 
 def diff(builder, game_records):
-    """Compare the scene with the game's parts.
-
-    Returns:
-        (list, list, int or None): the game records that are new or changed
-            and should be imported, the scene objects changed or deleted in
-            game, and the oldest scene Timestamp used to leave older parts out.
-    """
+    """(game records to import, scene objects changed or deleted in game,
+    oldest scene Timestamp) for the scene against the game's parts."""
     owners, oldest = scene_records(builder)
 
     index = _SceneIndex()

@@ -1,8 +1,6 @@
 from bpy.types import Panel
 
-# Game Lighting, drawn into The Watchtower panel itself (draw_game_lighting,
-# called from its draw - no sub-panel, so no collapse arrow), plus the folded
-# Advanced section, The Watchtower's only sub-panel.
+# Game Lighting, drawn straight into The Watchtower panel, plus the Advanced sub-panel
 
 WATCHTOWER_PANEL = "CHARON_PT_the_watchtower_panel"
 
@@ -67,9 +65,8 @@ def draw_game_lighting(layout, context):
 
 
 def _sky_picker(box, settings, top_prop, bottom_prop, picker_prop):
-    """The list choice on the left - under it the second choice with the
-    randomise button - and a small swatch of the sky on the right; click the
-    swatch for the full grid."""
+    """The two sky choices and the randomise button on the left, and a swatch on the right
+    that opens the full grid."""
     split = box.split(factor=0.74)
     left = split.column(align=True)
     left.prop(settings, top_prop, text="")
@@ -155,5 +152,5 @@ class CHARON_PT_the_watchtower_lighting_advanced(Panel):
 
 
 classes = (
-    CHARON_PT_the_watchtower_lighting_advanced,
+    # CHARON_PT_the_watchtower_lighting_advanced,
 )

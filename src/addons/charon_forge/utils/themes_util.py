@@ -1,11 +1,5 @@
-"""Apply Blender interface themes (.xml) from a known file path.
-
-Blender's exported theme files use a .xml extension, but are actually
-executed as python via the same "preset" mechanism as any other preset
-(bpy.ops.script.execute_preset just execs the file's contents). These
-helpers wrap that so a theme can be applied from a known path without
-going through Preferences > Themes.
-"""
+"""Apply Blender interface themes (.xml, which are executed as python presets)
+from a known file path."""
 
 import json
 import os
@@ -53,14 +47,7 @@ def get_theme_presets_dir(create=True):
 
 
 def apply_theme(filepath):
-    """Apply a theme .xml file directly, without installing it.
-
-    Args:
-        filepath (str): Path to a theme .xml file.
-
-    Returns:
-        bool: True if the theme was applied.
-    """
+    """Apply a theme .xml file directly, without installing it. True if applied."""
     filepath = os.path.abspath(filepath)
     if not os.path.exists(filepath):
         print(f"Could not apply theme, file not found: {filepath}")
@@ -76,18 +63,8 @@ def apply_theme(filepath):
 
 
 def install_theme(filepath, overwrite=True):
-    """Copy a theme .xml file into blender's user theme presets folder.
-
-    Installing (rather than applying directly) makes the theme show up in
-    Preferences > Themes > Presets afterwards.
-
-    Args:
-        filepath (str): Path to a theme .xml file to install.
-        overwrite (bool): Replace an existing preset of the same name.
-
-    Returns:
-        str or None: The installed file path, or None if installation failed.
-    """
+    """Copy a theme .xml file into the user theme presets folder, so it shows in
+    Preferences > Themes. Returns the installed path, or None if it failed."""
     filepath = os.path.abspath(filepath)
     if not os.path.exists(filepath):
         print(f"Could not install theme, file not found: {filepath}")
@@ -104,15 +81,7 @@ def install_theme(filepath, overwrite=True):
 
 
 def install_and_apply_theme(filepath, overwrite=True):
-    """Install a theme .xml file and immediately apply it.
-
-    Args:
-        filepath (str): Path to a theme .xml file.
-        overwrite (bool): Replace an existing preset of the same name.
-
-    Returns:
-        bool: True if the theme was installed and applied.
-    """
+    """Install a theme .xml file and apply it. True if both worked."""
     installed_path = install_theme(filepath, overwrite=overwrite)
     if installed_path is None:
         return False

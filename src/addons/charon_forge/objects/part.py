@@ -8,7 +8,7 @@ import mathutils
 
 from .. import materials
 from ..utils.base_builder_utils import blend_utils
-from ..utils import selection
+from ..utils import mesh_utils, selection
 from ..utils.base_builder_utils import python_utils
 
 z_compensate = mathutils.Matrix.Rotation(math.radians(-90.0), 4, "X")
@@ -326,7 +326,7 @@ class Part(object):
         # If it exists, import the obj.
         if obj_path and os.path.isfile(obj_path):
             prev_objects_capture = [x.name for x in bpy.data.objects]
-            bpy.ops.import_scene.fbx(filepath=obj_path)
+            mesh_utils.import_model(obj_path)
             new_objects_capture = [x.name for x in bpy.data.objects]
             new_objects = [
                 x for x in new_objects_capture if x not in prev_objects_capture

@@ -1,24 +1,5 @@
-"""The game's own colour and finish data for every high res part.
-
-Read from resources/colours.json, which the extraction pipeline writes from
-the game files (BASEBUILDINGOBJECTSTABLE and the palette and material
-tables). Nothing in it is tuned by hand.
-
-    palettes       every palette, indexed by the number UserData stores
-    palette_groups which palettes a part may use (ColourPaletteGroupId)
-    finishes       every finish, with the index UserData stores
-    finish_groups  which finishes a part may use (MaterialGroupId)
-    objects        per part: its palette and finish groups and defaults, and
-                   the LIGHT nodes of its scenes (how bright its lamps are)
-
-UserData, as the game packs it:
-
-    palette index = UserData & 0xFFFFFF       (bits 8, 16, 17 are not colour)
-    finish index  = (UserData >> 24) & 0xFF   the finish's own index, which is
-                                              also the texture slice it shows
-
-Loaded on first use and cached; an edit to the file on disk is picked up.
-"""
+"""The game's colour and finish data for every high res part, from resources/colours.json.
+Loaded on first use and cached; edits on disk are picked up."""
 
 import json
 import os
@@ -107,9 +88,8 @@ def object_info(object_id):
 
 
 def palette_groups_of(object_id):
-    """(group, station group) - the second only when a space station gives
-    the part a different set, else None. (None, None) when the game does not
-    let the part be recoloured at all."""
+    """(group, station group): the second only when a station gives a different set.
+    (None, None) when the part can't be recoloured."""
     info = object_info(object_id)
     return info.get("palette_group"), info.get("station_palette_group")
 
@@ -137,11 +117,7 @@ def default_palette_index(object_id):
 # Finishes ---
 def finishes_of(object_id):
     """[(finish index, finish id, entry)] a part may use, in menu order.
-
-    The index is the finish's own - the number a save stores - not its
-    position in the group: the RUSTED group holds only MAT_RUSTED, which is
-    still finish 1.
-    """
+    The index is the finish's own (what a save stores), not its position in the group."""
     data = _load()
     group = object_info(object_id).get("finish_group")
     out = []
@@ -183,9 +159,8 @@ def default_user_data(object_id):
 
 # Light ---
 def light_power(object_id):
-    """Watts the part's own game lights put out: each LIGHT node reaches
-    `intensity / d^2`, which a Blender emitter matches at 4 pi x intensity.
-    Lights inside effect scenes (beams, sparks) are left out."""
+    """Watts the part's own game lights put out (4 pi x intensity each).
+    Lights inside effect scenes are left out."""
     total = 0.0
     for light in object_info(object_id).get("lights") or []:
         if light.get("in_effect"):

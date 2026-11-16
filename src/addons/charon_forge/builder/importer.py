@@ -1,23 +1,5 @@
-"""Fast bulk import of the parts in NMS base data.
-
-An import runs in batches, each a single pass over the whole base: every
-asset the base needs is appended first, then one coloured template object is
-made per distinct (ObjectID, UserData), then every placement is a copy of its
-template, then the materials the appends brought in are deduped and prepared
-once - see import_objects. The import collection is excluded from
-the view layer throughout, and as much data as possible is shared between the
-objects made:
-
-- Parts from the high res library share ONE mesh datablock (and with it one
-  set of materials) across every placement of that object id, whatever their
-  UserData, because colour lives on the object as custom properties rather
-  than on the material - see materials/colouring.py.
-- Parts that fall back to the builder's fbx proxy keep the old behaviour,
-  where the mesh has to be copied per (ObjectID, UserData) pair because the
-  colour is baked into a flat material.
-
-Works against any builder, see placement.py.
-"""
+"""Fast bulk import of a base's parts: append assets, colour one template per
+(ObjectID, UserData), then copy a template for every placement."""
 
 import math
 import time
@@ -28,7 +10,7 @@ import numpy as np
 
 from ..objects.part import Part
 from .. import materials
-from ..utils import collection_utils, loading_overlay
+from ..utils import collection_utils, loading_overlay, mesh_utils
 from . import asset_library, placement
 
 # name of collection to import objects to
@@ -48,22 +30,12 @@ BUILD_PROPS = ("ObjectID", "SnapID", "PresetID", "GroupID", "rig_item",
 
 
 def clear_scene_parts(scene=None):
-    """Remove everything buildable from the scene, before a ship is imported
-    into it - so the import is the ship and nothing left over from before.
-
-    Anything else - lights, cameras, a space station built by The Forge -
-    is left alone. The library meshes stay cached in bpy.data, so importing
-    the same parts again doesn't read them off disk.
-
-    Returns:
-        int: How many objects were removed.
-    """
+    """Remove every build object from the scene before an import; returns how many.
+    Lights, cameras and Forge stations are left alone."""
     scene = scene or bpy.context.scene
     doomed = set()
     holders = set()
-    # Object.children_recursive walks every object in the file on each call,
-    # so asking it once per part made clearing a 2700 part ship take 0.7s -
-    # one map of who parents whom is built here instead
+    # one parent map instead of children_recursive per part, which was slow
     children = {}
     for obj in bpy.data.objects:
         if obj.parent is not None:
@@ -93,14 +65,7 @@ def clear_scene_parts(scene=None):
 
 
 def import_objects(builder_object, objects_data, compensate_normal=True, high_res=True):
-    """Build every part in a save's "Objects" list.
-
-    Args:
-        builder_object: The builder the parts belong to.
-        objects_data (list): The part dictionaries out of the save.
-        compensate_normal (bool): Passed to override classes, see BaseVersion.
-        high_res (bool): False to build every part from the fbx proxies.
-    """
+    """Build every part in a save's "Objects" list; high_res=False uses fbx proxies."""
     # every import comes through here - the base builder addon's too - so
     # the loading card is put up here rather than by each operator
     with loading_overlay.loading("Importing %d parts" % len(objects_data)):
@@ -131,16 +96,13 @@ def _import_objects(builder_object, objects_data, compensate_normal, high_res):
             placement.get_override_class(builder_object, object_id),
         ))
 
-    # the collection is out of the view layer while it fills, so creating
-    # objects doesn't update the scene after every disk read or new object;
-    # it is put back even when a part fails, and always included at the end
-    # - an import that stays excluded looks like it did nothing
+    # the collection is excluded while it fills so the scene doesn't update per
+    # object, and always included again at the end, even on failure
     import_collection = collection_utils.get_collection(IMPORT_COLLECTION_NAME)
     try:
         with collection_utils.excluded_from_view_layer(import_collection):
-            # the whole-library material passes - dedupe, glow, tint - are
-            # wanted by every append and by parts with classes of their own;
-            # inside this they run once, when it closes
+            # the library-wide material passes (dedupe, glow, tint) run once,
+            # when this block closes
             with materials.defer_shared_data():
                 # 1. every asset, in one batch: each id's shared mesh, and
                 # its materials merged into the ones the file already has
@@ -153,10 +115,8 @@ def _import_objects(builder_object, objects_data, compensate_normal, high_res):
                 )
                 timing["assets"] = time.perf_counter()
 
-                # 2. one template per distinct (id, UserData), carrying
-                # everything its placements have in common - the shared mesh,
-                # the part properties and the colour - coloured in one pass.
-                # The templates are in no collection and removed at the end.
+                # 2. one coloured template per (id, UserData) with what its
+                # placements share; in no collection, removed at the end
                 loading_overlay.step("Colouring parts")
                 templates = {}
                 new_object = bpy.data.objects.new
@@ -183,9 +143,8 @@ def _import_objects(builder_object, objects_data, compensate_normal, high_res):
                     matrices = [deserialise_matrix_world(part[1]) for part in parts]
                 new_matrix = mathutils.Matrix
 
-                # 3. every placement a copy of its template: one call copies
-                # every property in C, leaving only what differs per part -
-                # where it is, when it was placed, its message and order
+                # 3. every placement is a copy of its template, then gets its
+                # own position, timestamp, message and order
                 link_object = import_collection.objects.link
                 now = str(int(time.time()))
                 step = loading_overlay.step
@@ -195,9 +154,12 @@ def _import_objects(builder_object, objects_data, compensate_normal, high_res):
                                 override_class) in enumerate(parts):
                         step("Placing parts", index / part_count)
                         if override_class is not None:
-                            override_class.deserialise_from_data(
+                            item = override_class.deserialise_from_data(
                                 part_data, builder_object, compensate_normal=compensate_normal
                             )
+                            # built from the fbx proxy (or a cube) by its class
+                            if high_res:
+                                placement.upgrade_to_high_res(getattr(item, "object", None))
                             continue
 
                         template = templates.get((object_id, str(user_data)))
@@ -236,9 +198,8 @@ def _import_objects(builder_object, objects_data, compensate_normal, high_res):
                 materials.dedupe_appended_data()
                 materials.prepare_materials()
 
-            # 4. leaving the block ran the material passes once: textures and
-            # node groups the appends duplicated collapsed first, so the
-            # shared materials are the ones that get prepared
+            # 4. leaving the block ran the material passes once, collapsing
+            # duplicated textures and node groups before preparing materials
             materials.use_object_colour_in_viewport()
             timing["materials"] = time.perf_counter()
 
@@ -327,7 +288,7 @@ def import_fbx_from_disk(builder_object, object_id):
         if fbx_path is None:
             bpy.ops.mesh.primitive_cube_add()
         else:
-            bpy.ops.import_scene.fbx(filepath=fbx_path)
+            mesh_utils.import_model(fbx_path)
     except RuntimeError:
         pass
     new_objects = [item for item in bpy.data.objects if item not in objects_before]
@@ -381,13 +342,8 @@ def restore_params(bpy_object, part_data, object_id):
 
 
 def deserialise_matrices(parts_data):
-    """Every part's world matrix at once - deserialise_matrix_world over a
-    whole base in one numpy pass rather than a few dozen mathutils calls a
-    part.
-
-    Returns:
-        numpy.ndarray: (parts, 4, 4) row-major world matrices.
-    """
+    """Every part's world matrix in one numpy pass, as a (parts, 4, 4) array.
+    Same result as deserialise_matrix_world per part."""
     count = len(parts_data)
     zero = (0.0, 0.0, 0.0)
     pos = np.array([part.get("Position", zero) for part in parts_data],
@@ -397,9 +353,8 @@ def deserialise_matrices(parts_data):
     at = np.array([part.get("At", zero) for part in parts_data],
                   dtype=np.float64).reshape(count, 3)
 
-    # the same steps as create_matrix_from_vectors: right is at x up, flipped,
-    # and right and at are both scaled to up's length - a zero vector stays
-    # zero, the way mathutils leaves it
+    # same steps as create_matrix_from_vectors: right = -(at x up), right and
+    # at scaled to up's length, zero vectors stay zero
     up_length = np.linalg.norm(up, axis=1, keepdims=True)
 
     def to_length(vectors):
@@ -428,13 +383,7 @@ def deserialise_matrix_world(part_data):
 
 
 def create_matrix_from_vectors(pos, up, at):
-    """Create a world space matrix given by an Up and At vector.
-
-    Args:
-        pos (list): 3 element list/vector representing the x,y,z position.
-        up (list): 3 element list/vector representing the up vector.
-        at (list): 3 element list/vector representing the aim vector.
-    """
+    """Create a world space matrix from a position, Up and At vector."""
     up_vector = mathutils.Vector(up)
     at_vector = mathutils.Vector(at)
 

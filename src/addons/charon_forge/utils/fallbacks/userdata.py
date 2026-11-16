@@ -1,10 +1,5 @@
-"""Reading and writing the colour and material in a UserData value - the base
-builder addon's utils/userdata.py.
-
-Only the colour (low 24 bits) and material (bits 24-31) regions are touched;
-every other bit is kept. Bits 8, 16 and 17 sit inside the colour range but
-are not colour, so they are kept too.
-"""
+"""Reading and writing the colour and material in a UserData value.
+Only colour (bits 0-23, except 8, 16 and 17) and material (bits 24-31) are touched."""
 
 COLOUR_BITS_FULL = 0xFFFFFF
 RESERVED_BITS = (1 << 8) | (1 << 16) | (1 << 17)

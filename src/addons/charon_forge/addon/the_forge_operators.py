@@ -373,9 +373,8 @@ class ResetStation(bpy.types.Operator):
 
 
 def _station_preview(text, _cache={}):
-    """What a typed address builds (seed_utils.station_config), an error
-    message, or None with nothing typed. Kept per text, since the popup
-    redraws it constantly."""
+    """What a typed address builds, an error message, or None with nothing typed.
+    Cached per text, since the popup redraws constantly."""
     if not text.strip():
         return None
     if text not in _cache:
@@ -402,9 +401,8 @@ def _report_build(operator, summary, changed, loaded, missing):
 
 
 def _build_from_design(operator, context, use_interior, use_exterior):
-    """EditStation's Design tab: the station there changed into the design -
-    only what differs is loaded - or, with none there, built at the 3D
-    cursor. A design changing an address's station keeps its seed."""
+    """EditStation's Design tab: change the station into the design, or build it
+    at the 3D cursor if there's none. Only what differs is loaded."""
     design = context.scene.charon_station_design
     if not use_interior and not use_exterior:
         operator.report({"WARNING"}, "Tick the interior, the exterior or both")
@@ -467,9 +465,8 @@ def _build_from_address(self, context):
         bpy.ops.object.mode_set(mode="OBJECT")
     changed = bool(station_library.find_stations())
 
-    # the system's own colours: its palettes on the hull, and the interior's
-    # base-building pieces as they were saved - on a config of its own, since
-    # update_station adds to it and the preview's is kept
+    # the system's own colours, on a config of its own since update_station
+    # adds to it and the preview's is kept
     try:
         config = seed_utils.station_config(config["seed"])
         collections, missing, loaded = seed_utils.update_station(
@@ -618,9 +615,8 @@ class CreatePolygon(_CreateForged, bpy.types.Operator):
 _QR_PANEL_RATIO = 2.4
 
 def _qr_preview(text):
-    """What the popup says about a code before it is forged: (squares along
-    a side, panels) or the error. Planned once per text - see qr.plan - since
-    the popup redraws on every keystroke."""
+    """What the popup says about a code before it's forged: (squares per side,
+    panels) or the error. Cached per text."""
     try:
         squares, panels = qr.plan(text, _QR_PANEL_RATIO)
     except qr_code.QRCodeError as error:

@@ -1,15 +1,4 @@
-"""Installing lz4, which save files are compressed with, into Blender's python.
-
-install_in_background() runs when the addon is enabled, so the install is
-usually finished before anything needs it. ensure_dependencies() is called
-by save_file.py before it imports lz4 - every read or write of a save goes
-through that module - and waits for a background install still running, or
-installs lz4 there and then if it is still missing.
-
-pip goes into Blender's own site-packages when that is writable, else into
-the user site-packages (Blender under Program Files is not writable without
-admin rights), which is put on sys.path here.
-"""
+"""Installing lz4, which save files are compressed with, into Blender's python."""
 
 import importlib
 import importlib.util

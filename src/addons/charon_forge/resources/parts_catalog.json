@@ -13000,6 +13000,7 @@
    "variant_of": null,
    "show_in_drawer": true,
    "asset": "assets/B_COK_A.blend",
+   "noglass_asset": "assets/B_COK_A_NOGLASS.blend",
    "icon": "icons/B_COK_A.png",
    "kind": "object",
    "include_message": false,
@@ -13052,6 +13053,7 @@
    "variant_of": null,
    "show_in_drawer": true,
    "asset": "assets/B_COK_B.blend",
+   "noglass_asset": "assets/B_COK_B_NOGLASS.blend",
    "icon": "icons/B_COK_B.png",
    "kind": "object",
    "include_message": false,
@@ -13509,6 +13511,7 @@
    "variant_of": null,
    "show_in_drawer": true,
    "asset": "assets/B_COK_D.blend",
+   "noglass_asset": "assets/B_COK_D_NOGLASS.blend",
    "icon": "icons/B_COK_D.png",
    "kind": "object",
    "include_message": false,
@@ -13561,6 +13564,7 @@
    "variant_of": null,
    "show_in_drawer": true,
    "asset": "assets/B_COK_E.blend",
+   "noglass_asset": "assets/B_COK_E_NOGLASS.blend",
    "noroof_asset": "assets/B_COK_E_NOROOF.blend",
    "icon": "icons/B_COK_E.png",
    "kind": "object",
@@ -18063,6 +18067,7 @@
    "variant_of": null,
    "show_in_drawer": true,
    "asset": "assets/B_HAB1_D.blend",
+   "open_asset": "assets/B_HAB1_D_OPEN.blend",
    "icon": "icons/B_HAB1_D.png",
    "kind": "object",
    "include_message": false,
@@ -18296,6 +18301,7 @@
    "variant_of": null,
    "show_in_drawer": true,
    "asset": "assets/B_HAB_D.blend",
+   "open_asset": "assets/B_HAB_D_OPEN.blend",
    "icon": "icons/B_HAB_D.png",
    "kind": "object",
    "include_message": false,
@@ -20433,7 +20439,7 @@
    }
   },
   "B_STR_AA_NE": {
-   "name": "B_STR_AA_NE (NE)",
+   "name": "CORVETTE EXTERNAL PLATING (AA NE)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": null,
@@ -20494,7 +20500,7 @@
    }
   },
   "B_STR_AA_NE1": {
-   "name": "B_STR_AA_NE1 (NE1)",
+   "name": "CORVETTE EXTERNAL PLATING (AA NE1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -20538,7 +20544,7 @@
    }
   },
   "B_STR_AA_NE2": {
-   "name": "B_STR_AA_NE2 (NE2)",
+   "name": "CORVETTE EXTERNAL PLATING (AA NE2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -20582,7 +20588,7 @@
    }
   },
   "B_STR_AA_NE3": {
-   "name": "B_STR_AA_NE3 (NE3)",
+   "name": "CORVETTE EXTERNAL PLATING (AA NE3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -20626,7 +20632,7 @@
    }
   },
   "B_STR_AA_NW": {
-   "name": "B_STR_AA_NW (NW)",
+   "name": "CORVETTE EXTERNAL PLATING (AA NW)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -20670,7 +20676,7 @@
    }
   },
   "B_STR_AA_NW1": {
-   "name": "B_STR_AA_NW1 (NW1)",
+   "name": "CORVETTE EXTERNAL PLATING (AA NW1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -20714,7 +20720,7 @@
    }
   },
   "B_STR_AA_NW2": {
-   "name": "B_STR_AA_NW2 (NW2)",
+   "name": "CORVETTE EXTERNAL PLATING (AA NW2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -20758,7 +20764,7 @@
    }
   },
   "B_STR_AA_NW3": {
-   "name": "B_STR_AA_NW3 (NW3)",
+   "name": "CORVETTE EXTERNAL PLATING (AA NW3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -20978,7 +20984,7 @@
    }
   },
   "B_STR_AA_Y_NE": {
-   "name": "B_STR_AA_Y_NE (Y_NE)",
+   "name": "CORVETTE EXTERNAL PLATING (AA Y_NE)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -21022,7 +21028,7 @@
    }
   },
   "B_STR_AA_Y_NE1": {
-   "name": "B_STR_AA_Y_NE1 (Y_NE1)",
+   "name": "CORVETTE EXTERNAL PLATING (AA Y_NE1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -21066,7 +21072,7 @@
    }
   },
   "B_STR_AA_Y_NE2": {
-   "name": "B_STR_AA_Y_NE2 (Y_NE2)",
+   "name": "CORVETTE EXTERNAL PLATING (AA Y_NE2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -21110,7 +21116,7 @@
    }
   },
   "B_STR_AA_Y_NE3": {
-   "name": "B_STR_AA_Y_NE3 (Y_NE3)",
+   "name": "CORVETTE EXTERNAL PLATING (AA Y_NE3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -21154,7 +21160,7 @@
    }
   },
   "B_STR_AA_Y_NW": {
-   "name": "B_STR_AA_Y_NW (Y_NW)",
+   "name": "CORVETTE EXTERNAL PLATING (AA Y_NW)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -21198,7 +21204,7 @@
    }
   },
   "B_STR_AA_Y_NW1": {
-   "name": "B_STR_AA_Y_NW1 (Y_NW1)",
+   "name": "CORVETTE EXTERNAL PLATING (AA Y_NW1)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -21242,7 +21248,7 @@
    }
   },
   "B_STR_AA_Y_NW2": {
-   "name": "B_STR_AA_Y_NW2 (Y_NW2)",
+   "name": "CORVETTE EXTERNAL PLATING (AA Y_NW2)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",
@@ -21286,7 +21292,7 @@
    }
   },
   "B_STR_AA_Y_NW3": {
-   "name": "B_STR_AA_Y_NW3 (Y_NW3)",
+   "name": "CORVETTE EXTERNAL PLATING (AA Y_NW3)",
    "category": "Corvette",
    "subcategory": "Hull Plating",
    "variant_of": "B_STR_AA_NE",

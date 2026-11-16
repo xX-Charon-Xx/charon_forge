@@ -1,21 +1,5 @@
 """Charon Forge's part builder.
-
-    paths.py          where things are on disk
-    catalog.py        which fbx parts and presets exist
-    asset_library.py  the high res library: which .blend holds which part, and
-                      loading its mesh
-    proxy_library.py  the fbx proxies, cached and coloured per UserData
-    placement.py      turning those meshes into placed parts
-    importer.py       building every part in a save at once
-    builder.py        Builder - scene lookups, serialising, presets, rigs
-    mixin.py          HighResBuilderMixin - the high res library layered onto
-                      any builder class
-    host.py           the same, onto the base builder addon's Builder, for its
-                      set_builder() hook
-
-Charon Forge's own tools use get_builder(). The functions below are the
-module level entry points they call, and default to that builder.
-"""
+Charon Forge's tools use get_builder(); the functions below default to it."""
 
 from . import asset_library, host, placement, proxy_library
 from .builder import Builder
@@ -55,12 +39,7 @@ def get_builder():
 
 
 def add_part(object_id, user_data=None, build_rigs=True, high_res=True, builder_object=None):
-    """Add a single part, from the high res library when it has one.
-
-    Args:
-        builder_object: The builder the part belongs to, so its part cache is
-            the one that gets filled. Defaults to get_builder().
-    """
+    """Add a single part, from the high res library when it has one."""
     return placement.add_part(
         builder_object or get_builder(),
         object_id,

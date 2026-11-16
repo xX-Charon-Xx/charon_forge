@@ -1,23 +1,5 @@
-"""How many shaders EEVEE will compile for a set of materials.
-
-EEVEE does not compile a shader per material. It generates GLSL from the
-part of the node tree that reaches the output and caches the compiled pass
-by a hash of that code (GPUPassCache, source/blender/gpu/intern/gpu_pass.cc),
-so every material that generates the same code shares one compile. Unlinked
-socket values and the images a node samples go in as uniforms and textures,
-not code - two materials that differ only in those are one shader.
-
-So what an import costs to compile is the number of distinct node
-STRUCTURES among its materials, and how big each is - not the number of
-materials. shader_signature() approximates the code hash from Python: the
-nodes that reach the output, their settings, which sockets are linked and
-how, and the material settings that pick a pipeline. It over-counts rather
-than under-counts: a setting it can't tell is compiled in counts as if it is.
-
-A material that is not plainly opaque (its Alpha linked or below 1, or drawn
-blended) needs shadow and depth passes of its own; an opaque one uses
-EEVEE's shared default ones. Those are counted too.
-"""
+"""Estimates how many shaders EEVEE compiles for a set of materials: one per distinct
+node structure (plus own shadow/depth passes for non-opaque ones), not per material."""
 
 import hashlib
 
@@ -68,12 +50,8 @@ def _node_settings(node):
 
 
 def _tree_signature(tree, output_kind, groups):
-    """The reachable part of a tree, in the order a walk back from its output
-    meets it - so node names and layout never matter.
-
-    Returns:
-        (signature tuple, reachable node count, the Principled BSDFs reached)
-    """
+    """(signature, reachable node count, Principled BSDFs reached) for a tree,
+    walked back from its output so names and layout don't matter."""
     output = _output_node(tree, output_kind)
     if output is None:
         return ((), 0, [])
@@ -161,15 +139,8 @@ def shader_signature(mat, groups=None):
 
 
 def shader_report(materials):
-    """What a set of materials costs EEVEE to compile.
-
-    Returns:
-        dict: materials, shaders (distinct structures), own_depth (shaders
-            needing shadow/depth passes of their own), nodes (reachable nodes
-            summed over the distinct shaders - roughly the code compiled), and
-            largest: [(nodes, how many materials share it, a material's name)]
-            for the five biggest shaders.
-    """
+    """What a set of materials costs EEVEE to compile: materials, shaders, own_depth,
+    nodes and the five largest shaders."""
     groups = {}
     shaders = {}
     count = 0

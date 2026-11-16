@@ -1,31 +1,5 @@
-"""Keeping materials under EEVEE's texture sampler limit.
-
-A GPU shader can bind at most 32 textures, and EEVEE takes some of those for
-itself. Every Image Texture node in a material is compiled in, whichever one
-a switch actually shows, so a material that carries many alternatives fails
-to compile ("profile doesn't support more than 32 samplers") and draws as
-nothing.
-
-The pipeline builds such materials for the game's procedural texture
-variants: U_SILO_S's number decal carries all 26 alternative numbers
-(NUMBER.BASE.A1 ... C9) behind a switch read from the object property
-nms_tex_NUMBER_BASE, listed on the material as
-
-    nms_texture_variants = {"nms_tex_NUMBER_BASE": ["(as named)", "C9", ...]}
-
-The first label in each list is the family's default - "(as named)", "OFF"
-or a texture's own name. When a material is over budget, its variant images
-are all pointed at one image: the family image the list does not name when
-there is exactly one (the default's own), else the image of the first listed
-variant (a default of "OFF" shows no variant image at all, so its look is
-unchanged). Blender binds an image once however many nodes sample it, so
-the material drops under the limit and compiles; the cost is that the
-variants all show that one image. The switch nodes are left as they are, and which image
-each node had is kept on the material (charon_variant_images), so this can
-be undone.
-
-Done per material, once - the material is tagged.
-"""
+"""Keeps materials under EEVEE's 32 texture sampler limit by pointing a material's
+texture variants at one image when it has too many (undoable via charon_variant_images)."""
 
 import json
 import os
@@ -40,10 +14,8 @@ SAMPLER_VERSION = 1
 # node name -> image name, for every node repointed
 ORIGINAL_IMAGES_PROP = "charon_variant_images"
 
-# Distinct images a material may sample before its variants are collapsed.
-# 32 is the hardware limit; EEVEE's own lighting, shadow and utility
-# textures take most of the rest. Set no lower than it has to be: a material
-# collapsed here loses its variants.
+# Distinct images a material may sample before its variants are collapsed;
+# EEVEE uses most of the rest of the 32.
 MAX_MATERIAL_IMAGES = 24
 
 
@@ -70,11 +42,7 @@ def _stem(image):
 
 
 def _variant_families(mat):
-    """[(family stem, [variant labels in order])] from nms_texture_variants.
-
-    "nms_tex_NUMBER_BASE" names the texture family NUMBER.BASE; its labels
-    are the suffixes of the family's variant images (NUMBER.BASE.C9, ...).
-    """
+    """[(family stem, [variant labels in order])] from nms_texture_variants."""
     raw = mat.get(VARIANTS_PROP)
     if not raw:
         return []
@@ -129,11 +97,7 @@ def _collapse_variants(mat, nodes):
 
 
 def ensure_sampler_budget(materials=None):
-    """Collapse the texture variants of every material over the budget.
-
-    Returns:
-        int: How many materials were changed.
-    """
+    """Collapse the texture variants of every material over the budget; returns how many changed."""
     materials = materials if materials is not None else bpy.data.materials
     changed_count = 0
     for mat in materials:

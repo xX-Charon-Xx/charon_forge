@@ -1,18 +1,5 @@
-"""High res colouring, layered onto a material provider class.
-
-HighResMaterialsMixin sends the colour calls for high res parts to the object
-property colour system (colouring.py), and leaves every other part to the
-provider it is mixed into. It relies only on the methods every provider has,
-so it goes in front of either:
-
-    class CharonMaterials(HighResMaterialsMixin, MaterialProvider)  # ours, flat.py
-    type(..., (HighResMaterialsMixin, HostMaterialProvider), {})    # the base builder
-                                                                   # addon's, host.py
-
-The second is what makes it possible to hand our materials to the base builder
-addon through its set_material_provider() hook - that hook only accepts
-subclasses of its own MaterialProvider class.
-"""
+"""HighResMaterialsMixin: sends colour calls for high res parts to colouring.py and
+leaves the rest to the provider it's mixed into (ours in flat.py, or the host's)."""
 
 from . import colouring
 
@@ -20,14 +7,8 @@ from . import colouring
 class HighResMaterialsMixin(object):
 
     def set_material(self, item, material):
-        """Set a flat material, and mirror its colour onto the object.
-
-        Solid shading has to be set to Object colour for high res parts to be
-        told apart - their materials are shared, so only the object can carry a
-        per part viewport colour - and a flat part has to read the same under
-        it, or half the scene goes white. See
-        colouring.use_object_colour_in_viewport.
-        """
+        """Set a flat material and mirror its colour onto the object,
+        so it reads the same in Object colour solid shading."""
         material = super(HighResMaterialsMixin, self).set_material(item, material)
         if material is not None:
             item.color = material.diffuse_color
@@ -58,10 +39,8 @@ class HighResMaterialsMixin(object):
         )
 
     def assign_default_material(self, item, index=0):
-        # High res parts keep their real textures - painting the default grey
-        # over them would throw the model away. Their default is the game's
-        # own for that part (palette and finish), whatever `index` the host's
-        # folder guess passed.
+        # High res parts keep their textures and get the game's own default
+        # palette and finish, whatever `index` the host passed.
         if colouring.is_high_res(item):
             colouring.recolour_from_user_data(
                 [item], colouring.default_user_data(colouring.object_id_of(item)))

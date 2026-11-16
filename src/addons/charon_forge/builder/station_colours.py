@@ -1,9 +1,5 @@
 """Names and swatch icons for the space station's colour lists.
-
-The game's station palettes have no names of their own (STATION0..35), so
-each is named after the colours it is made of - "Grey & Orange" - and shown
-with a swatch of them, drawn into a preview icon once and kept.
-"""
+The game's palettes have no names, so each is named after its colours."""
 
 import colorsys
 
@@ -89,9 +85,7 @@ def colour_name(colour):
 
 
 def colours_name(colours):
-    """A name for a set of colours: its first, and whichever of the rest
-    stands out from it most - a real colour before another grey, since that
-    accent is what tells one palette from the next."""
+    """A name for a set of colours: its first and the one that stands out most from it."""
     first = colour_name(colours[0])
 
     def saturation(colour):

@@ -15,12 +15,7 @@ PREVIEW_ICON_SCALE = 2
 
 
 def draw_preview_icons(container, group):
-    """A horizontal strip of icons for the first few parts of a group.
-
-    Object ids carry a "^" prefix in the priority list that the icon files
-    do not have, so it is stripped before the lookup - see
-    icon_utils.load_asset_icons.
-    """
+    """A horizontal strip of icons for the first few parts of a group."""
     parts = optimiser_utils.get_group_parts(group)
 
     # raises if register_icons has not run yet, which must not take the
@@ -30,9 +25,7 @@ def draw_preview_icons(container, group):
     except KeyError:
         pcoll = None
 
-    # a grid rather than a row of columns: every cell gets the same width
-    # whether or not it has an icon in it, so a short group does not end up
-    # with wide icons and a narrow gap
+    # a grid, so every cell gets the same width whether or not it has an icon
     icons_grid = container.grid_flow(
         row_major=True,
         columns=PREVIEW_COUNT,
@@ -45,10 +38,7 @@ def draw_preview_icons(container, group):
         cell = icons_grid.column(align=True)
 
         if slot >= len(parts):
-            # blank lines holding the cell open, so the filled ones keep
-            # their size instead of stretching to share the row. A
-            # template_icon is about `scale` lines tall, so it takes that
-            # many blank labels to match the height of a filled cell.
+            # blank labels keep the empty cell as tall as a filled one
             for _ in range(PREVIEW_ICON_SCALE):
                 cell.label(text="")
             continue
@@ -94,12 +84,7 @@ class CHARON_UL_priority_part_list(bpy.types.UIList):
 
 
 class CHARON_UL_priority_search_result_list(bpy.types.UIList):
-    """Search results to add to the group being edited, with an add button each.
-
-    Same row layout as CHARON_UL_priority_part_list - icon plus name - with
-    an ADD button in place of the remove button, since this list is search
-    results rather than the group's own current parts.
-    """
+    """Search results to add to the group being edited, with an add button each."""
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         row = layout.row(align=True)
@@ -157,10 +142,8 @@ class CHARON_PT_optimiser_panel(Panel):
         
         if prefs is not None:
             description_column.separator(factor = 2)
-            # a checkbox drawn as a button - the label has to be passed in to say
-            # On/Off, prop() would otherwise use the property's own name for both
-            # states. Stored in preferences (per user, across restarts) rather
-            # than on scene.charon_optimiser - see addon_preferences.py.
+            # a checkbox drawn as a button, with its own On/Off label;
+            # stored in preferences so it lasts across restarts
             auto_on = prefs.auto_optimise
             toggle_row = description_column.row(align=True)
             toggle_row.alert = not auto_on
@@ -197,12 +180,7 @@ class CHARON_PT_optimiser_panel(Panel):
 
 
 class CHARON_PT_priority_list_panel(Panel):
-    """The priority list, as a collapsible section of the optimiser panel.
-
-    A child panel rather than a box with a toggle property: blender gives
-    it a real collapse arrow and remembers the open/closed state itself,
-    with nothing to store on the scene.
-    """
+    """The priority list, as a collapsible section of the optimiser panel."""
 
     bl_idname = "CHARON_PT_priority_list_panel"
     bl_label = "Priority List"
@@ -216,11 +194,7 @@ class CHARON_PT_priority_list_panel(Panel):
     def draw(self, context):
         layout = self.layout
 
-        # Reset sits in the body rather than draw_header_preset: that draws
-        # even while the panel is collapsed, and blender does not expose a
-        # sub-panel's expand state to python to gate it on directly. draw()
-        # itself only runs while expanded, so putting it here is what
-        # actually hides it.
+        # Reset is in the body, not the header, so it hides while collapsed
         prefs = addon_preferences.get_addon_preferences()
         preview_row = layout.row(align=True)
         if prefs is not None:
@@ -229,10 +203,7 @@ class CHARON_PT_priority_list_panel(Panel):
             PriorityListReset.bl_idname, text="Reset", icon="LOOP_BACK"
         )
 
-        # Drawn straight from the saved list rather than through a UIList and
-        # its scene collection: a plain loop reads fine while the scene is
-        # read only for drawing, which is what made the collection based
-        # version come up empty.
+        # drawn straight from the saved list; a UIList's scene collection came up empty
         priority_list = optimiser_utils.get_cached_priority_list()
 
         if not priority_list:

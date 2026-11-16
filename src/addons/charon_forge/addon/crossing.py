@@ -9,11 +9,8 @@ from . import crossing_operators, crossing_presentation
 # State for the crossing panel, stored on the scene as scene.charon_crossing.
 class Crossing(bpy.types.PropertyGroup):
 
-    # The so.json and ccd.json of the last .nmsship imported, as JSON - the
-    # game's ship record (name, model, inventories) and its customisation.
-    # Nothing in Blender builds these, so Export as .nmsship writes them back
-    # out around the scene's parts. Empty until a ship has been imported,
-    # and then export uses resources/nmsship_template.json - see utils/nmsship.py.
+    # the last imported .nmsship's ship record and customisation, written back on export;
+    # empty until an import, when export uses resources/nmsship_template.json
     ship_record_json: StringProperty()
     customisation_json: StringProperty()
 

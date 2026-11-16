@@ -97,9 +97,8 @@ class CHARON_PT_the_forge_panel(Panel):
             row.operator(SplitForged.bl_idname, icon="MOD_EXPLODE")
             layout.separator()
 
-        # everything else stays in view while a shape or text is being edited,
-        # greyed out only while it is selected as well as active - Blender
-        # keeps a deselected object active
+        # while a shape or text is edited the rest stays in view, greyed out
+        # only while it's both selected and active
         rest = layout.column()
         rest.enabled = not (editing and active_object.select_get())
 
@@ -383,9 +382,8 @@ def _draw_style_options(column, forge):
     column.prop(forge, "capped")
 
 
-# Shared pieces - every kind's settings are laid out the same way: the part
-# and its count, the pattern, its own settings in pairs, then its stretch and
-# the parts' rotation, each on one line ---
+# Shared pieces - every kind is laid out the same: part and count, pattern,
+# its own settings in pairs, then stretch and rotation ---
 def _draw_title(layout, forge, icon):
     """The part's name, and on the right how many copies of it there are -
     or why the layout couldn't be built."""

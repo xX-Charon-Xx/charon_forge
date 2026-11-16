@@ -1,9 +1,4 @@
-"""The priority list the optimiser panel reads, edits and persists.
-
-Split out of dictionary.py - that module is general object id lookups
-(nice names, categories), this one is entirely about the priority list
-feature: where it lives on disk, its group shape, and the user's edits to it.
-"""
+"""The optimiser's priority list: where it lives on disk, its groups and the user's edits."""
 
 import json
 import os
@@ -23,13 +18,8 @@ USER_PRIORITY_FILE_NAME = "priority_list.json"
 
 
 def get_user_priority_list_path():
-    """Where the user's edited copy of the priority list lives.
-
-    Beside the asset browser's store rather than in the addon folder, for the
-    same reason: resources/priority_list.json ships with the addon and is
-    replaced wholesale on every update, so edits kept there would not survive
-    one. See asset_browser_utils.get_user_data_directory.
-    """
+    """Where the user's copy of the priority list lives, outside the addon folder
+    so updates don't overwrite it."""
     from . import asset_browser_utils
 
     return os.path.join(
@@ -50,9 +40,8 @@ def _read_priority_list(path):
     if not isinstance(data, list):
         return None
 
-    # a hand edited file should not be able to break the panel, so anything
-    # that is not a usable entry is dropped and a missing name/parts is
-    # filled in rather than left for the caller to trip over
+    # a hand edited file can't break the panel: unusable entries are dropped
+    # and a missing name/parts is filled in
     groups = []
     for group in data:
         if not isinstance(group, dict):
@@ -66,13 +55,8 @@ def _read_priority_list(path):
 
 
 def get_priority_list():
-    """[{"name": str, "parts": {object id: nice name}}, ...].
-
-    The user's copy, else the shipped one.
-
-    Read fresh rather than cached: the optimiser panel edits this
-    (reordering/deleting groups) and every read has to see the latest write.
-    """
+    """The user's priority list, else the shipped one, read fresh as the panel edits it.
+    [{"name": str, "parts": {object id: nice name}}, ...]"""
     user_list = _read_priority_list(get_user_priority_list_path())
     if user_list is not None:
         return user_list
@@ -95,12 +79,8 @@ def _priority_cache_stamp(path):
 
 
 def get_cached_priority_list():
-    """get_priority_list, but cheap enough to call from a panel's draw.
-
-    A panel redraws constantly, so the file is only re-read when its
-    timestamp or size actually changes - including when a save swaps the
-    shipped default for the user's copy.
-    """
+    """get_priority_list, cheap enough for a panel's draw: re-read only when the
+    file's timestamp or size changes."""
     global _priority_cache, _priority_cache_key
 
     key = (
@@ -138,14 +118,8 @@ def clear_priority_cache():
 
 
 def save_priority_list(priority_list):
-    """Write the user's copy out, leaving the shipped resource untouched.
-
-    Written to a temporary file and moved into place, so a crash part way
-    through cannot leave a half written list behind.
-
-    Returns:
-        bool: True if it reached the disk.
-    """
+    """Write the user's copy through a temporary file, leaving the shipped one alone.
+    Returns True if it reached the disk."""
     clear_priority_cache()
 
     path = get_user_priority_list_path()
@@ -180,11 +154,7 @@ def reset_priority_list():
 
 
 # Ordering ---
-#
-# A part's "order" is its position in the saved Objects list. Parts whose
-# ObjectID is in the priority list go first, in the list's own order - group
-# by group, and part by part inside a group - and every other part comes
-# after all of them. Parts that tie keep the order they already had.
+# priority list parts go first, in the list's order; the rest after, ties keep their order
 
 
 def _strip_id(object_id):
@@ -206,14 +176,11 @@ def _rank_key(ranks, object_id):
 
 
 # The primary corvette parts ---
-# A ship can have more than one cockpit or landing bay; the one picked in the
-# optimiser panel (scene.charon_optimiser) goes ahead of the others of its
-# kind, so the game takes it as the ship's own.
+# the cockpit and landing bay picked in the optimiser panel go ahead of others of their kind
 
 def get_primary_parts():
-    """The cockpit and landing bay picked as primary, while the option is on
-    - leaving out any empty pick, and any part deleted or no longer in the
-    scene."""
+    """The cockpit and landing bay picked as primary while the option is on,
+    leaving out empty picks and parts no longer in the scene."""
     scene = bpy.context.scene
     optimiser = getattr(scene, "charon_optimiser", None)
     if optimiser is None or not optimiser.use_primary_parts:
@@ -234,17 +201,8 @@ LANDING_BAY_PREFIX = "B_ALK_"
 
 
 def mark_primary_parts(objects):
-    """Pick the cockpit and landing bay with the lowest order among `objects`
-    as the ship's primary ones, and switch the option on.
-
-    Called after an import with the parts it built: the save lists the
-    ship's own cockpit and landing bay first, so the lowest order is the one
-    the game treats as primary. A kind the import has none of keeps whatever
-    was picked before.
-
-    Returns:
-        tuple: (cockpit, landing bay) picked, either None.
-    """
+    """After an import, pick the lowest-order cockpit and landing bay as primary and
+    switch the option on. Returns (cockpit, landing bay), either None."""
     optimiser = getattr(bpy.context.scene, "charon_optimiser", None)
     if optimiser is None:
         return None, None
@@ -272,13 +230,8 @@ def mark_primary_parts(objects):
 
 
 def mark_primary_if_first(bpy_object):
-    """Make a newly placed cockpit or landing bay the primary one when it is
-    the only one of its kind in the scene - the first placed of each kind is
-    the ship's own until the user picks another.
-
-    Returns:
-        str: "cockpit" or "landing_bay" when it was marked, else None.
-    """
+    """Make a new cockpit or landing bay primary when it is the only one of its kind.
+    Returns "cockpit" or "landing_bay" when marked, else None."""
     scene = bpy.context.scene
     optimiser = getattr(scene, "charon_optimiser", None)
     if optimiser is None or bpy_object is None:
@@ -327,19 +280,11 @@ def is_auto_optimise_on():
 
 def reorder_scene_objects(builder, ranks=None):
     """Renumber every part's "order" so priority parts come first.
-
-    Args:
-        builder: The builder to read the scene's parts through.
-        ranks (dict): From get_priority_ranks(), to save reading it twice.
-
-    Returns:
-        int: How many parts were renumbered.
-    """
+    Returns how many parts were renumbered."""
     ranks = get_priority_ranks() if ranks is None else ranks
     primaries = {obj.as_pointer() for obj in get_primary_parts()}
-    # already sorted by their current order, and sorted() is stable, so
-    # parts of the same rank keep their relative order - except a primary
-    # part, which goes ahead of the rest of its rank
+    # sorted() is stable, so parts of the same rank keep their order,
+    # except a primary part, which goes first in its rank
     parts = builder.get_all_parts(include_lines=True)
     parts = sorted(
         parts, key=lambda obj: (
@@ -354,12 +299,8 @@ def reorder_scene_objects(builder, ranks=None):
 
 
 def sort_serialised_objects(object_list, ranks=None):
-    """Sort serialised part dicts the same way, in place.
-
-    Group members are serialised after every loose part, so reordering the
-    scene alone would still leave a priority part inside a group behind
-    loose parts that are not in the priority list.
-    """
+    """Sort serialised part dicts the same way, in place, so priority parts inside
+    groups aren't left behind loose parts."""
     ranks = get_priority_ranks() if ranks is None else ranks
     primaries = _primary_keys(get_primary_parts())
 

@@ -1,27 +1,5 @@
 """Space stations, appended whole from models/space_station.
-
-A station has two parts, each imported on its own or together:
-
-    interior/  STATION_INTERIOR_<kind>.blend - its core (main hall) and runway
-               (hangar), each a model, floor and roof, plus build zones
-    exterior/  STATION_EXTERIOR_<kind>.blend - its body, plus build zones
-
-They are made by the extraction pipeline the way the high res parts are, so
-their materials carry the NMS_Colourise node group and are coloured through
-the same object properties (materials/colouring.py). Their textures sit
-beside them in models/space_station/textures; the files point at wherever
-they were when they were written, so they are pointed back there on import.
-
-A station's colours come from the game's STATIONBASE palette group, the same
-palettes resources/station_colours.json and STA_COLOURS.md list - they are
-read from resources/colours.json (materials/game_data.py), which holds them
-too and is already loaded for the parts.
-
-Each part is one collection, recording which part and kind it is and its
-palette, and everything its import brought in is tagged - so it can be
-recoloured in place, swapped for another kind or taken out again without
-touching anything else in the file.
-"""
+Each half is one tagged collection, so it can be recoloured, swapped or removed."""
 
 import json
 import math
@@ -99,9 +77,8 @@ def station_palettes():
 
 
 def palette_items(self, context):
-    """The station palettes for an enum, then keeping the colours it was
-    saved with - the first is the default. Blender needs the list kept alive
-    while it shows it."""
+    """The station palettes for an enum, plus the colours it was saved with.
+    Blender needs the list kept alive."""
     global _palette_items
     items = []
     for number, entry in enumerate(station_palettes()):
@@ -136,8 +113,7 @@ def find_stations():
 
 
 # Visibility ---
-# the two halves of every interior, each its model, floor and roof - the
-# objects are named <INTERIOR>_CORE, <INTERIOR>_CORE_FLOOR, ...
+# the interior's two halves, each a model, floor and roof (<INTERIOR>_CORE_FLOOR...)
 SECTIONS = ("CORE", "RUNWAY")
 
 # on the interior's collection, per section: whether its roof is kept hidden
@@ -261,12 +237,7 @@ def extend_view_clip(clip_end=VIEW_CLIP_END):
 
 # Importing ---
 def _relink_images(images):
-    """Point images at their file in models/space_station/textures, without
-    loading them - Blender reads each one when it is first drawn.
-
-    Returns:
-        int: How many have no file there.
-    """
+    """Point images at their file in models/space_station/textures; returns how many are missing."""
     missing = 0
     for image in images:
         if image.packed_file is not None or image.source != "FILE" or not image.filepath:
@@ -297,12 +268,8 @@ def origin(context):
 
 
 def import_part(context, part, kind, palette_index=SAVED_PALETTE, cursor=None):
-    """Append one part of a station into its own collection at `cursor` (the
-    3D cursor by default), its textures found and its colours set.
-
-    Returns:
-        (collection, objects, textures with no file)
-    """
+    """Append one part of a station into its own collection at `cursor`.
+    Returns (collection, objects, textures with no file)."""
     path = part_path(part, kind)
     if not os.path.isfile(path):
         raise FileNotFoundError(path)
@@ -350,9 +317,7 @@ def import_part(context, part, kind, palette_index=SAVED_PALETTE, cursor=None):
             obj.hide_set(True)
     placed = time.perf_counter()
 
-    # the same passes an appended part gets, over only what came in: glow,
-    # the texture limit, a tint for colourable materials with no mask - then
-    # one of each texture and of the colourise node group
+    # the passes an appended part gets, over only what came in
     materials.prepare_materials(new_materials)
     materials.dedupe_appended_data()
     finished = time.perf_counter()
@@ -413,9 +378,7 @@ def remove_station(collection):
 
 
 def remove_section(section):
-    """Take one of the interior's SECTIONS out - its model, floor and roof -
-    or, if nothing else of the interior is left but build zones, the whole
-    interior."""
+    """Remove one interior SECTION, or the whole interior if only build zones would be left."""
     collection = find_station(INTERIOR)
     if collection is None:
         return
@@ -428,9 +391,7 @@ def remove_section(section):
 
 
 def remove_objects(objects, extra=()):
-    """Remove station objects (and `extra` datablocks, like their
-    collection), then whatever the station's imports brought in that
-    nothing uses now."""
+    """Remove station objects and `extra` datablocks, then anything their imports left unused."""
     started = time.perf_counter()
     meshes = {obj.data for obj in objects if obj.data is not None}
     bpy.data.batch_remove(list(objects) + list(extra))

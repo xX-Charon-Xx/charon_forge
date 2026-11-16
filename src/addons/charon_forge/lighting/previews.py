@@ -1,14 +1,5 @@
 """Preview swatches for the sky pickers, drawn from the game's own colours.
-
-    planet  the entry's gradient as the camera sees it - SkyUpper at the top,
-            Sky, Horizon, and the fog below - with its sun disc
-    space   a window onto the game's nebula dome, tinted exactly as the sky
-            shader tints it (R -> NebulaColour3, G -> 1, B -> 2) over the
-            entry's Bottom / Mid / Top gradient
-
-Made in memory (bpy.utils.previews, pixels written directly), once per entry
-per session; nothing is written to disk.
-"""
+Made in memory once per entry per session."""
 
 import os
 

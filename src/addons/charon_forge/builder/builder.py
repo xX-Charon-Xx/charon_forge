@@ -1,9 +1,5 @@
-"""Charon Forge's own builder - the top level scene methods for managing NMS parts.
-
-This is the plain builder, placing parts from the fbx proxies the way the
-base builder addon's does. CharonBuilder in __init__.py puts the high res
-library in front of it.
-"""
+"""Charon Forge's own builder - scene methods for managing NMS parts.
+Places fbx proxies; CharonBuilder in __init__.py puts the high res library in front."""
 
 import json
 import os
@@ -15,7 +11,7 @@ import bpy
 from ..objects import group, part, preset
 from ..utils import loading_overlay
 from ..utils.base_builder_utils import blend_utils, overrides
-from . import paths
+from . import paths, placement
 from .catalog import Catalog
 
 
@@ -70,9 +66,7 @@ class Builder(Catalog):
     # Lookups ---
     @classmethod
     def get_part_class(cls, object_id):
-        """Which Part subclass builds this id - the base builder addon's
-        table (bone, turret, locked, message, and so on), falling back to
-        our own plain Part for anything it does not special case."""
+        """The Part subclass for this id: the base builder addon's table, else our plain Part."""
         try:
             override_class = overrides.get_override_class(object_id)
         except AttributeError:
@@ -99,14 +93,7 @@ class Builder(Catalog):
     def get_all_parts(
         self, exclude_presets=False, skip_object_type=None, include_lines=False, include_groups=False
     ):
-        """Get all NMS parts in the scene.
-
-        Args:
-            exclude_presets (bool): Choose to exclude parts generated via
-                preset.
-            skip_object_type (list): ObjectIDs to leave out.
-            include_lines (bool): Include line control points.
-        """
+        """Get all NMS parts in the scene."""
         skip_object_type = skip_object_type or []
 
         flat_parts = []
@@ -132,14 +119,7 @@ class Builder(Catalog):
 
     @staticmethod
     def by_order(bpy_object):
-        """Sorting method to get objects by the order attribute.
-
-        Args:
-            bpy_object (bpy.ob): A blender object.
-
-        Returns:
-            int: The order of which the item is/was built.
-        """
+        """Sort key: the order the object was built in."""
         return bpy_object.get("order", 0)
 
     # Building ---
@@ -148,8 +128,9 @@ class Builder(Catalog):
         object_id = object_id.replace("^", "")
         use_class = self.get_part_class(object_id)
 
-        # captured before the part exists so it lands on the previous selection
-        active_object = bpy.context.active_object
+        # read before the part exists so it lands on the previous selection,
+        # or at the 3D cursor with nothing selected
+        matrix = placement.new_part_matrix()
         item = use_class(
             object_id=object_id,
             builder_object=self,
@@ -157,8 +138,7 @@ class Builder(Catalog):
             build_rigs=build_rigs,
         )
 
-        if active_object is not None:
-            item.object.matrix_world = active_object.matrix_world.copy()
+        item.object.matrix_world = matrix
         return item
 
     def add_preset(self, preset_id):
@@ -206,15 +186,7 @@ class Builder(Catalog):
 
     # Serialising ---
     def serialise(self, get_presets=False, add_timestamp=False, as_prefab=False, include_groups=True):
-        """Return NMS compatible dictionary.
-
-        Args:
-            get_presets (bool): This will generate data for presets. And
-                exclude parts generated from presets.
-            include_groups (bool): Save the parts inside groups.
-        Returns:
-            dict: Dictionary of base information.
-        """
+        """Return the base as an NMS compatible dictionary."""
         object_list = []
         items = self.get_all_parts(exclude_presets=get_presets)
         for index, item in enumerate(items):

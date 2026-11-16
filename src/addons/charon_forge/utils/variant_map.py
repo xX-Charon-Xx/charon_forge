@@ -1,21 +1,5 @@
-"""Rebuild a variant part out of the asset it is a variant of.
-
-Most of the corvette variants shipped in models-high-res are the wrong mesh -
-the id says (Y_N) and the asset is something else. What is not wrong is the
-relationship between a variant and its root: resources/objects_map.json records,
-for every variant, the rigid transform that turns the root's mesh into the
-variant's, measured off the assets themselves.
-
-So rather than trusting the variant's own asset, we take the root's asset and
-apply that transform to a copy of its mesh. Only variants flagged
-``reproducible`` are handled here - the wall tier variants ((BASE)/(MID)/(TOP))
-carry a best fit transform that is genuinely a different mesh, and those keep
-the asset they ship with.
-
-The transform is in the asset's own stored space (Y up - the library carries a
-baked -90 about X), so it applies straight to the mesh, before any of the
-object level rotation the builder puts on top.
-"""
+"""Rebuild a reproducible variant from its root's mesh and the transform in objects_map.json.
+The transform is in the asset's own Y-up mesh space."""
 
 import json
 import os
@@ -29,16 +13,11 @@ RESOURCES_DIR = os.path.realpath(
 
 OBJECTS_MAP = os.path.join(RESOURCES_DIR, "objects_map.json")
 
-# Keys in the json that are metadata rather than object ids.
+# keys in the json that are metadata rather than object ids
 META_PREFIX = "_"
 
-# The wall tier suffix a nice name can carry. A variant whose tier differs from
-# its root's is a different mesh however good the fit looks - the mid tier of a
-# wall has its own detailing, it is not the base tier moved. objects_map.json
-# flags most of these ``reproducible: false`` already, but 97 of them slipped
-# through with a near identity transform and a residual up to 2%, so they are
-# caught here by name instead. With this guard the worst residual left in the
-# table is 1.2%, and that one is a genuine mirror pair.
+# wall tier suffix; a variant on a different tier from its root is a different
+# mesh, so it is never rebuilt
 TIER_SUFFIX = re.compile(r"\((BASE|MID|TOP)\)\s*$")
 
 
@@ -51,13 +30,7 @@ _rebuild_table = None
 
 
 def _build_table():
-    """Read objects_map.json into the only shape this module needs.
-
-    Returns:
-        dict: {variant id: (root id, mathutils.Matrix)}. Empty when the
-            resource is missing or unreadable, which just means nothing gets
-            rebuilt and every id is served by its own asset.
-    """
+    """{variant id: (root id, mathutils.Matrix)} from objects_map.json; empty if unreadable."""
     table = {}
 
     if not os.path.isfile(OBJECTS_MAP):
@@ -77,9 +50,7 @@ def _build_table():
         if not record.get("is_variant") or not record.get("reproducible"):
             continue
 
-        # recreate_from, not variant_of: where a variant is a variant of a
-        # variant the transform is measured against the root, so this never
-        # has to be rebuilt in stages
+        # recreate_from: the transform is always measured against the root
         root_id = record.get("recreate_from") or record.get("variant_of")
         pattern = patterns.get(record.get("pattern"))
         if not root_id or pattern is None:
@@ -119,14 +90,6 @@ def get_rebuild_table(rebuild=False):
 
 
 def get_rebuild(object_id):
-    """How to rebuild one id from another part's mesh.
-
-    Args:
-        object_id (str): The part being placed.
-
-    Returns:
-        tuple: (root object id, 4x4 mathutils.Matrix to apply to a copy of the
-            root's mesh), or None when this id is not a reproducible variant
-            and should be served by its own asset.
-    """
+    """(root id, matrix to apply to a copy of the root's mesh), or None when
+    the id should use its own asset."""
     return get_rebuild_table().get(object_id.replace("^", ""))

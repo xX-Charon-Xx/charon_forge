@@ -1,26 +1,5 @@
-"""Colouring parts from the high res library, the way the game does it.
-
-Every colourable material in the library carries an "NMS_Colourise" node group
-whose four palette slots are Attribute nodes of type OBJECT, reading the
-object properties nms_p / nms_s / nms_t / nms_q. Every finish-capable material
-holds all of its finish texture slices behind a switch reading the object
-property nms_finish. So both the colour and the finish live on the OBJECT:
-recolouring a part is five property writes, no material is touched, and a
-thousand placements of a part share ONE mesh and ONE set of materials while
-each shows its own colour and finish. Never copy a mesh or a material to
-recolour something.
-
-What the properties are set to comes only from the game's data (game_data.py,
-resources/colours.json):
-
-    UserData & 0xFFFFFF       palette index -> the palette's four colours
-    (UserData >> 24) & 0xFF   finish index  -> nms_finish, the texture slice
-
-Any palette can go on any part, and any finish index on any part: the game's
-menus only offer a part its own palette and finish groups, but Charon Forge
-lets you use them all. A finish index the part's textures have no slice for
-shows its last slice.
-"""
+"""Colouring high res parts: colour and finish are object properties read by
+shared materials, so never copy a mesh or material to recolour."""
 
 import json
 
@@ -33,9 +12,8 @@ from .properties import (COLOURISE_GROUP, LEGACY_FINISH_PROPS, MESH_TAG,
                          PROP_READONLY_MATERIAL, PROP_USER_DATA, SLOT_ORDER,
                          SLOT_PROPS)
 
-# UserData layout - the game's, and the same one the base builder addon's
-# utils/userdata.py preserves: bits 8, 16 and 17 sit inside the colour range
-# but are not colour, and must survive a recolour.
+# UserData layout: palette in the low 24 bits, finish in the top 8; bits 8, 16
+# and 17 aren't colour and must survive a recolour
 COLOUR_BITS = 0xFFFFFF
 RESERVED_BITS = (1 << 8) | (1 << 16) | (1 << 17)
 COLOUR_MASK = COLOUR_BITS & ~RESERVED_BITS
@@ -106,13 +84,8 @@ def is_colourable(bpy_object):
 
 # Resolving ---
 def resolve(object_id, user_data_value):
-    """What a part with this UserData shows in game.
-
-    Returns:
-        tuple: (palette entry, finish index, colour label, finish label), or
-            None when the palette index is not one the game defines - the
-            part is then left untouched rather than painted with nothing.
-    """
+    """(palette, finish index, colour label, finish label) for this UserData,
+    or None when the game has no such palette."""
     indices = decode(user_data_value)
     if indices is None:
         return None
@@ -135,9 +108,7 @@ def apply_palette(bpy_object, palette, finish_index=0):
     for prop in LEGACY_FINISH_PROPS:
         if prop in bpy_object:
             del bpy_object[prop]
-    # Solid shading set to Object colour draws this: the materials are shared,
-    # so only the object can carry a per part viewport colour. Primary is the
-    # body colour, the one that reads as "what colour is this part".
+    # the primary colour, for Solid shading set to Object colour
     bpy_object.color = tuple(palette["p"])
     show_object_colour()
 
@@ -148,11 +119,8 @@ def _write_labels(bpy_object, colour_label, finish_label):
 
 
 def apply(bpy_object, user_data_value, tag=True):
-    """Colour one object from a UserData value. Its UserData is not written.
-
-    Returns:
-        dict: The palette applied, or None (object untouched).
-    """
+    """Colour one object from a UserData value, without writing its UserData.
+    Returns the palette applied, or None."""
     resolved = resolve(object_id_of(bpy_object), user_data_value)
     if resolved is None:
         return None
@@ -165,17 +133,8 @@ def apply(bpy_object, user_data_value, tag=True):
 
 
 def apply_many(pairs, tag=False, update=False, fresh=False):
-    """Colour many (object, UserData) pairs, resolving each distinct
-    (part id, UserData) once - down to the very tuples written, so each
-    object costs only its property writes.
-
-    Args:
-        fresh (bool): The objects were just made, so there are no properties
-            left from the old finish preview to look for.
-
-    Returns:
-        tuple: (number coloured, number whose UserData did not resolve)
-    """
+    """Colour many (object, UserData) pairs, resolving each distinct pair once.
+    Returns (number coloured, number unresolved)."""
     cache = {}
     applied = unresolved = 0
     slots = tuple(zip(SLOT_PROPS, SLOT_ORDER))
@@ -226,14 +185,8 @@ GROUP_CHILD_CACHE_PROP = "child_cache"
 
 
 def sync_group_children(bpy_object):
-    """Write a group's UserData - its master colour - into every part it
-    holds, so each part's own colour agrees with the group's wherever the
-    cache is read (ungrouping, rebuilding, exporting, the part count's
-    neighbours). Anything that isn't a group is left alone.
-
-    Returns:
-        int: How many parts were updated.
-    """
+    """Write a group's UserData into every part in its cache.
+    Returns how many parts were updated."""
     if GROUP_ID_PROP not in bpy_object or GROUP_CHILD_CACHE_PROP not in bpy_object:
         return 0
     master = bpy_object.get(PROP_USER_DATA)
@@ -255,12 +208,7 @@ def sync_group_children(bpy_object):
 
 def recolour(objects, colour_index=None, material_index=None, tag=True):
     """Set a palette and/or finish on objects, writing it into their UserData.
-
-    Every bit of UserData outside the palette and finish fields is kept.
-
-    Returns:
-        tuple: (number coloured, number whose UserData did not resolve)
-    """
+    Returns (number coloured, number unresolved)."""
     pairs = []
     for bpy_object in objects:
         value = encode(bpy_object.get(PROP_USER_DATA, 0), colour_index, material_index)
@@ -271,14 +219,8 @@ def recolour(objects, colour_index=None, material_index=None, tag=True):
 
 
 def recolour_from_user_data(objects, user_data_value, tag=True):
-    """Set objects to an exact UserData value, e.g. copied from another part.
-
-    A value that does not resolve leaves every object untouched rather than
-    stamping an unusable value into their UserData.
-
-    Returns:
-        tuple: (number coloured, number whose UserData did not resolve)
-    """
+    """Set objects to an exact UserData value; one that doesn't resolve leaves
+    them untouched. Returns (number coloured, number unresolved)."""
     objects = list(objects)
     if decode(user_data_value) is None:
         return 0, len(objects)
@@ -300,11 +242,7 @@ def default_user_data(object_id):
 
 
 def clear(bpy_object):
-    """Strip the colour properties, returning an object to its raw textures.
-
-    An absent slot property reads as black inside the node group, so removing
-    them also clears any stale colour rather than leaving it half applied.
-    """
+    """Strip the colour properties, returning an object to its raw textures."""
     for prop in SLOT_PROPS + (PROP_FINISH,):
         if prop in bpy_object:
             del bpy_object[prop]
@@ -314,31 +252,14 @@ def clear(bpy_object):
 
 # Viewport ---
 def show_object_colour():
-    """Make the colour just painted show in Solid shading.
-
-    Run whenever a part is coloured, not only on import: a new file, a new
-    3D view or parts added by the builder's own tools leave Solid shading on
-    Material colour, where every high res part draws its shared material's
-    grey. Only views on Material colour are switched - one the user set to
-    Random, Texture or a single colour is theirs.
-
-    Returns:
-        int: How many viewports were changed.
-    """
+    """Switch Solid views on Material colour to Object colour, so parts show
+    their colour. Returns how many viewports changed."""
     return use_object_colour_in_viewport(only_from="MATERIAL")
 
 
 def use_object_colour_in_viewport(enable=True, only_solid=True, only_from=None):
-    """Point Solid viewport shading at the per object colour.
-
-    High res parts share their materials, so under MATERIAL colour they all
-    draw the same. OBJECT reads object.color instead, which both systems set.
-    Textured and Rendered shading are unaffected. `only_from` leaves views
-    on any other colour type than that one alone.
-
-    Returns:
-        int: How many viewports were changed.
-    """
+    """Point Solid viewport shading at the per object colour; `only_from` limits
+    it to views on that colour type. Returns how many viewports changed."""
     colour_type = "OBJECT" if enable else "MATERIAL"
     changed = 0
     window_manager = getattr(bpy.context, "window_manager", None)

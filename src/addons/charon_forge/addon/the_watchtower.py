@@ -6,9 +6,8 @@ from . import (the_watchtower_lighting_operators,
                the_watchtower_lighting_presentation, the_watchtower_operators,
                the_watchtower_presentation)
 
-# The Watchtower's overlay keeps no state of its own - what it shows, and
-# where, is in the addon preferences (watchtower_*), so it holds across files
-# and restarts. Its Game Lighting keeps scene.charon_lighting (lighting/).
+# the overlay's settings are in the addon preferences (watchtower_*), so they survive restarts;
+# Game Lighting keeps scene.charon_lighting
 
 # the panel before its Advanced sub-panel
 classes = (the_watchtower_operators.classes

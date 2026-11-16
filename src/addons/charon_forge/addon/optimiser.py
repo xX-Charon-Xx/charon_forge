@@ -8,14 +8,7 @@ from ..utils import optimiser_utils
 
 class PriorityPartItem(bpy.types.PropertyGroup):
     """One row of the edit popup's part list.
-
-    A scene level collection rather than reading the saved list straight
-    into the UIList's draw_item: it needs to exist and be populated before
-    invoke_props_dialog is called, from PriorityListEdit.invoke - see
-    Optimiser.refresh_priority_part_list. Populating it from draw() itself
-    would not stick, the same restriction that ruled out a UIList for the
-    priority group list this is nested inside of.
-    """
+    Filled before the popup opens, since filling it from draw() doesn't stick."""
 
     object_id: StringProperty()
     nice_name: StringProperty()
@@ -52,20 +45,13 @@ class Optimiser(bpy.types.PropertyGroup):
     priority_part_list: CollectionProperty(type=PriorityPartItem)
     priority_part_list_index: IntProperty()
 
-    # Which priority group priority_part_list belongs to. Stored so the
-    # UIList's draw_item, which only ever gets (data, item) and not the
-    # operator that opened the popup, can still say which group its remove
-    # button should edit - see optimiser_presentation.CHARON_UL_priority_part_list.
+    # Which group priority_part_list belongs to, so the UIList's remove button
+    # knows which group to edit.
     priority_part_list_group_index: IntProperty()
 
     def refresh_priority_part_list(self, group_index):
         """Rebuild the part list rows for one priority group.
-
-        Staged additions (see priority_staged_additions) are appended after
-        the saved parts - they are only a preview until OK is pressed, and
-        this is the one place that rebuilds priority_part_list from disk, so
-        it is also the one place they would otherwise get lost from view.
-        """
+        Staged additions are appended after the saved parts as a preview."""
         self.priority_part_list.clear()
         self.priority_part_list_group_index = group_index
 
@@ -82,11 +68,8 @@ class Optimiser(bpy.types.PropertyGroup):
             item.object_id = staged.object_id
             item.nice_name = staged.nice_name
 
-    # Search results and staged additions for the edit popup's right hand
-    # column - see PriorityListEdit. Both live here rather than on the
-    # operator instance: the search field's own update callback and the add
-    # button are each a separate call into blender, with no operator
-    # instance in common to hold state on.
+    # Search results and staged additions for the edit popup's right column.
+    # Kept here as the search callback and add button share no operator instance.
     priority_search_query: StringProperty(
         name="Search",
         description="Search for parts to add to this priority group",
@@ -98,18 +81,12 @@ class Optimiser(bpy.types.PropertyGroup):
     priority_search_result_list: CollectionProperty(type=PriorityPartItem)
     priority_search_result_list_index: IntProperty()
 
-    # Staged additions, applied to the saved list only when the edit popup
-    # is confirmed - see PriorityListEdit.execute. Not written to disk on
-    # every add click, the same way the rename field is not.
+    # Staged additions, saved only when the edit popup is confirmed.
     priority_staged_additions: CollectionProperty(type=PriorityPartItem)
 
     def _fill_priority_search_results(self, objects_by_sub_category):
-        """Common tail of refresh_priority_search_results: dedupe and fill.
-
-        Args:
-            objects_by_sub_category (dict): {sub category: {object id: part
-                data}}, ids without the "^" the priority list's own use.
-        """
+        """Fill the search results from {sub category: {object id: part data}},
+        skipping parts already listed or staged."""
         self.priority_search_result_list.clear()
 
         staged_ids = {item.object_id for item in self.priority_staged_additions}
@@ -128,19 +105,8 @@ class Optimiser(bpy.types.PropertyGroup):
                 item.nice_name = part_data.get("name", object_id)
 
     def refresh_priority_search_results(self):
-        """Rebuild the search result rows.
-
-        Typing a query of three characters or more searches every category;
-        an empty query instead browses whatever category/sub-category is
-        selected in the two enums below the search bar, falling back to the
-        first category the same way the asset browser's own list view does -
-        see asset_browser_utils.resolve_sub_categories.
-
-        Runs from the search field's and the two enums' own update callbacks
-        - triggered by editing them, not by a redraw - so writing the
-        collection here is safe the same way AssetBrowser.on_search_entered's
-        write is.
-        """
+        """Rebuild the search results: 3+ characters searches every category,
+        an empty query browses the selected category."""
         from ..utils import asset_browser_utils
 
         asset_browser = bpy.context.scene.nms_asset_browser
@@ -165,14 +131,7 @@ class Optimiser(bpy.types.PropertyGroup):
 
     def stage_priority_part(self, object_id, nice_name):
         """Move one search result into the staged additions list.
-
-        Also appended straight into priority_part_list, so it shows in the
-        left hand list immediately rather than only after OK is pressed -
-        that list is otherwise only rebuilt from disk, which staging does
-        not touch yet. priority_staged_additions stays the source of truth
-        for what execute() actually saves; the row added here is purely the
-        preview of it.
-        """
+        Also added to priority_part_list so it shows on the left straight away."""
         for index, item in enumerate(self.priority_search_result_list):
             if item.object_id == object_id:
                 self.priority_search_result_list.remove(index)
@@ -187,23 +146,14 @@ class Optimiser(bpy.types.PropertyGroup):
         preview.nice_name = nice_name
 
     def clear_priority_search(self):
-        """Reset the right hand column for a freshly opened edit popup.
-
-        Left showing the first category's items rather than empty: an empty
-        priority_search_query means "browse" (see
-        refresh_priority_search_results), and the property assignment below
-        does not reliably re-fire its own update callback when the string is
-        already blank, so the refresh is called directly instead of counting
-        on that.
-        """
+        """Reset the right column for a freshly opened edit popup.
+        Refreshed directly, as clearing an empty query may not fire its update."""
         self.priority_search_query = ""
         self.priority_staged_additions.clear()
         self.refresh_priority_search_results()
 
-    # The priority list itself is not mirrored onto the scene - the panel
-    # reads it straight off disk through optimiser_utils.get_cached_priority_list.
-    # A scene collection needed filling in from outside the draw pass, which
-    # is what kept the old UIList version showing an empty list.
+    # The priority list isn't mirrored onto the scene; the panel reads it from
+    # disk through optimiser_utils.get_cached_priority_list.
     def move_priority_group(self, index, direction):
         """Swap the group at index with its neighbour, then save."""
         priority_list = optimiser_utils.get_priority_list()

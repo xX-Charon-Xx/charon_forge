@@ -1,4 +1,4 @@
-"""Lookup of the fbx part models and presets available on disk."""
+"""Lookup of the part models (.glb or .fbx) and presets available on disk."""
 
 import os
 
@@ -6,10 +6,11 @@ from ..objects import preset
 from ..utils import dictionary
 from . import paths
 
-# {object id: fbx path} for the base builder addon's model folder, built on
-# first use. Kept out of part_reference and looked up lazily because a Builder
-# can be constructed before that addon has finished registering, and a pack
-# folded in at construction time would be missing for the rest of the session.
+# part model files: the base builder addon ships .glb since 7.0.2, .fbx before
+MODEL_EXTENSIONS = (".glb", ".fbx")
+
+# {object id: model path} for the base builder addon's models, built on first use,
+# as that addon may not be registered yet when a Builder is made.
 _host_fbx_index = None
 _host_fbx_root = None
 
@@ -22,7 +23,7 @@ def _index_fbx_files(root):
         if not os.path.isdir(category_path):
             continue
         for part_file in os.listdir(category_path):
-            if part_file.endswith(".fbx"):
+            if part_file.lower().endswith(MODEL_EXTENSIONS):
                 index.setdefault(
                     os.path.splitext(part_file)[0],
                     os.path.join(category_path, part_file),
@@ -31,11 +32,7 @@ def _index_fbx_files(root):
 
 
 def get_host_obj_path(part):
-    """Where the base builder addon keeps the fbx for a part, if it has one.
-
-    Charon Forge ships no fbx library of its own - see paths.MODEL_PATH - so
-    without this every part would come back with no proxy to switch down to.
-    """
+    """Where the base builder addon keeps the fbx for a part, if it has one."""
     global _host_fbx_index, _host_fbx_root
 
     root = paths.get_host_model_path()
@@ -50,18 +47,13 @@ def get_host_obj_path(part):
 
 
 class Catalog(object):
-    """What parts and presets exist, and where their files are.
-
-    Knows nothing about the scene - the Builder that subclasses it does.
-    """
+    """What parts and presets exist, and where their files are."""
 
     MODEL_PATH = paths.MODEL_PATH
     MODS_PATH = paths.MODS_PATH
     PRESET_PATH = paths.PRESET_PATH
 
-    # Read on first use rather than here: dictionary.py's loader now resolves
-    # against the base builder addon at call time, which is not guaranteed to
-    # be loaded yet while blender is still importing addons.
+    # read on first use: the base builder addon may not be loaded yet at import
     _nice_name_dictionary = None
 
     @property
@@ -98,14 +90,7 @@ class Catalog(object):
 
     # Parts ---
     def get_categories(self, pack=None):
-        """Get the list of categories.
-
-        Args:
-            pack (str): The model pack search under for categories.
-                Use this for mod support. Defaults to vanilla 'Parts'.
-        Returns:
-            list: List of folders underneath category path.
-        """
+        """Get the list of categories in a model pack (defaults to 'Parts')."""
         search_path = self.get_model_path_from_pack(pack or "Parts")
         return [
             item
@@ -114,28 +99,17 @@ class Catalog(object):
         ]
 
     def get_objs_from_category(self, category, pack=None):
-        """Get a list of parts belonging to a category.
-
-        Args:
-            category (str): The name of the category.
-            pack (str): The model pack search under for categories.
-                Use this for mod support. Defaults to vanilla 'Parts'.
-        """
+        """Get a list of parts belonging to a category."""
         search_path = self.get_model_path_from_pack(pack or "Parts")
         category_path = os.path.join(search_path, category)
         return sorted(
             part_file
             for part_file in os.listdir(category_path)
-            if part_file.endswith(".fbx")
+            if part_file.lower().endswith(MODEL_EXTENSIONS)
         )
 
     def get_parts_from_category(self, category, pack=None):
-        """Get all the parts from a specific category.
-
-        Args:
-            category (str): The category to search.
-            pack (str): The model pack name. Defaults to vanilla 'Parts'.
-        """
+        """Get all the parts from a specific category."""
         pack = pack or "Parts"
         return sorted(
             item
@@ -145,11 +119,7 @@ class Catalog(object):
 
     def get_obj_path(self, part):
         """Get the path to the fbx file of a part, None if there isn't one.
-
-        Falls back to the base builder addon's library for anything our own
-        model folder and the user's mod packs don't cover, which is almost
-        everything - see get_host_obj_path.
-        """
+        Falls back to the base builder addon's library."""
         entry = self.part_reference.get(part)
         if entry is not None:
             return entry["full_path"]
@@ -164,14 +134,7 @@ class Catalog(object):
         return os.path.dirname(path).split(os.sep)[-1]
 
     def get_model_path_from_pack(self, pack_request):
-        """Given a pack name, return it's associated path.
-
-        Args:
-            pack_request (str): The name of the pack
-
-        Return:
-            str: The model path of the pack.
-        """
+        """Given a pack name, return its model path."""
         for pack_name, pack_path in self.available_packs:
             if pack_name == pack_request:
                 return pack_path
@@ -184,11 +147,7 @@ class Catalog(object):
 
     # Presets ---
     def get_preset_categories(self):
-        """Get the list of preset categories.
-
-        Returns:
-            list: List of folders underneath preset path.
-        """
+        """Get the list of preset categories."""
         return [
             item
             for item in os.listdir(preset.Preset.PRESET_PATH)
@@ -199,11 +158,7 @@ class Catalog(object):
         return self._list_presets(preset.Preset.PRESET_PATH)
 
     def get_presets_from_category(self, category):
-        """Get a list of presets underneath a category.
-
-        Args:
-            category (str): The name of the category.
-        """
+        """Get a list of presets underneath a category."""
         return self._list_presets(os.path.join(preset.Preset.PRESET_PATH, category))
 
     @staticmethod

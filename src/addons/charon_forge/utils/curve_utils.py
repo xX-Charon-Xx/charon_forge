@@ -6,11 +6,8 @@ from mathutils import Vector
 from mathutils.geometry import interpolate_bezier
 
 
-# The density integral below gets walked twice on every curve update - once to
-# work out how many objects fit, once to work out where each one sits. It only
-# depends on the control point weights, so it is cached against them and the
-# second walk is free. Change a weight and the key changes with it, so the
-# cache cannot hand back stale spacing.
+# The density integral is walked twice per curve update, so it is cached
+# against the control point weights.
 _density_cache = {}
 _DENSITY_CACHE_LIMIT = 32
 
@@ -21,12 +18,7 @@ def _clear_density_cache():
 
 
 def build_curve_eval_data(curve_obj, resolution=16):
-    """
-    Creates a high-resolution map of the curve with optimizations:
-    - Vectorized radius/tilt interpolation
-    - Early returns for edge cases
-    - Single pass accumulation
-    """
+    """Builds a high-resolution map of the curve."""
     spline = curve_obj.data.splines[0]
     points = spline.bezier_points if spline.bezier_points else spline.points
     count = len(points)
@@ -49,10 +41,7 @@ def build_curve_eval_data(curve_obj, resolution=16):
             p0 = points[i]
             p1 = points[(i + 1) % count]
             
-            # This used to be cached against id(p0)/id(p1). Those are throwaway
-            # python wrappers, so the ids get recycled and the cache could hand
-            # back another segment's points - and it never noticed a moved
-            # point. The whole call is 0.02 ms, so there was nothing to save.
+            # not cached: python wrapper ids get recycled, and the call is only 0.02 ms
             segment_pts = interpolate_bezier(
                 p0.co, p0.handle_right, p1.handle_left, p1.co, resolution + 1
             )
@@ -92,10 +81,7 @@ def build_curve_eval_data(curve_obj, resolution=16):
 
 
 def get_exact_radius_tilt(eval_data, total_length, factor):
-    """
-    Binary search for exact radius/tilt with guard clauses.
-    Uses Catmull-Rom cubic spline interpolation for smooth transitions.
-    """
+    """Binary search for the radius/tilt, with Catmull-Rom interpolation."""
     data_len = len(eval_data)
     
     # Early returns for edge cases
@@ -165,21 +151,12 @@ def get_exact_radius_tilt(eval_data, total_length, factor):
     return radius, tilt
 
 
-# Blender stores transforms as 32 bit floats, so a value written and read back
-# never quite matches the double it came from. Anything below this is far under
-# what the viewport can show, so it counts as "unchanged".
+# Transforms are stored as 32 bit floats, so changes below this count as "unchanged".
 WRITE_EPSILON = 1e-6
 
 
 def build_curve_context(curve_obj):
-    """The curve's own values, read once instead of once per child.
-
-    Every one of these is a property lookup on the curve object, and a curve
-    carrying a hundred objects used to do a hundred of each.
-
-    Returns:
-        tuple: (parent_selected, curve scale multiplier, radius multiplier)
-    """
+    """The curve's own values, read once instead of once per child."""
     return (
         curve_obj.get("parent_selected", True),
         curve_obj.scale.x / curve_obj.get("initial_curve_scale", 1.0),
@@ -188,9 +165,7 @@ def build_curve_context(curve_obj):
 
 
 def update_obj_transformations(obj, curve_obj, eval_data, total_length, curve_context=None):
-    """
-    Optimized transformation update with early returns and inline calculations.
-    """
+    """Transform update with early returns and inline calculations."""
     factor = obj.get("curve_factor")
     update_object_factor(obj , curve_obj, factor)
     
@@ -220,9 +195,8 @@ def update_obj_transformations(obj, curve_obj, eval_data, total_length, curve_co
     if scale < 0.00001:
         scale = 0.00001
     
-    # Writing a transform tags the object for re-evaluation whether or not the
-    # number actually moved, so only write when it did. Sliding the curve around
-    # or nudging the radius leaves most of these exactly where they were.
+    # writing a transform tags the object for re-evaluation even when unchanged,
+    # so only write when the value actually moved
     tolerance = WRITE_EPSILON * max(1.0, abs(scale))
     current_scale = obj.scale
     if (abs(current_scale.x - scale) > tolerance
@@ -236,19 +210,15 @@ def update_object_factor(obj , curve_obj, factor, constraint = None):
         return
     if constraint is None:
         constraint = next(( c for c in obj.constraints if c.type == 'FOLLOW_PATH' and c.target == curve_obj), None)
-    # Setting offset_factor tags the constraint for re-evaluation even when the
-    # value is identical. At 60 objects that alone was 3.2 ms of every update,
-    # and most updates - moving the curve, dragging the radius - do not slide a
-    # single object along the path.
+    # setting offset_factor re-evaluates the constraint even when unchanged
+    # (3.2 ms per update at 60 objects), so only set it when it moved
     if constraint and abs(constraint.offset_factor - factor) > WRITE_EPSILON:
         constraint.offset_factor = factor
     if obj.get("curve_factor") != factor:
         obj["curve_factor"] = factor
 
 def normalise_curve_scale(curve_obj):
-    """
-    Optimized scale normalization with early exit and vectorized operations.
-    """
+    """Scale normalization with early exit and vectorized operations."""
     if curve_obj.type != 'CURVE':
         print(f"'{curve_obj.name}' is not a curve object.")
         return
@@ -309,14 +279,7 @@ def get_control_points(curve_obj):
 
 
 def get_nearest_control_point_factor(control_points, target_factor):
-    """
-    Returns the curve factor (0.0 to 1.0) and the index of the nearest 
-    control point relative to a target factor.
-    
-    :param control_points: List of Vector, tuple/list coords, or Blender point objects
-    :param target_factor: Float between 0.0 and 1.0
-    :return: Tuple (nearest_factor: float, nearest_index: int)
-    """
+    """The (factor, index) of the control point nearest to target_factor."""
     if not control_points:
         return 0.0, 0
     if len(control_points) == 1:
@@ -356,14 +319,7 @@ def get_nearest_control_point_factor(control_points, target_factor):
 
 
 def get_segment_midpoint_factor(control_points, target_factor):
-    """
-    Finds which control point segment the target_factor falls into and 
-    returns the factor representing the exact midpoint of that segment.
-    
-    :param control_points: List of Vector, tuple/list coords, or Blender point objects
-    :param target_factor: Float between 0.0 and 1.0
-    :return: Float factor between 0.0 and 1.0 (midpoint of the segment)
-    """
+    """The factor at the midpoint of the control point segment target_factor is in."""
     if not control_points or len(control_points) < 2:
         return 0.0
 
@@ -448,19 +404,8 @@ def factor_from_density(cumulative_density, sample_factors , target):
     return f0 + (f1 - f0) * t
 
 def build_density_samples(curve, sample_count):
-    """Sample the weight curve and integrate it.
-
-    Both questions a curve update asks - how many objects fit, and where each
-    one sits - come out of this one integral, and it used to be walked twice.
-    It only depends on the control point weights and how finely we sample, so
-    those are the whole cache key: change a weight and the old entry simply
-    stops being looked up.
-
-    The returned lists are shared, so treat them as read only.
-
-    Returns:
-        tuple: (sample factors, cumulative density, total density)
-    """
+    """Sample the weight curve and integrate it: (factors, cumulative density, total).
+    Cached on the control point weights; the returned lists are shared, so read only."""
     density_map = tuple(get_density_map(curve))
     cache_key = (sample_count, density_map)
     cached = _density_cache.get(cache_key)
@@ -469,10 +414,8 @@ def build_density_samples(curve, sample_count):
 
     sample_factors = [i / (sample_count - 1) for i in range(sample_count)]
 
-    # Integrate density along the curve. The old version asked for the density
-    # of every sample twice - once as the right end of a segment, once as the
-    # left end of the next - so the previous value is carried forward instead.
-    # The arithmetic is left exactly as it was so the spacing cannot drift.
+    # carry the previous sample's density forward instead of asking for it twice;
+    # the arithmetic is unchanged so the spacing cannot drift
     cumulative_density = [0.0]
     total_density = 0.0
     previous_density = get_density(density_map, sample_factors[0])
@@ -534,10 +477,7 @@ def half_the_weight_points(curve):
         
 
 def evaluate_curve_density(curve_obj, t):
-    """
-    Evaluates density at curve factor t (0.0 to 1.0).
-    Extract this from your existing smoothstep / weight math in get_total_curve_density().
-    """
+    """Density at curve factor t (0.0 to 1.0)."""
     # Retrieve curve density bounds / parameters from object
     edge0 = curve_obj.get("density_start", 0.0)
     edge1 = curve_obj.get("density_end", 1.0)

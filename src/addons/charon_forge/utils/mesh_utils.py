@@ -1,5 +1,18 @@
+import bpy
 import numpy as np
 from mathutils import Vector
+
+
+def import_model(path):
+    """Import a .glb or .fbx part model; a glb object is set back to XYZ rotation."""
+    objects_before = set(bpy.data.objects)
+    if path.lower().endswith(".glb"):
+        bpy.ops.import_scene.gltf(filepath=path)
+    else:
+        bpy.ops.import_scene.fbx(filepath=path)
+    for item in bpy.data.objects:
+        if item not in objects_before:
+            item.rotation_mode = "XYZ"
 
 
 def mesh_bounds(mesh):

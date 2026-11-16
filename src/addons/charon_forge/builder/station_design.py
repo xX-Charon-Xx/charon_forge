@@ -1,22 +1,5 @@
 """Designing a space station's exterior by hand instead of from a seed.
-
-The game builds a station's exterior by walking its descriptor tree
-(utils/seed_utils.py): a body (_TYPE_), then each group under it - what sits
-on top, underneath, at the arms' ends, a ring - each option placing modules
-around the body. Here every one of those choices is a setting, read out of
-the same tree so it can't go out of step with the data, and handed to
-seed_utils as forced picks: the station is exactly what was chosen.
-
-The settings live on the scene (scene.charon_station_design), so a design
-is still there the next time the station popup opens. What the tree leaves
-to chance inside a module, and the hull's colours, come from the chosen
-hull colour preset's seed.
-
-A station built from a galactic address opens here too, the design set to
-its picks (load_address): what the tree leaves to chance then stays the
-address's, the hull can keep its system's own colours (SYSTEM_HULL), and
-once it differs from what the address builds the popup offers a reset.
-"""
+Each choice in the game's descriptor tree is a setting, handed to seed_utils as forced picks."""
 
 import json
 
@@ -35,9 +18,7 @@ PROP_DESIGNED = "charon_station_designed"
 # on the same collections: what they were built from (design_key), so the
 # popup reopens on that design
 PROP_DESIGN_KEY = "charon_station_design_key"
-# on the same collections of a station built from a galactic address: its
-# system seed, kept while the station is changed in the Design tab - and
-# whether it now differs from what the address builds, which offers a reset
+# on an address-built station: its system seed, kept while the design changes
 PROP_ADDRESS = "charon_station_address"
 PROP_MODIFIED = "charon_station_modified"
 
@@ -109,9 +90,7 @@ class _Group:
         self.nothing = seen_nothing
 
     def item_for(self, chosen):
-        """The item standing for this group's pick in a set of picked
-        options - its None for any of its nothing options - or None if the
-        group wasn't picked from."""
+        """The item for this group's pick in a set of picked options, or None if not picked from."""
         picked = next((option for option in self.options
                        if seed_utils._chosen_name(option) in chosen), None)
         if picked is None:
@@ -223,9 +202,7 @@ def load_key(design, key):
 
 
 def load_address(design, config):
-    """Set the design to the station a galactic address builds (a
-    seed_utils.station_config()): its picks, its system's own hull colours
-    and the hull details the game shows by default."""
+    """Set the design to the station a galactic address builds: its picks and hull colours."""
     chosen = set(config["choices"])
     design.address = "0x%X" % config["seed"]
     set_choice(design, "body", next((body for body, _label, _groups in bodies()
@@ -256,9 +233,7 @@ def address_seed(design):
 
 
 def shape_seed(design):
-    """The seed a build draws what the design leaves to chance from: the
-    address's, so what wasn't changed stays as it was - else the hull
-    preset's."""
+    """The seed for what the design leaves to chance: the address's, else the hull preset's."""
     address = address_seed(design)
     return address if address is not None else hull_seed(_preset(design))
 
@@ -303,9 +278,7 @@ def station_modified():
 
 
 def is_modified(design, config, palette, use_exterior):
-    """Whether a build of the design (its station_config(), interior
-    palette) differs from what its address builds - by its shape, any
-    module, or its colours."""
+    """Whether the design builds something different from what its address builds."""
     address = seed_utils.station_config(address_seed(design))
 
     def shape(built):
@@ -358,9 +331,8 @@ _address_items = [None, []]
 
 
 def _hull_items_of(self, context):
-    """The hull colour presets - and a design changing a station built from
-    an address, that system's own colours. Blender needs the list kept alive
-    while it shows it."""
+    """The hull colour presets, plus the address's own system colours.
+    Blender needs the list kept alive."""
     global _hull_items
     if not _hull_items:
         _hull_items = [_hull_item(str(index), str(index + 1), hull_seed(index), index,
