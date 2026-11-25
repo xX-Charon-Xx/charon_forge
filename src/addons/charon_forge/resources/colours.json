@@ -13540,6 +13540,140 @@
    "emissive": [],
    "lights": []
   },
+  "BASE_HULK_01": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "BASE_HULK_02": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [
+    {
+     "material": "scrollingLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/CORVETTE/BUTTONLIGHTSCROLLING.DDS"
+    }
+   ],
+   "lights": []
+  },
+  "BASE_HULK_03": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [
+    {
+     "material": "scrollingLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/CORVETTE/BUTTONLIGHTSCROLLING.DDS"
+    }
+   ],
+   "lights": []
+  },
+  "BASE_HULK_04": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [
+    {
+     "material": "scrollingLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/CORVETTE/BUTTONLIGHTSCROLLING.DDS"
+    }
+   ],
+   "lights": []
+  },
+  "BASE_HULK_05": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [
+    {
+     "material": "scrollingLightMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/CORVETTE/BUTTONLIGHTSCROLLING.DDS"
+    }
+   ],
+   "lights": []
+  },
+  "BASE_HULK_06": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
   "BASE_HYDROPOD": {
    "palette_group": "LEGACY",
    "station_palette_group": null,
@@ -14480,6 +14614,295 @@
      "in_effect": false
     }
    ]
+  },
+  "BASE_SLIMEP_01": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "BASE_SLIMEP_02": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": [
+    {
+     "name": "SlimeLightA",
+     "position": [
+      0.0,
+      0.6031,
+      0.0
+     ],
+     "matrix": [
+      -0.10196,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.10196,
+      0.0,
+      0.60308,
+      -0.0,
+      0.0,
+      -0.10196,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.941119,
+      0.446,
+      1.0
+     ],
+     "intensity": 10.0,
+     "radius": 5.477226,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "BASE_SLIMEP_03": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": [
+    {
+     "name": "LightLOD0",
+     "position": [
+      0.034,
+      1.5716,
+      0.0
+     ],
+     "matrix": [
+      -0.15609,
+      0.0,
+      0.0,
+      0.03401,
+      0.0,
+      0.15609,
+      0.0,
+      1.57157,
+      -0.0,
+      0.0,
+      -0.15609,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.755869,
+      0.656
+     ],
+     "intensity": 5.0,
+     "radius": 5.477226,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "LightLOD1",
+     "position": [
+      0.034,
+      1.5716,
+      0.0
+     ],
+     "matrix": [
+      -0.15609,
+      0.0,
+      0.0,
+      0.03401,
+      0.0,
+      0.15609,
+      0.0,
+      1.57157,
+      -0.0,
+      0.0,
+      -0.15609,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.755869,
+      0.656
+     ],
+     "intensity": 3.0,
+     "radius": 5.477226,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "BASE_SLIMEP_04": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": [
+    {
+     "name": "SlimeLight",
+     "position": [
+      0.0,
+      0.7584,
+      0.0
+     ],
+     "matrix": [
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.75844,
+      -0.0,
+      0.0,
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.22,
+      1.0,
+      0.295478
+     ],
+     "intensity": 3.0,
+     "radius": 5.477226,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "BASE_SLIMEP_05": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": [
+    {
+     "name": "SlimeLight1",
+     "position": [
+      0.0,
+      0.5798,
+      0.0
+     ],
+     "matrix": [
+      -0.09264,
+      -0.02493,
+      -0.0662,
+      0.0,
+      -0.06692,
+      0.06621,
+      0.06872,
+      0.57985,
+      0.02291,
+      0.09263,
+      -0.06694,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.773553,
+      1.0,
+      0.22
+     ],
+     "intensity": 2.0,
+     "radius": 5.477226,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "BASE_SLIMEP_06": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY12",
+   "default_palette_index": 11,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
   },
   "BASE_SPRIGBUSH": {
    "palette_group": "LEGACY",
@@ -44501,10 +44924,180 @@
     "BIGGS_C",
     "BIGGS_D"
    ],
-   "finish_textures": [],
-   "finish_visible": false,
-   "emissive": [],
-   "lights": []
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "BiggsLightsMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "ThrusterLight",
+     "position": [
+      -2.7496,
+      1.8186,
+      -2.2026
+     ],
+     "matrix": [
+      0.96593,
+      0.0,
+      0.25882,
+      -2.74957,
+      -0.25882,
+      0.0,
+      0.96593,
+      1.8186,
+      0.0,
+      -1.0,
+      0.0,
+      -2.20263,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 0.04,
+     "radius": 2.0,
+     "fov": 70.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": true
+    },
+    {
+     "name": "ThrusterLight",
+     "position": [
+      2.7952,
+      1.8118,
+      -2.1988
+     ],
+     "matrix": [
+      0.96593,
+      -0.0,
+      -0.25882,
+      2.79521,
+      0.25882,
+      0.0,
+      0.96593,
+      1.81179,
+      0.0,
+      -1.0,
+      0.0,
+      -2.1988,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 0.04,
+     "radius": 2.0,
+     "fov": 70.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": true
+    },
+    {
+     "name": "ThrusterLight",
+     "position": [
+      2.7952,
+      1.8118,
+      2.5164
+     ],
+     "matrix": [
+      0.96593,
+      -0.0,
+      -0.25882,
+      2.79521,
+      0.25882,
+      0.0,
+      0.96593,
+      1.81179,
+      0.0,
+      -1.0,
+      0.0,
+      2.51641,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 0.04,
+     "radius": 2.0,
+     "fov": 70.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": true
+    },
+    {
+     "name": "ThrusterLight",
+     "position": [
+      -2.7496,
+      1.8186,
+      2.5126
+     ],
+     "matrix": [
+      0.96593,
+      0.0,
+      0.25882,
+      -2.74957,
+      -0.25882,
+      0.0,
+      0.96593,
+      1.8186,
+      0.0,
+      -1.0,
+      0.0,
+      2.51259,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 0.04,
+     "radius": 2.0,
+     "fov": 70.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": true
+    }
+   ]
   },
   "B_MAG_1X1": {
    "palette_group": "BIGGS",
@@ -67883,10 +68476,102 @@
     "BIGGS_C",
     "BIGGS_D"
    ],
-   "finish_textures": [],
-   "finish_visible": false,
-   "emissive": [],
-   "lights": []
+   "finish_textures": [
+    "TEXTURES/MULTITEXTURES/BIGGS/BIGGSTRIM"
+   ],
+   "finish_visible": true,
+   "emissive": [
+    {
+     "material": "BiggsLightsMat86",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/PLANETS/BIOMES/COMMON/BUILDINGS/SHARED/BUILDABLEBUILDINGS/INTERIORFREIGHTERLIGHTS.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "EngineMeshLight",
+     "position": [
+      1.4965,
+      -0.6741,
+      -2.5712
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      1.49646,
+      0.0,
+      1.0,
+      0.0,
+      -0.67414,
+      0.0,
+      0.0,
+      1.0,
+      -2.57118,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 0.04,
+     "radius": 1.319508,
+     "fov": 90.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": true
+    },
+    {
+     "name": "EngineMeshLight",
+     "position": [
+      -1.4952,
+      -0.6741,
+      -2.5712
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      -1.49518,
+      0.0,
+      1.0,
+      0.0,
+      -0.67414,
+      0.0,
+      0.0,
+      1.0,
+      -2.57118,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "intensity": 0.04,
+     "radius": 1.319508,
+     "fov": 90.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": true
+    }
+   ]
   },
   "B_TRU_J": {
    "palette_group": "BIGGS",
@@ -87045,6 +87730,36 @@
    "emissive": [],
    "lights": []
   },
+  "DECAL_ATLASRISE": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_BEYOND": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
   "DECAL_BIOME3": {
    "palette_group": null,
    "station_palette_group": null,
@@ -87195,7 +87910,37 @@
    "emissive": [],
    "lights": []
   },
+  "DECAL_FLAMEBUG": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
   "DECAL_FPLANET2": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_FRONTIERS": {
    "palette_group": null,
    "station_palette_group": null,
    "default_palette": "LEGACY1",
@@ -87270,6 +88015,36 @@
    "emissive": [],
    "lights": []
   },
+  "DECAL_LAUNCH": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_NEXT": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
   "DECAL_NEXUSM": {
    "palette_group": null,
    "station_palette_group": null,
@@ -87330,6 +88105,21 @@
    "emissive": [],
    "lights": []
   },
+  "DECAL_ORIGINS": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
   "DECAL_PEEP": {
    "palette_group": "LEGACY",
    "station_palette_group": null,
@@ -87351,6 +88141,21 @@
    "lights": []
   },
   "DECAL_PIRATESYS": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_POOP": {
    "palette_group": null,
    "station_palette_group": null,
    "default_palette": "LEGACY1",
@@ -87485,7 +88290,82 @@
    "emissive": [],
    "lights": []
   },
+  "DECAL_SWA_ATLAS": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_SWA_CORE": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_SWA_DRONE": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_SWA_SOUL": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
   "DECAL_TOSTARS": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_UDDER": {
    "palette_group": null,
    "station_palette_group": null,
    "default_palette": "LEGACY1",
@@ -87531,6 +88411,81 @@
    "lights": []
   },
   "DECAL_UWTREAS": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_VOYAGERS": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_WASTE_EXP": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_WASTE_RAD": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_WASTE_TOX": {
+   "palette_group": null,
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": null,
+   "can_change_finish": false,
+   "default_finish": null,
+   "default_finish_index": 0,
+   "finishes": [],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [],
+   "lights": []
+  },
+  "DECAL_WORLDS": {
    "palette_group": null,
    "station_palette_group": null,
    "default_palette": "LEGACY1",
@@ -141796,6 +142751,1320 @@
       0.569,
       1.0,
       0.958294
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "SWARM_TROPHY_G": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": "ALL",
+   "can_change_finish": false,
+   "default_finish": "MAT_DEFAULT",
+   "default_finish_index": 0,
+   "finishes": [
+    "MAT_DEFAULT",
+    "MAT_RUSTED",
+    "MAT_STONE",
+    "MAT_WOODEN"
+   ],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [
+    {
+     "material": "GreenTeamStaticMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/NEXUS/GREENGLOWFADE.DDS"
+    },
+    {
+     "material": "HoloRingGreen_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/NEXUS/SWARMTROPHY/HOLORINGGREEN.BASE.DDS"
+    },
+    {
+     "material": "HoloRingGreenGlow_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/NEXUS/SWARMTROPHY/HOLORINGGREENGLOW.BASE.DDS"
+    },
+    {
+     "material": "GreenTeamPanningMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/NEXUS/GREENGLOWFADE.DDS"
+    },
+    {
+     "material": "GreenTeamShimmerMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/NEXUS/SCROLLINGEFFECTGREEN.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "DroneLightGreen",
+     "position": [
+      0.0,
+      3.2026,
+      4.4079
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      3.20258,
+      0.0,
+      0.0,
+      0.4,
+      4.40787,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.086,
+      1.0,
+      0.144968
+     ],
+     "intensity": 180.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight11",
+     "position": [
+      0.0,
+      1.8303,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      1.83025,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight10",
+     "position": [
+      0.0,
+      4.5711,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      4.57106,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight9",
+     "position": [
+      1.3619,
+      3.2177,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      1.36187,
+      0.0,
+      0.4,
+      0.0,
+      3.21766,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight8",
+     "position": [
+      -1.3619,
+      3.2169,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      -1.36194,
+      0.0,
+      0.4,
+      0.0,
+      3.21687,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "DroneLightGreen",
+     "position": [
+      0.0,
+      3.2026,
+      4.4079
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      3.20258,
+      0.0,
+      0.0,
+      0.4,
+      4.40787,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.086,
+      1.0,
+      0.144968
+     ],
+     "intensity": 40.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight11",
+     "position": [
+      0.0,
+      1.8303,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      1.83025,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight10",
+     "position": [
+      0.0,
+      4.5711,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      4.57106,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight9",
+     "position": [
+      1.3619,
+      3.2177,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      1.36187,
+      0.0,
+      0.4,
+      0.0,
+      3.21766,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight8",
+     "position": [
+      -1.3619,
+      3.2169,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      -1.36194,
+      0.0,
+      0.4,
+      0.0,
+      3.21687,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "DroneLightGreen",
+     "position": [
+      0.0,
+      3.2026,
+      4.4079
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      3.20258,
+      0.0,
+      0.0,
+      0.4,
+      4.40787,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.086,
+      1.0,
+      0.144968
+     ],
+     "intensity": 40.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight11",
+     "position": [
+      0.0,
+      1.8303,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      1.83025,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight10",
+     "position": [
+      0.0,
+      4.5711,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      4.57106,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight9",
+     "position": [
+      1.3619,
+      3.2177,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      1.36187,
+      0.0,
+      0.4,
+      0.0,
+      3.21766,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight8",
+     "position": [
+      -1.3619,
+      3.2169,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      -1.36194,
+      0.0,
+      0.4,
+      0.0,
+      3.21687,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      0.569,
+      1.0,
+      0.65242
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    }
+   ]
+  },
+  "SWARM_TROPHY_R": {
+   "palette_group": "LEGACY",
+   "station_palette_group": null,
+   "default_palette": "LEGACY1",
+   "default_palette_index": 0,
+   "finish_group": "ALL",
+   "can_change_finish": false,
+   "default_finish": "MAT_DEFAULT",
+   "default_finish_index": 0,
+   "finishes": [
+    "MAT_DEFAULT",
+    "MAT_RUSTED",
+    "MAT_STONE",
+    "MAT_WOODEN"
+   ],
+   "finish_textures": [],
+   "finish_visible": false,
+   "emissive": [
+    {
+     "material": "RedTeamStaticMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/NEXUS/REDGLOWFADE.DDS"
+    },
+    {
+     "material": "HoloRingRed_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/NEXUS/SWARMTROPHY/HOLORINGRED.BASE.DDS"
+    },
+    {
+     "material": "HoloRingGlowRed_Mat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/NEXUS/SWARMTROPHY/HOLORINGREDGLOW.BASE.DDS"
+    },
+    {
+     "material": "RedTeamPanningMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/NEXUS/REDGLOWFADE.DDS"
+    },
+    {
+     "material": "RedTeamShimmerMat",
+     "colour": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "texture": "TEXTURES/SPACE/NEXUS/SCROLLINGEFFECTRED.DDS"
+    }
+   ],
+   "lights": [
+    {
+     "name": "DroneLightRed",
+     "position": [
+      0.0,
+      3.2026,
+      4.4079
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      3.20258,
+      0.0,
+      0.0,
+      0.4,
+      4.40787,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.086,
+      0.086
+     ],
+     "intensity": 40.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight7",
+     "position": [
+      0.0,
+      1.8303,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      1.83025,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight6",
+     "position": [
+      0.0,
+      4.5711,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      4.57106,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight5",
+     "position": [
+      1.3619,
+      3.2177,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      1.36187,
+      0.0,
+      0.4,
+      0.0,
+      3.21766,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight4",
+     "position": [
+      -1.3619,
+      3.2169,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      -1.36194,
+      0.0,
+      0.4,
+      0.0,
+      3.21687,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "DroneLightRed",
+     "position": [
+      0.0,
+      3.2026,
+      4.4079
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      3.20258,
+      0.0,
+      0.0,
+      0.4,
+      4.40787,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.086,
+      0.086
+     ],
+     "intensity": 40.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight7",
+     "position": [
+      0.0,
+      1.8303,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      1.83025,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight6",
+     "position": [
+      0.0,
+      4.5711,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      4.57106,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight5",
+     "position": [
+      1.3619,
+      3.2177,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      1.36187,
+      0.0,
+      0.4,
+      0.0,
+      3.21766,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight4",
+     "position": [
+      -1.3619,
+      3.2169,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      -1.36194,
+      0.0,
+      0.4,
+      0.0,
+      3.21687,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "DroneLightRed",
+     "position": [
+      0.0,
+      3.2026,
+      4.4079
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      3.20258,
+      0.0,
+      0.0,
+      0.4,
+      4.40787,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.086,
+      0.086
+     ],
+     "intensity": 40.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight7",
+     "position": [
+      0.0,
+      1.8303,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      1.83025,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight6",
+     "position": [
+      0.0,
+      4.5711,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4,
+      0.0,
+      4.57106,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight5",
+     "position": [
+      1.3619,
+      3.2177,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      1.36187,
+      0.0,
+      0.4,
+      0.0,
+      3.21766,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
+     ],
+     "intensity": 4.0,
+     "radius": 10.954452,
+     "fov": 360.0,
+     "falloff": 2.0,
+     "volumetric": 0.0,
+     "cookie": -1,
+     "layers": 3,
+     "in_effect": false
+    },
+    {
+     "name": "ElecLight4",
+     "position": [
+      -1.3619,
+      3.2169,
+      2.0238
+     ],
+     "matrix": [
+      0.4,
+      0.0,
+      0.0,
+      -1.36194,
+      0.0,
+      0.4,
+      0.0,
+      3.21687,
+      0.0,
+      0.0,
+      0.4,
+      2.02377,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "colour": [
+      1.0,
+      0.569,
+      0.569
      ],
      "intensity": 4.0,
      "radius": 10.954452,

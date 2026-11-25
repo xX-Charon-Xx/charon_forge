@@ -4,8 +4,8 @@
  "generated": "2026-10-28",
  "library": "..",
  "counts": {
-  "parts": 2475,
-  "visible": 1665,
+  "parts": 2509,
+  "visible": 1699,
   "fossils": 143
  },
  "categories": [
@@ -102,6 +102,10 @@
     {
      "subcategory": "Statues",
      "parts": 28
+    },
+    {
+     "subcategory": "Deep-Space Salvage",
+     "parts": 12
     }
    ]
   },
@@ -110,7 +114,7 @@
    "subcategories": [
     {
      "subcategory": "Structural Adornments",
-     "parts": 66
+     "parts": 68
     },
     {
      "subcategory": "Construction Parts",
@@ -186,7 +190,7 @@
    "subcategories": [
     {
      "subcategory": "Decals",
-     "parts": 95
+     "parts": 113
     },
     {
      "subcategory": "Posters",
@@ -199,7 +203,7 @@
    "subcategories": [
     {
      "subcategory": "Access and Docking",
-     "parts": 13
+     "parts": 14
     },
     {
      "subcategory": "Cockpits and Habitation Modules",
@@ -235,7 +239,7 @@
     },
     {
      "subcategory": "Thrusters",
-     "parts": 8
+     "parts": 9
     },
     {
      "subcategory": "Utility Modules",
@@ -3491,6 +3495,252 @@
     "source": "carried"
    }
   },
+  "BASE_HULK_01": {
+   "name": "POLYHEDRAL POWER CELL",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_HULK_01.blend",
+   "icon": "icons/BASE_HULK_01.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_HULK_01",
+    "name": "POLYHEDRAL POWER CELL",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
+   }
+  },
+  "BASE_HULK_02": {
+   "name": "INCINERATOR",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_HULK_02.blend",
+   "icon": "icons/BASE_HULK_02.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_HULK_02",
+    "name": "INCINERATOR",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 1
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
+   }
+  },
+  "BASE_HULK_03": {
+   "name": "DATA MATRIX",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_HULK_03.blend",
+   "icon": "icons/BASE_HULK_03.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_HULK_03",
+    "name": "DATA MATRIX",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 1
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
+   }
+  },
+  "BASE_HULK_04": {
+   "name": "CENTRIFUGAL WEIGHT",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_HULK_04.blend",
+   "icon": "icons/BASE_HULK_04.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_HULK_04",
+    "name": "CENTRIFUGAL WEIGHT",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 1
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
+   }
+  },
+  "BASE_HULK_05": {
+   "name": "COMMUNICATIONS SCANNER",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_HULK_05.blend",
+   "icon": "icons/BASE_HULK_05.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_HULK_05",
+    "name": "COMMUNICATIONS SCANNER",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 1
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
+   }
+  },
+  "BASE_HULK_06": {
+   "name": "MULTI-CHANNEL DISH",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_HULK_06.blend",
+   "icon": "icons/BASE_HULK_06.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_HULK_06",
+    "name": "MULTI-CHANNEL DISH",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
+   }
+  },
   "BASE_HYDROPOD": {
    "name": "CALCISHROOM",
    "category": "Exotic Decorations",
@@ -4875,6 +5125,252 @@
    },
    "source": {
     "source": "carried"
+   }
+  },
+  "BASE_SLIMEP_01": {
+   "name": "FLESH POLYP",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_SLIMEP_01.blend",
+   "icon": "icons/BASE_SLIMEP_01.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_SLIMEP_01",
+    "name": "FLESH POLYP",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
+   }
+  },
+  "BASE_SLIMEP_02": {
+   "name": "HONEYCOMB SINEW",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_SLIMEP_02.blend",
+   "icon": "icons/BASE_SLIMEP_02.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_SLIMEP_02",
+    "name": "HONEYCOMB SINEW",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 1,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
+   }
+  },
+  "BASE_SLIMEP_03": {
+   "name": "WET NODULE",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_SLIMEP_03.blend",
+   "icon": "icons/BASE_SLIMEP_03.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_SLIMEP_03",
+    "name": "WET NODULE",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 2,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
+   }
+  },
+  "BASE_SLIMEP_04": {
+   "name": "STAR PATHOGEN",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_SLIMEP_04.blend",
+   "icon": "icons/BASE_SLIMEP_04.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_SLIMEP_04",
+    "name": "STAR PATHOGEN",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 1,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
+   }
+  },
+  "BASE_SLIMEP_05": {
+   "name": "INFECTION PUFFS",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_SLIMEP_05.blend",
+   "icon": "icons/BASE_SLIMEP_05.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_SLIMEP_05",
+    "name": "INFECTION PUFFS",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 1,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
+   }
+  },
+  "BASE_SLIMEP_06": {
+   "name": "MEAT TUMOUR",
+   "category": "Exotic Decorations",
+   "subcategory": "Deep-Space Salvage",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/BASE_SLIMEP_06.blend",
+   "icon": "icons/BASE_SLIMEP_06.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "EXOTICS",
+      "DECOSPACEPOI"
+     ]
+    ],
+    "product": "BASE_SLIMEP_06",
+    "name": "MEAT TUMOUR",
+    "palette": "LEGACY12"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY12",
+    "default_palette_index": 11,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "game-group-names",
+    "name": "game"
    }
   },
   "BASE_SPRIGBUSH": {
@@ -18616,6 +19112,52 @@
    },
    "source": {
     "source": "carried"
+   }
+  },
+  "B_LND_D": {
+   "name": "ROVER LANDING THRUSTERS",
+   "category": "Corvette",
+   "subcategory": "Access and Docking",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/B_LND_D.blend",
+   "icon": "icons/B_LND_D.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "BIGGS_CORE",
+      "BIGGS_EXTRA"
+     ]
+    ],
+    "product": "B_LND_D",
+    "name": "ROVER LANDING THRUSTERS",
+    "palette": "BIGGS0"
+   },
+   "colour": {
+    "palette_group": "BIGGS",
+    "station_palette_group": null,
+    "default_palette": "BIGGS0",
+    "default_palette_index": 99,
+    "finish_group": "BIGGS",
+    "can_change_finish": true,
+    "finishes": [
+     "Gloss Finish",
+     "Inverted Gloss Finish",
+     "Weathered Finish",
+     "Metallic Finish"
+    ],
+    "default_finish_index": 0,
+    "finish_visible": true,
+    "lights": 4,
+    "emissive_materials": 1
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
    }
   },
   "B_MAG_1X1": {
@@ -50188,6 +50730,52 @@
     "source": "carried"
    }
   },
+  "B_TRU_I": {
+   "name": "ARACHNID THRUSTER",
+   "category": "Corvette",
+   "subcategory": "Thrusters",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/B_TRU_I.blend",
+   "icon": "icons/B_TRU_I.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "BIGGS_CORE",
+      "BIGGS_ENGINES"
+     ]
+    ],
+    "product": "B_TRU_I",
+    "name": "ARACHNID THRUSTER",
+    "palette": "BIGGS0"
+   },
+   "colour": {
+    "palette_group": "BIGGS",
+    "station_palette_group": null,
+    "default_palette": "BIGGS0",
+    "default_palette_index": 99,
+    "finish_group": "BIGGS",
+    "can_change_finish": true,
+    "finishes": [
+     "Gloss Finish",
+     "Inverted Gloss Finish",
+     "Weathered Finish",
+     "Metallic Finish"
+    ],
+    "default_finish_index": 0,
+    "finish_visible": true,
+    "lights": 2,
+    "emissive_materials": 1
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
   "B_TRU_J": {
    "name": "RAZOR JET",
    "category": "Corvette",
@@ -61034,6 +61622,88 @@
     "source": "carried"
    }
   },
+  "DECAL_ATLASRISE": {
+   "name": "ATLAS RISES DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_ATLASRISE.blend",
+   "icon": "icons/DECAL_ATLASRISE.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_ATLASRISE",
+    "name": "ATLAS RISES DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
+  "DECAL_BEYOND": {
+   "name": "BEYOND DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_BEYOND.blend",
+   "icon": "icons/DECAL_BEYOND.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_BEYOND",
+    "name": "BEYOND DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
   "DECAL_BIOME3": {
    "name": "BLUE STARGAZE DECAL",
    "category": "Wall Art",
@@ -61424,6 +62094,47 @@
     "source": "carried"
    }
   },
+  "DECAL_FLAMEBUG": {
+   "name": "VANGUARD DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_FLAMEBUG.blend",
+   "icon": "icons/DECAL_FLAMEBUG.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_FLAMEBUG",
+    "name": "VANGUARD DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
   "DECAL_FPLANET2": {
    "name": "AWAKENINGS DECAL",
    "category": "Wall Art",
@@ -61461,6 +62172,47 @@
    },
    "source": {
     "source": "carried"
+   }
+  },
+  "DECAL_FRONTIERS": {
+   "name": "FRONTIERS DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_FRONTIERS.blend",
+   "icon": "icons/DECAL_FRONTIERS.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_FRONTIERS",
+    "name": "FRONTIERS DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
    }
   },
   "DECAL_GALCORE": {
@@ -61619,6 +62371,88 @@
     "source": "carried"
    }
   },
+  "DECAL_LAUNCH": {
+   "name": "LAUNCH DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_LAUNCH.blend",
+   "icon": "icons/DECAL_LAUNCH.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_LAUNCH",
+    "name": "LAUNCH DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
+  "DECAL_NEXT": {
+   "name": "NEXT DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_NEXT.blend",
+   "icon": "icons/DECAL_NEXT.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_NEXT",
+    "name": "NEXT DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
   "DECAL_NEXUSM": {
    "name": "SPACE ANOMALY DECAL",
    "category": "Wall Art",
@@ -61775,6 +62609,47 @@
     "source": "carried"
    }
   },
+  "DECAL_ORIGINS": {
+   "name": "ORIGINS DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_ORIGINS.blend",
+   "icon": "icons/DECAL_ORIGINS.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_ORIGINS",
+    "name": "ORIGINS DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
   "DECAL_PEEP": {
    "name": "PEEPING FAUNA DECAL",
    "category": "Wall Art",
@@ -61856,6 +62731,47 @@
    },
    "source": {
     "source": "carried"
+   }
+  },
+  "DECAL_POOP": {
+   "name": "WELL-FED CREATURES DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_POOP.blend",
+   "icon": "icons/DECAL_POOP.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_POOP",
+    "name": "WELL-FED CREATURES DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
    }
   },
   "DECAL_QIT": {
@@ -62170,6 +63086,170 @@
     "source": "carried"
    }
   },
+  "DECAL_SWA_ATLAS": {
+   "name": "CHROMATIC DISTORTION DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_SWA_ATLAS.blend",
+   "icon": "icons/DECAL_SWA_ATLAS.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_SWA_ATLAS",
+    "name": "CHROMATIC DISTORTION DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
+  "DECAL_SWA_CORE": {
+   "name": "PRISMATIC CORE DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_SWA_CORE.blend",
+   "icon": "icons/DECAL_SWA_CORE.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_SWA_CORE",
+    "name": "PRISMATIC CORE DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
+  "DECAL_SWA_DRONE": {
+   "name": "SWARMER DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_SWA_DRONE.blend",
+   "icon": "icons/DECAL_SWA_DRONE.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_SWA_DRONE",
+    "name": "SWARMER DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
+  "DECAL_SWA_SOUL": {
+   "name": "SOUL FRAGMENTS DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_SWA_SOUL.blend",
+   "icon": "icons/DECAL_SWA_SOUL.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_SWA_SOUL",
+    "name": "SOUL FRAGMENTS DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
   "DECAL_TOSTARS": {
    "name": "TO THE STARS DECAL",
    "category": "Wall Art",
@@ -62207,6 +63287,47 @@
    },
    "source": {
     "source": "carried"
+   }
+  },
+  "DECAL_UDDER": {
+   "name": "UDDER DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_UDDER.blend",
+   "icon": "icons/DECAL_UDDER.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_UDDER",
+    "name": "UDDER DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
    }
   },
   "DECAL_UFT": {
@@ -62324,6 +63445,211 @@
    },
    "source": {
     "source": "carried"
+   }
+  },
+  "DECAL_VOYAGERS": {
+   "name": "VOYAGERS DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_VOYAGERS.blend",
+   "icon": "icons/DECAL_VOYAGERS.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_VOYAGERS",
+    "name": "VOYAGERS DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
+  "DECAL_WASTE_EXP": {
+   "name": "EXPLOSIVE WASTE DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_WASTE_EXP.blend",
+   "icon": "icons/DECAL_WASTE_EXP.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_WASTE_EXP",
+    "name": "EXPLOSIVE WASTE DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
+  "DECAL_WASTE_RAD": {
+   "name": "RADIOACTIVE WASTE DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_WASTE_RAD.blend",
+   "icon": "icons/DECAL_WASTE_RAD.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_WASTE_RAD",
+    "name": "RADIOACTIVE WASTE DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
+  "DECAL_WASTE_TOX": {
+   "name": "TOXIC WASTE DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_WASTE_TOX.blend",
+   "icon": "icons/DECAL_WASTE_TOX.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_WASTE_TOX",
+    "name": "TOXIC WASTE DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
+  "DECAL_WORLDS": {
+   "name": "WORLDS DECAL",
+   "category": "Wall Art",
+   "subcategory": "Decals",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/DECAL_WORLDS.blend",
+   "icon": "icons/DECAL_WORLDS.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "WALL_ART",
+      "WALLDECALS"
+     ]
+    ],
+    "product": "DECAL_WORLDS",
+    "name": "WORLDS DECAL",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": null,
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": null,
+    "can_change_finish": false,
+    "finishes": [],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 0,
+    "emissive_materials": 0
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
    }
   },
   "DECAL_WORM_P1": {
@@ -96131,6 +97457,98 @@
    },
    "source": {
     "source": "carried"
+   }
+  },
+  "SWARM_TROPHY_G": {
+   "name": "PRISMATIC CORE (GREEN)",
+   "category": "Decoration",
+   "subcategory": "Structural Adornments",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/SWARM_TROPHY_G.blend",
+   "icon": "icons/SWARM_TROPHY_G.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "DECORATION",
+      "DECOEXTERIOR"
+     ]
+    ],
+    "product": "SWARM_TROPHY_G",
+    "name": "PRISMATIC CORE",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": "ALL",
+    "can_change_finish": false,
+    "finishes": [
+     "Concrete",
+     "Rust",
+     "Stone",
+     "Wood"
+    ],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 15,
+    "emissive_materials": 5
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
+   }
+  },
+  "SWARM_TROPHY_R": {
+   "name": "PRISMATIC CORE (RED)",
+   "category": "Decoration",
+   "subcategory": "Structural Adornments",
+   "variant_of": null,
+   "show_in_drawer": true,
+   "asset": "assets/SWARM_TROPHY_R.blend",
+   "icon": "icons/SWARM_TROPHY_R.png",
+   "kind": "object",
+   "include_message": false,
+   "fossil_part": false,
+   "game": {
+    "groups": [
+     [
+      "DECORATION",
+      "DECOEXTERIOR"
+     ]
+    ],
+    "product": "SWARM_TROPHY_R",
+    "name": "PRISMATIC CORE",
+    "palette": "LEGACY1"
+   },
+   "colour": {
+    "palette_group": "LEGACY",
+    "station_palette_group": null,
+    "default_palette": "LEGACY1",
+    "default_palette_index": 0,
+    "finish_group": "ALL",
+    "can_change_finish": false,
+    "finishes": [
+     "Concrete",
+     "Rust",
+     "Stone",
+     "Wood"
+    ],
+    "default_finish_index": 0,
+    "finish_visible": false,
+    "lights": 15,
+    "emissive_materials": 5
+   },
+   "source": {
+    "source": "derived",
+    "category": "seed-mapping",
+    "name": "game"
    }
   },
   "S_ANTENNA0": {
